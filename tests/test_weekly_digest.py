@@ -317,6 +317,20 @@ def test_collect_merged_prs_follows_file_pagination():
     assert len(prs[0].files) == 101
 
 
+def test_collect_merged_prs_tolerates_null_user():
+    pr = pr_json(7, "2026-09-15T10:00:00Z")
+    pr["user"] = None
+    routes = {
+        list_path(1): [pr],
+        files_path(7): [file_json("README.md")],
+        reviews_path(7): [],
+    }
+
+    prs = wd.collect_merged_prs(fake_api(routes), REPO, START, END)
+
+    assert prs[0].author == "ghost"
+
+
 def test_make_github_api_sends_auth_and_parses_json(monkeypatch):
     seen = {}
 

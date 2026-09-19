@@ -206,7 +206,7 @@ def collect_merged_prs(
                 number=number,
                 title=pr["title"],
                 url=pr["html_url"],
-                author=pr["user"]["login"],
+                author=(pr.get("user") or {}).get("login", "ghost"),
                 approvers=approvers_from_reviews(reviews),
                 merged_at=parse_ts(pr["merged_at"]),
                 files=tuple(
