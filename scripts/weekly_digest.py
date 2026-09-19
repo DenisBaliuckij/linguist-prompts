@@ -117,3 +117,103 @@ def load_mail_config(env: Mapping[str, str]) -> MailConfig:
         sender=sender,
         recipients=recipients,
     )
+
+
+@dataclass(frozen=True)
+class FileChange:
+    path: str
+    status: str  # "added" | "modified" | "removed" | "renamed"
+
+
+@dataclass(frozen=True)
+class MergedPR:
+    number: int
+    title: str
+    url: str
+    author: str
+    approvers: tuple[str, ...]
+    merged_at: datetime
+    files: tuple[FileChange, ...]
+
+
+Api = Callable[[str], Any]
+
+
+def parse_ts(value: str) -> datetime:
+    return datetime.fromisoformat(value.replace("Z", "+00:00"))
+
+
+def normalize_status(raw: str) -> str:
+    return raw if raw in ("added", "removed", "renamed") else "modified"
+
+
+def make_github_api(token: str) -> Api:
+    def api(path: str) -> Any:
+        request = urllib.request.Request(
+            GITHUB_API + path,
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Accept": "application/vnd.github+json",
+                "X-GitHub-Api-Version": "2022-11-28",
+                "User-Agent": "linguist-prompts-weekly-digest",
+            },
+        )
+        with urllib.request.urlopen(request, timeout=30) as response:
+            return json.load(response)
+
+    return api
+
+
+def paginate(api: Api, path: str) -> list[Any]:
+    items: list[Any] = []
+    page = 1
+    while True:
+        batch = api(f"{path}?per_page=100&page={page}")
+        items.extend(batch)
+        if len(batch) < 100:
+            return items
+        page += 1
+
+
+def collect_merged_prs(
+    api: Api, repo: str, start: datetime, end: datetime
+) -> list[MergedPR]:
+    """Return pull requests merged in [start, end), oldest merge first."""
+    raw_prs: list[dict[str, Any]] = []
+    page = 1
+    while True:
+        batch = api(
+            f"/repos/{repo}/pulls?state=closed&sort=updated&direction=desc"
+            f"&per_page=100&page={page}"
+        )
+        for pr in batch:
+            merged_at = pr.get("merged_at")
+            if merged_at and start <= parse_ts(merged_at) < end:
+                raw_prs.append(pr)
+        # merged_at <= updated_at and the list is sorted by updated_at
+        # descending, so once a page ends before `start` nothing later matches.
+        if len(batch) < 100 or parse_ts(batch[-1]["updated_at"]) < start:
+            break
+        page += 1
+
+    result: list[MergedPR] = []
+    for pr in raw_prs:
+        number = pr["number"]
+        files = paginate(api, f"/repos/{repo}/pulls/{number}/files")
+        reviews = paginate(api, f"/repos/{repo}/pulls/{number}/reviews")
+        result.append(
+            MergedPR(
+                number=number,
+                title=pr["title"],
+                url=pr["html_url"],
+                author=pr["user"]["login"],
+                approvers=approvers_from_reviews(reviews),
+                merged_at=parse_ts(pr["merged_at"]),
+                files=tuple(
+                    FileChange(f["filename"], normalize_status(f["status"]))
+                    for f in files
+                ),
+            )
+        )
+    result.sort(key=lambda p: p.merged_at)
+    return result
