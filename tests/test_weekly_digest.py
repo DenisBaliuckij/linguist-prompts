@@ -342,3 +342,162 @@ def test_make_github_api_sends_auth_and_parses_json(monkeypatch):
     assert seen["url"] == "https://api.github.com/repos/a/b/pulls"
     assert seen["auth"] == "Bearer tok"
     assert seen["timeout"] == 30
+
+
+# --- rendering -------------------------------------------------------------
+
+
+def make_pr(
+    number=12,
+    title="Добавить примеры падежей",
+    author="alice",
+    approvers=("bob",),
+    merged_at=None,
+    files=None,
+):
+    return wd.MergedPR(
+        number=number,
+        title=title,
+        url=f"https://github.com/{REPO}/pull/{number}",
+        author=author,
+        approvers=tuple(approvers),
+        merged_at=merged_at or dt(2026, 9, 15, 10, 0),
+        files=tuple(
+            files
+            if files is not None
+            else [wd.FileChange("languages/russian/grammar/prompts.md", "added")]
+        ),
+    )
+
+
+@pytest.mark.parametrize(
+    "n, expected",
+    [
+        (0, "many"),
+        (1, "one"),
+        (2, "few"),
+        (3, "few"),
+        (4, "few"),
+        (5, "many"),
+        (11, "many"),
+        (12, "many"),
+        (14, "many"),
+        (20, "many"),
+        (21, "one"),
+        (22, "few"),
+        (111, "many"),
+    ],
+)
+def test_plural_ru(n, expected):
+    assert wd.plural_ru(n, "one", "few", "many") == expected
+
+
+def test_digest_subject():
+    assert (
+        wd.digest_subject(REPO, START, END)
+        == "Сводка linguist-prompts: 13.09.2026–20.09.2026"
+    )
+
+
+def test_group_prs_orders_groups_and_splits_files_per_group():
+    pr = make_pr(
+        files=[
+            wd.FileChange("languages/russian/grammar/prompts.md", "modified"),
+            wd.FileChange("languages/english/idioms/prompts.md", "added"),
+            wd.FileChange("README.md", "modified"),
+        ]
+    )
+
+    groups = wd.group_prs([pr])
+
+    assert [key for key, _ in groups] == [
+        "english/idioms",
+        "russian/grammar",
+        wd.OTHER_GROUP,
+    ]
+    first_pr, first_files = groups[0][1][0]
+    assert first_pr is pr
+    assert [f.path for f in first_files] == ["languages/english/idioms/prompts.md"]
+
+
+def test_group_prs_puts_pr_without_files_into_other_group():
+    pr = make_pr(files=[])
+    assert wd.group_prs([pr]) == [(wd.OTHER_GROUP, [(pr, ())])]
+
+
+def test_render_text_normal_week():
+    text = wd.render_text([make_pr()], START, END, REPO)
+
+    assert "Сводка linguist-prompts" in text
+    assert "Период: 13.09.2026 18:00 – 20.09.2026 18:00 (UTC)" in text
+    assert "Репозиторий: https://github.com/acme/linguist-prompts" in text
+    assert "Всего: 1 слитый PR, 1 участник, 1 изменённый файл." in text
+    assert "== russian/grammar ==" in text
+    assert f"• #12 Добавить примеры падежей — https://github.com/{REPO}/pull/12" in text
+    assert "Автор: @alice · Одобрили: @bob · Слит: 15.09.2026" in text
+    assert "– добавлен: languages/russian/grammar/prompts.md" in text
+
+
+def test_render_text_multiple_groups_in_order_with_other_last():
+    pr = make_pr(
+        files=[
+            wd.FileChange("languages/russian/grammar/prompts.md", "modified"),
+            wd.FileChange("languages/english/idioms/prompts.md", "added"),
+            wd.FileChange("README.md", "modified"),
+        ]
+    )
+
+    text = wd.render_text([pr], START, END, REPO)
+
+    assert (
+        text.index("== english/idioms ==")
+        < text.index("== russian/grammar ==")
+        < text.index("== Прочее ==")
+    )
+    assert "Всего: 1 слитый PR, 1 участник, 3 изменённых файла." in text
+
+
+def test_render_text_totals_count_unique_authors_and_files():
+    prs = [make_pr(number=1), make_pr(number=2)]  # same author, same file
+    text = wd.render_text(prs, START, END, REPO)
+    assert "Всего: 2 слитых PR, 1 участник, 1 изменённый файл." in text
+
+
+def test_render_text_without_approvers_shows_dash():
+    text = wd.render_text([make_pr(approvers=())], START, END, REPO)
+    assert "Одобрили: —" in text
+
+
+def test_render_text_pr_without_files_is_still_listed():
+    text = wd.render_text([make_pr(files=[])], START, END, REPO)
+    assert "== Прочее ==" in text
+    assert "• #12" in text
+
+
+def test_render_text_empty_week():
+    text = wd.render_text([], START, END, REPO)
+    assert "За неделю изменений нет." in text
+    assert "Период: 13.09.2026 18:00 – 20.09.2026 18:00 (UTC)" in text
+    assert "Репозиторий: https://github.com/acme/linguist-prompts" in text
+    assert "Всего" not in text
+
+
+def test_render_html_normal_week():
+    out = wd.render_html([make_pr()], START, END, REPO)
+    assert "<h3>russian/grammar</h3>" in out
+    assert f'<a href="https://github.com/{REPO}/pull/12">' in out
+    assert "<code>languages/russian/grammar/prompts.md</code>" in out
+    assert "Автор: @alice" in out
+
+
+def test_render_html_escapes_untrusted_text():
+    out = wd.render_html(
+        [make_pr(title="<script>alert(1)</script> & co")], START, END, REPO
+    )
+    assert "&lt;script&gt;alert(1)&lt;/script&gt; &amp; co" in out
+    assert "<script>" not in out
+
+
+def test_render_html_empty_week():
+    out = wd.render_html([], START, END, REPO)
+    assert "За неделю изменений нет." in out

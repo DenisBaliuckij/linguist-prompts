@@ -217,3 +217,130 @@ def collect_merged_prs(
         )
     result.sort(key=lambda p: p.merged_at)
     return result
+
+
+STATUS_LABELS = {
+    "added": "добавлен",
+    "modified": "изменён",
+    "removed": "удалён",
+    "renamed": "переименован",
+}
+
+GroupEntry = tuple[MergedPR, tuple[FileChange, ...]]
+
+
+def plural_ru(n: int, one: str, few: str, many: str) -> str:
+    n10, n100 = n % 10, n % 100
+    if n10 == 1 and n100 != 11:
+        return one
+    if 2 <= n10 <= 4 and not 12 <= n100 <= 14:
+        return few
+    return many
+
+
+def _fmt_date(value: datetime) -> str:
+    return value.strftime("%d.%m.%Y")
+
+
+def _fmt_datetime(value: datetime) -> str:
+    return value.strftime("%d.%m.%Y %H:%M")
+
+
+def _repo_name(repo: str) -> str:
+    return repo.split("/")[-1]
+
+
+def digest_subject(repo: str, start: datetime, end: datetime) -> str:
+    return f"Сводка {_repo_name(repo)}: {_fmt_date(start)}–{_fmt_date(end)}"
+
+
+def group_prs(prs: list[MergedPR]) -> list[tuple[str, list[GroupEntry]]]:
+    groups: dict[str, list[GroupEntry]] = {}
+    for pr in prs:
+        by_group: dict[str, list[FileChange]] = {}
+        for change in pr.files:
+            by_group.setdefault(group_key(change.path), []).append(change)
+        if not by_group:
+            by_group[OTHER_GROUP] = []
+        for key, changes in by_group.items():
+            groups.setdefault(key, []).append((pr, tuple(changes)))
+    ordered = sorted(key for key in groups if key != OTHER_GROUP)
+    if OTHER_GROUP in groups:
+        ordered.append(OTHER_GROUP)
+    return [(key, groups[key]) for key in ordered]
+
+
+def _totals_sentence(prs: list[MergedPR]) -> str:
+    n_prs = len(prs)
+    n_authors = len({pr.author for pr in prs})
+    n_files = len({change.path for pr in prs for change in pr.files})
+    return (
+        f"Всего: {n_prs} {plural_ru(n_prs, 'слитый PR', 'слитых PR', 'слитых PR')}, "
+        f"{n_authors} {plural_ru(n_authors, 'участник', 'участника', 'участников')}, "
+        f"{n_files} "
+        f"{plural_ru(n_files, 'изменённый файл', 'изменённых файла', 'изменённых файлов')}."
+    )
+
+
+def _approvers_text(pr: MergedPR) -> str:
+    return ", ".join(f"@{login}" for login in pr.approvers) or "—"
+
+
+def render_text(
+    prs: list[MergedPR], start: datetime, end: datetime, repo: str
+) -> str:
+    lines = [
+        f"Сводка {_repo_name(repo)}",
+        f"Период: {_fmt_datetime(start)} – {_fmt_datetime(end)} (UTC)",
+        f"Репозиторий: https://github.com/{repo}",
+        "",
+    ]
+    if not prs:
+        lines.append("За неделю изменений нет.")
+        return "\n".join(lines) + "\n"
+    lines.append(_totals_sentence(prs))
+    for key, entries in group_prs(prs):
+        lines += ["", f"== {key} =="]
+        for pr, changes in entries:
+            lines.append(f"• #{pr.number} {pr.title} — {pr.url}")
+            lines.append(
+                f"  Автор: @{pr.author} · Одобрили: {_approvers_text(pr)}"
+                f" · Слит: {_fmt_date(pr.merged_at)}"
+            )
+            for change in changes:
+                lines.append(f"  – {STATUS_LABELS[change.status]}: {change.path}")
+    return "\n".join(lines) + "\n"
+
+
+def render_html(
+    prs: list[MergedPR], start: datetime, end: datetime, repo: str
+) -> str:
+    esc = html.escape
+    repo_url = f"https://github.com/{repo}"
+    parts = [
+        '<html><body style="font-family: sans-serif">',
+        f"<h2>Сводка {esc(_repo_name(repo))}</h2>",
+        f"<p>Период: {_fmt_datetime(start)} – {_fmt_datetime(end)} (UTC)<br>"
+        f'Репозиторий: <a href="{esc(repo_url)}">{esc(repo_url)}</a></p>',
+    ]
+    if not prs:
+        parts.append("<p>За неделю изменений нет.</p>")
+    else:
+        parts.append(f"<p>{esc(_totals_sentence(prs))}</p>")
+        for key, entries in group_prs(prs):
+            parts.append(f"<h3>{esc(key)}</h3><ul>")
+            for pr, changes in entries:
+                parts.append(
+                    f'<li><a href="{esc(pr.url)}">#{pr.number} {esc(pr.title)}</a><br>'
+                    f"Автор: @{esc(pr.author)} · Одобрили: {esc(_approvers_text(pr))}"
+                    f" · Слит: {_fmt_date(pr.merged_at)}<ul>"
+                )
+                for change in changes:
+                    parts.append(
+                        f"<li>{STATUS_LABELS[change.status]}: "
+                        f"<code>{esc(change.path)}</code></li>"
+                    )
+                parts.append("</ul></li>")
+            parts.append("</ul>")
+    parts.append("</body></html>")
+    return "\n".join(parts) + "\n"
