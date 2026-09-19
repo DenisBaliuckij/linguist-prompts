@@ -708,3 +708,20 @@ def test_main_requires_github_repository():
 def test_main_requires_github_token_when_no_api_is_injected():
     with pytest.raises(wd.ConfigError, match="GITHUB_TOKEN"):
         wd.main(["--dry-run"], env={"GITHUB_REPOSITORY": REPO})
+
+
+# --- workflow invariants ---------------------------------------------------
+
+WORKFLOW = Path(__file__).resolve().parent.parent / ".github" / "workflows" / "weekly-digest.yml"
+
+
+def test_workflow_keeps_schedule_environment_and_least_privilege():
+    text = WORKFLOW.read_text(encoding="utf-8")
+    assert 'cron: "0 18 * * 0"' in text
+    assert "environment: digest" in text
+    assert "contents: read" in text
+    assert "pull-requests: read" in text
+    assert "--dry-run" in text
+    # Secrets must never be reachable from PR-triggered runs.
+    assert "pull_request_target" not in text
+    assert "pull_request:" not in text
