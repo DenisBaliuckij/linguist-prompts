@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Working directory: `C:\Repositories\linguist-prompts` (Git Bash: `/c/Repositories/linguist-prompts`), local branch `main`. The folder `.git.corrupt-backup/` is excluded locally — never `git add -A` / `git add .`; add files by explicit path.
+- Working directory: the repository root, local branch `main`. Never `git add -A` / `git add .`; add files by explicit path.
 - Runtime code is Python stdlib only — no third-party runtime dependencies. pytest is for tests only.
 - Digest window: half-open `[start, end)`; `end` = most recent Sunday 18:00 UTC that is ≤ now; `start` = `end` − 7 days.
 - Email subject: `Сводка linguist-prompts: DD.MM.YYYY–DD.MM.YYYY`. Empty week body: «За неделю изменений нет». All email text is Russian; README.md and CONTRIBUTING.md are Russian (README has a one-line English summary on top).
@@ -27,6 +27,16 @@
   Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
   Claude-Session: https://claude.ai/code/session_01F5B6asG3P3jhnXALys1Z6x
   ```
+
+## Execution notes
+
+Where the shipped code intentionally differs from the task text below. The shipped code and tests are authoritative wherever they differ from the snippets in this plan.
+
+- Task 4 gained a test that hostile values are escaped in every HTML field (`test_render_html_escapes_every_untrusted_field`).
+- Task 5's `send_email` is stricter than the code shown: partial recipient refusals raise, and smtplib refusal exceptions are re-raised as address-free `RuntimeError`s, with tests.
+- Task 6's guard test is the structure-aware `workflow_problems()` helper with mutation cases (not the substring test shown), and the checkout step uses `persist-credentials: false`.
+- Appended test blocks are separated from earlier tests by two blank lines.
+- `collect_merged_prs` falls back to the author `ghost` when a PR's user is null.
 
 ## File Structure
 
@@ -72,7 +82,6 @@ __pycache__/
 
 Run:
 ```bash
-cd /c/Repositories/linguist-prompts
 gh api licenses/cc-by-4.0 --jq .body > LICENSE
 head -3 LICENSE
 ```
@@ -203,7 +212,6 @@ languages/
 
 Run:
 ```bash
-cd /c/Repositories/linguist-prompts
 git add .gitattributes .gitignore LICENSE README.md CONTRIBUTING.md .github/PULL_REQUEST_TEMPLATE.md languages
 git status -s
 ```
@@ -421,7 +429,7 @@ def test_load_mail_config_rejects_empty_recipient_list():
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
-Run: `cd /c/Repositories/linguist-prompts && python -m pytest -q`
+Run: `python -m pytest -q`
 Expected: collection error `ModuleNotFoundError: No module named 'weekly_digest'`. (If `No module named pytest`, run `python -m pip install pytest` first.)
 
 - [ ] **Step 3: Write the module header and helpers**
@@ -1484,7 +1492,6 @@ Expected: all tests pass.
 
 Run:
 ```bash
-cd /c/Repositories/linguist-prompts
 env -u GITHUB_REPOSITORY python scripts/weekly_digest.py --dry-run; echo "exit=$?"
 ```
 Expected: stderr `error: Missing required environment variable: GITHUB_REPOSITORY` and `exit=2`.
@@ -1628,13 +1635,12 @@ EOF
 
 Run:
 ```bash
-cd /c/Repositories/linguist-prompts
 python -m pytest -q
 git status -sb
 git log --oneline
 gh auth status
 ```
-Expected: all tests pass; branch `main`, clean tree; 8 commits (spec, plan, Tasks 1–6); `gh` logged in as `DenisBaliuckij`. Check the `Token scopes` line of `gh auth status` contains `workflow`. If it does not, tell the owner to run `! gh auth refresh -s workflow` (pushing a workflow file is rejected without it).
+Expected: all tests pass; branch `main`, clean tree; `git log --oneline` lists only this plan's commits (spec, plan, Tasks 1–6 with their fix-round commits, and the pre-publish fix commits) and nothing unrelated; `gh` logged in as `DenisBaliuckij`. Check the `Token scopes` line of `gh auth status` contains `workflow`. If it does not, tell the owner to run `! gh auth refresh -s workflow` (pushing a workflow file is rejected without it).
 
 - [ ] **Step 2: Create the public repo and push (ask the owner first)**
 
@@ -1642,11 +1648,13 @@ Run:
 ```bash
 gh repo create DenisBaliuckij/linguist-prompts --public --source . --remote origin \
   --description "Промпты для лингвистов: совместная работа по языкам и темам" --push
-gh repo view DenisBaliuckij/linguist-prompts --json visibility,defaultBranchRef --jq '.visibility + " " + .defaultBranchRef.name'
+gh repo view DenisBaliuckij/linguist-prompts --json visibility,defaultBranchRef,description --jq '.visibility + " " + .defaultBranchRef.name + " " + .description'
 ```
-Expected: `PUBLIC main`.
+Expected: `PUBLIC main Промпты для лингвистов: совместная работа по языкам и темам` (this also confirms the Cyrillic description survived).
 
 - [ ] **Step 3: Create Environment `digest`, restricted to `main`**
+
+Run the PUT and the POST back-to-back — between them the environment has a custom policy with no branches, so nothing may deploy.
 
 Run:
 ```bash
@@ -1680,18 +1688,33 @@ Expected: the six names `MAIL_FROM MAIL_TO SMTP_HOST SMTP_PASSWORD SMTP_PORT SMT
 
 - [ ] **Step 5: Dry-run dispatch**
 
+Define the helper and call it in the same shell invocation (shell state does not persist between tool calls). It remembers the newest run id, dispatches, waits for a run with a different id to appear, then watches exactly that run — a plain `gh run list --limit 1` could watch a stale or already completed run instead.
+
 Run:
 ```bash
-gh workflow run weekly-digest.yml -R DenisBaliuckij/linguist-prompts --ref main -f dry_run=true
-sleep 5
-gh run list -R DenisBaliuckij/linguist-prompts --workflow weekly-digest.yml --limit 1
+dispatch_and_watch() {  # usage: dispatch_and_watch true|false
+  local repo=DenisBaliuckij/linguist-prompts before id i
+  before=$(gh run list -R "$repo" --workflow weekly-digest.yml --limit 1 --json databaseId --jq '.[0].databaseId // 0')
+  gh workflow run weekly-digest.yml -R "$repo" --ref main -f dry_run="$1" || return 1
+  id=0
+  for i in $(seq 1 30); do
+    id=$(gh run list -R "$repo" --workflow weekly-digest.yml --limit 1 --json databaseId --jq '.[0].databaseId // 0')
+    if [ "$id" != "0" ] && [ "$id" != "$before" ]; then break; fi
+    sleep 4
+  done
+  if [ "$id" = "0" ] || [ "$id" = "$before" ]; then echo "new run not found" >&2; return 1; fi
+  echo "run id: $id"
+  gh run watch -R "$repo" "$id" --exit-status
+}
+dispatch_and_watch true
 ```
-Then watch it: `gh run watch -R DenisBaliuckij/linguist-prompts $(gh run list -R DenisBaliuckij/linguist-prompts --workflow weekly-digest.yml --limit 1 --json databaseId --jq '.[0].databaseId') --exit-status`
-Expected: run succeeds. Then `gh run view <id> -R DenisBaliuckij/linguist-prompts --log | grep -A6 "dry run"` shows `[dry run] Subject: Сводка linguist-prompts: …` and «За неделю изменений нет.» (the repo has no merged PRs yet).
+If `gh workflow run` reports that it cannot find the workflow right after the first push, wait a minute and retry.
+
+Expected: run succeeds. Then `gh run view <id> -R DenisBaliuckij/linguist-prompts --log | grep -A6 "dry run"` (use the run id printed by the helper) shows `[dry run] Subject: Сводка linguist-prompts: …` and «За неделю изменений нет.» (the repo has no merged PRs yet).
 
 - [ ] **Step 6: Real dispatch (sends the "no changes" email)**
 
-Run the same dispatch with `-f dry_run=false` and watch it as in Step 5.
+Define the same `dispatch_and_watch` helper again at the top of the shell call (as in Step 5), then run `dispatch_and_watch false`.
 Expected: run succeeds; log ends with `Sent: Сводка linguist-prompts: … -> N recipient(s)`. Ask the owner to confirm the email arrived at **every** recipient (check spam folders for every recipient), that the subject and Russian text are correct, and that the HTML renders.
 
 - [ ] **Step 7: Apply merge settings and branch protection (last — irreversible for pushes)**
@@ -1727,11 +1750,11 @@ Ask the owner for the GitHub logins of the linguists, then for each login:
 ```bash
 gh api -X PUT repos/DenisBaliuckij/linguist-prompts/collaborators/<login> -f permission=push
 ```
-Expected: HTTP 201 (invitation sent). Tell the owner:
+Expected: HTTP 201 for a new invitation, 204 (empty body) if the user is already a collaborator. Tell the owner:
 - The first PR they open will be blocked from merging until a second collaborator approves it (admin enforcement, no bypass).
 - To change the workflow or script before a second collaborator exists, temporarily run `gh api -X DELETE repos/DenisBaliuckij/linguist-prompts/branches/main/protection/enforce_admins`, make the change, then re-enable with `gh api -X POST repos/DenisBaliuckij/linguist-prompts/branches/main/protection/enforce_admins`.
 - After the first real merged PR, run a `dry_run=true` dispatch to eyeball a non-empty digest before the first Sunday send.
-- Delete the leftover `C:\Repositories\linguist-prompts\.git.corrupt-backup` folder when convenient.
+- The 60-day inactivity timer for scheduled workflows starts at publication, and a cron run that GitHub drops is not re-sent.
 
 ---
 
