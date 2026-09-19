@@ -540,3 +540,123 @@ def test_render_html_escapes_every_untrusted_field():
     assert "<y>" not in out, "Raw <y> found"
     assert "<z>" not in out, "Raw <z> found"
     assert '"><img' not in out, 'Raw "><img found'
+
+
+# --- message, SMTP and CLI -------------------------------------------------
+
+
+class FakeSMTP:
+    instances: list[FakeSMTP] = []
+
+    def __init__(self, host, port, timeout=None):
+        self.host = host
+        self.port = port
+        self.timeout = timeout
+        self.logged_in = None
+        self.sent = None
+        FakeSMTP.instances.append(self)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+    def login(self, user, password):
+        self.logged_in = (user, password)
+
+    def send_message(self, msg, from_addr=None, to_addrs=None):
+        self.sent = (msg, from_addr, to_addrs)
+
+
+@pytest.fixture
+def smtp(monkeypatch):
+    FakeSMTP.instances = []
+    monkeypatch.setattr(wd.smtplib, "SMTP_SSL", FakeSMTP)
+    return FakeSMTP
+
+
+def test_build_message_has_headers_and_both_bodies():
+    msg = wd.build_message(
+        [make_pr()], START, END, REPO, "bot@yandex.ru", ("a@x.ru", "b@y.ru")
+    )
+
+    assert msg["Subject"] == "Сводка linguist-prompts: 13.09.2026–20.09.2026"
+    assert msg["From"] == "bot@yandex.ru"
+    assert msg["To"] == "a@x.ru, b@y.ru"
+    plain = msg.get_body(preferencelist=("plain",)).get_content()
+    html_body = msg.get_body(preferencelist=("html",)).get_content()
+    assert "== russian/grammar ==" in plain
+    assert "<h3>russian/grammar</h3>" in html_body
+
+
+def test_send_email_logs_in_over_ssl_and_sends_to_all_recipients(smtp):
+    cfg = wd.load_mail_config(GOOD_ENV)
+    msg = wd.build_message([], START, END, REPO, cfg.sender, cfg.recipients)
+
+    wd.send_email(msg, cfg)
+
+    [conn] = smtp.instances
+    assert (conn.host, conn.port) == ("smtp.yandex.ru", 465)
+    assert conn.logged_in == ("bot@yandex.ru", "app-password")
+    sent_msg, from_addr, to_addrs = conn.sent
+    assert sent_msg is msg
+    assert from_addr == "bot@yandex.ru"
+    assert list(to_addrs) == ["a@x.ru", "b@y.ru"]
+
+
+def test_parse_now_defaults_to_current_utc_time():
+    before = datetime.now(UTC)
+    result = wd.parse_now(None)
+    assert before <= result <= datetime.now(UTC)
+
+
+def test_parse_now_treats_naive_timestamps_as_utc():
+    assert wd.parse_now("2026-09-20T18:05:00") == dt(2026, 9, 20, 18, 5)
+    assert wd.parse_now("2026-09-20T21:05:00+03:00") == dt(2026, 9, 20, 18, 5)
+
+
+def test_main_dry_run_prints_digest_and_never_touches_smtp(smtp, capsys):
+    env = {"GITHUB_REPOSITORY": REPO}
+    api = fake_api({list_path(1): []})
+
+    code = wd.main(["--dry-run", "--now", "2026-09-20T18:05:00+00:00"], env=env, api=api)
+
+    assert code == 0
+    out = capsys.readouterr().out
+    assert "Сводка linguist-prompts: 13.09.2026–20.09.2026" in out
+    assert "За неделю изменений нет." in out
+    assert smtp.instances == []
+
+
+def test_main_sends_email_with_configured_recipients(smtp, capsys):
+    env = {"GITHUB_REPOSITORY": REPO, **GOOD_ENV}
+    api = fake_api({list_path(1): []})
+
+    code = wd.main(["--now", "2026-09-20T18:05:00+00:00"], env=env, api=api)
+
+    assert code == 0
+    [conn] = smtp.instances
+    msg, from_addr, to_addrs = conn.sent
+    assert msg["Subject"] == "Сводка linguist-prompts: 13.09.2026–20.09.2026"
+    assert list(to_addrs) == ["a@x.ru", "b@y.ru"]
+    assert "Sent:" in capsys.readouterr().out
+
+
+def test_main_fails_fast_on_missing_mail_config_before_calling_api(smtp):
+    def api(path):
+        raise AssertionError("API must not be called when config is invalid")
+
+    with pytest.raises(wd.ConfigError, match="SMTP_HOST"):
+        wd.main([], env={"GITHUB_REPOSITORY": REPO}, api=api)
+    assert smtp.instances == []
+
+
+def test_main_requires_github_repository():
+    with pytest.raises(wd.ConfigError, match="GITHUB_REPOSITORY"):
+        wd.main(["--dry-run"], env={}, api=fake_api({}))
+
+
+def test_main_requires_github_token_when_no_api_is_injected():
+    with pytest.raises(wd.ConfigError, match="GITHUB_TOKEN"):
+        wd.main(["--dry-run"], env={"GITHUB_REPOSITORY": REPO})

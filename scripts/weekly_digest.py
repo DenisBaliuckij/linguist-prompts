@@ -344,3 +344,91 @@ def render_html(
             parts.append("</ul>")
     parts.append("</body></html>")
     return "\n".join(parts) + "\n"
+
+
+def build_message(
+    prs: list[MergedPR],
+    start: datetime,
+    end: datetime,
+    repo: str,
+    sender: str,
+    recipients: tuple[str, ...],
+) -> EmailMessage:
+    msg = EmailMessage()
+    msg["Subject"] = digest_subject(repo, start, end)
+    msg["From"] = sender
+    msg["To"] = ", ".join(recipients)
+    msg.set_content(render_text(prs, start, end, repo))
+    msg.add_alternative(render_html(prs, start, end, repo), subtype="html")
+    return msg
+
+
+def send_email(msg: EmailMessage, cfg: MailConfig) -> None:
+    with smtplib.SMTP_SSL(cfg.host, cfg.port, timeout=30) as smtp:
+        smtp.login(cfg.user, cfg.password)
+        smtp.send_message(msg, from_addr=cfg.sender, to_addrs=list(cfg.recipients))
+
+
+def parse_now(value: str | None) -> datetime:
+    if not value:
+        return datetime.now(timezone.utc)
+    parsed = datetime.fromisoformat(value)
+    return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+
+
+def parse_args(argv: list[str] | None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Send the weekly linguist-prompts digest."
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="print the digest to stdout instead of emailing it",
+    )
+    parser.add_argument(
+        "--now", help="ISO-8601 timestamp that overrides the clock (for testing)"
+    )
+    return parser.parse_args(argv)
+
+
+def main(
+    argv: list[str] | None = None,
+    env: Mapping[str, str] | None = None,
+    api: Api | None = None,
+) -> int:
+    args = parse_args(argv)
+    env = os.environ if env is None else env
+
+    repo = env.get("GITHUB_REPOSITORY")
+    if not repo:
+        raise ConfigError("Missing required environment variable: GITHUB_REPOSITORY")
+    # Validate mail settings first so a misconfigured run fails before any API call.
+    mail_cfg = None if args.dry_run else load_mail_config(env)
+    if api is None:
+        token = env.get("GITHUB_TOKEN")
+        if not token:
+            raise ConfigError("Missing required environment variable: GITHUB_TOKEN")
+        api = make_github_api(token)
+
+    start, end = digest_window(parse_now(args.now))
+    prs = collect_merged_prs(api, repo, start, end)
+
+    if mail_cfg is None:
+        print(f"[dry run] Subject: {digest_subject(repo, start, end)}\n")
+        print(render_text(prs, start, end, repo))
+        return 0
+
+    msg = build_message(prs, start, end, repo, mail_cfg.sender, mail_cfg.recipients)
+    send_email(msg, mail_cfg)
+    print(f"Sent: {msg['Subject']} -> {len(mail_cfg.recipients)} recipient(s)")
+    return 0
+
+
+if __name__ == "__main__":
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+    try:
+        sys.exit(main())
+    except ConfigError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        sys.exit(2)
