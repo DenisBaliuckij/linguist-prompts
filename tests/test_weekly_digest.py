@@ -827,12 +827,23 @@ def workflow_problems(text: str) -> list[str]:
     )
     if run_section:
         run_block = run_section.group(1)
-        if '[ "$DRY_RUN" = "true" ]' not in run_block:
-            problems.append("run block must contain '[ \"$DRY_RUN\" = \"true\" ]'")
-        if "python scripts/weekly_digest.py --dry-run" not in run_block:
-            problems.append("run block must contain 'python scripts/weekly_digest.py --dry-run'")
-        if "python scripts/weekly_digest.py" not in run_block:
-            problems.append("run block must contain plain 'python scripts/weekly_digest.py'")
+        # The then-branch must be the dry run and the else-branch the plain send.
+        branch_re = r"\s*" + r"\s+".join(
+            re.escape(token)
+            for token in (
+                "if", "[", '"$DRY_RUN"', "=", '"true"', "];", "then",
+                "python", "scripts/weekly_digest.py", "--dry-run",
+                "else",
+                "python", "scripts/weekly_digest.py",
+                "fi",
+            )
+        ) + r"\s*"
+        if not re.fullmatch(branch_re, run_block):
+            problems.append(
+                'run block must be exactly: if [ "$DRY_RUN" = "true" ]; then '
+                "python scripts/weekly_digest.py --dry-run; else "
+                "python scripts/weekly_digest.py; fi (then/else branches pinned)"
+            )
         if "${{" in run_block:
             problems.append("found ${{ in run block")
     else:
@@ -856,6 +867,16 @@ def workflow_problems(text: str) -> list[str]:
                 )
     else:
         problems.append("env: block not found in step")
+
+    # Check: the checkout step must not persist the token in .git/config
+    checkout_section = re.search(
+        r"^      - uses: actions/checkout@[^\n]*\n((?:(?: {8,}.*)?\n)*)",
+        content, re.MULTILINE
+    )
+    if not checkout_section or not re.search(
+        r"^ {10}persist-credentials: false$", checkout_section.group(1), re.MULTILINE
+    ):
+        problems.append("checkout step must set persist-credentials: false")
 
     return problems
 
@@ -886,6 +907,27 @@ def test_workflow_invariants_hold():
             "            python scripts/weekly_digest.py --dry-run ${{ github.event.inputs.x }}",
             "${{ in run",
         ),
+        (  # swap: send in the then-branch, dry run in the else-branch
+            "then\n"
+            "            python scripts/weekly_digest.py --dry-run\n"
+            "          else\n"
+            "            python scripts/weekly_digest.py\n",
+            "then\n"
+            "            python scripts/weekly_digest.py\n"
+            "          else\n"
+            "            python scripts/weekly_digest.py --dry-run\n",
+            "then/else",
+        ),
+        (  # delete the else-branch
+            "          else\n            python scripts/weekly_digest.py\n",
+            "",
+            "then/else",
+        ),
+        (
+            "        with:\n          persist-credentials: false\n",
+            "",
+            "persist-credentials",
+        ),
     ],
 )
 def test_workflow_guard_catches_regressions(old, new, fragment):
@@ -896,6 +938,7 @@ def test_workflow_guard_catches_regressions(old, new, fragment):
 
     # Apply mutation
     mutated = text.replace(old, new, 1)
+    assert mutated != text, f"Mutation is a no-op: {old!r} -> {new!r}"
 
     # Get problems from mutated workflow
     problems = workflow_problems(mutated)
