@@ -366,7 +366,20 @@ def build_message(
 def send_email(msg: EmailMessage, cfg: MailConfig) -> None:
     with smtplib.SMTP_SSL(cfg.host, cfg.port, timeout=30) as smtp:
         smtp.login(cfg.user, cfg.password)
-        smtp.send_message(msg, from_addr=cfg.sender, to_addrs=list(cfg.recipients))
+        try:
+            refused = smtp.send_message(
+                msg, from_addr=cfg.sender, to_addrs=list(cfg.recipients)
+            )
+        except (smtplib.SMTPRecipientsRefused, smtplib.SMTPSenderRefused):
+            raise RuntimeError(
+                "SMTP server refused the sender or all recipients; "
+                "check MAIL_FROM and MAIL_TO"
+            ) from None
+    if refused:
+        raise RuntimeError(
+            f"SMTP server refused {len(refused)} of {len(cfg.recipients)} "
+            "recipients; check MAIL_TO"
+        )
 
 
 def parse_now(value: str | None) -> datetime:

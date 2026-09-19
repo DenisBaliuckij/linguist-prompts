@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import smtplib
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -547,6 +548,8 @@ def test_render_html_escapes_every_untrusted_field():
 
 class FakeSMTP:
     instances: list[FakeSMTP] = []
+    send_result = None
+    send_error = None
 
     def __init__(self, host, port, timeout=None):
         self.host = host
@@ -566,12 +569,17 @@ class FakeSMTP:
         self.logged_in = (user, password)
 
     def send_message(self, msg, from_addr=None, to_addrs=None):
+        if type(self).send_error:
+            raise type(self).send_error
         self.sent = (msg, from_addr, to_addrs)
+        return type(self).send_result or {}
 
 
 @pytest.fixture
 def smtp(monkeypatch):
     FakeSMTP.instances = []
+    FakeSMTP.send_result = None
+    FakeSMTP.send_error = None
     monkeypatch.setattr(wd.smtplib, "SMTP_SSL", FakeSMTP)
     return FakeSMTP
 
@@ -603,6 +611,46 @@ def test_send_email_logs_in_over_ssl_and_sends_to_all_recipients(smtp):
     assert sent_msg is msg
     assert from_addr == "bot@yandex.ru"
     assert list(to_addrs) == ["a@x.ru", "b@y.ru"]
+
+
+def test_send_email_raises_when_some_recipients_are_refused(smtp):
+    smtp.send_result = {"b@y.ru": (550, b"no such user")}
+    cfg = wd.load_mail_config(GOOD_ENV)
+    msg = wd.build_message([], START, END, REPO, cfg.sender, cfg.recipients)
+
+    with pytest.raises(RuntimeError) as exc:
+        wd.send_email(msg, cfg)
+
+    assert "1 of 2" in str(exc.value)
+    assert "b@y.ru" not in str(exc.value)
+    assert "a@x.ru" not in str(exc.value)
+
+
+def test_send_email_hides_addresses_when_smtp_refuses_all_recipients(smtp):
+    smtp.send_error = smtplib.SMTPRecipientsRefused(
+        {"a@x.ru": (550, b"x"), "b@y.ru": (550, b"y")}
+    )
+    cfg = wd.load_mail_config(GOOD_ENV)
+    msg = wd.build_message([], START, END, REPO, cfg.sender, cfg.recipients)
+
+    with pytest.raises(RuntimeError) as exc:
+        wd.send_email(msg, cfg)
+
+    assert "a@x.ru" not in str(exc.value)
+    assert "b@y.ru" not in str(exc.value)
+    assert exc.value.__suppress_context__ is True
+
+
+def test_send_email_hides_sender_when_smtp_refuses_sender(smtp):
+    smtp.send_error = smtplib.SMTPSenderRefused(550, b"denied", "bot@yandex.ru")
+    cfg = wd.load_mail_config(GOOD_ENV)
+    msg = wd.build_message([], START, END, REPO, cfg.sender, cfg.recipients)
+
+    with pytest.raises(RuntimeError) as exc:
+        wd.send_email(msg, cfg)
+
+    assert "bot@yandex.ru" not in str(exc.value)
+    assert exc.value.__suppress_context__ is True
 
 
 def test_parse_now_defaults_to_current_utc_time():
