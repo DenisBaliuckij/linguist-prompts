@@ -32,7 +32,7 @@ README.md                  # Russian, one-line English summary on top
 CONTRIBUTING.md            # Russian: how to add a language/subject, PR flow
 LICENSE                    # CC-BY-4.0
 languages/russian/grammar/{README.md,prompts.md}   # seed example
-.github/PULL_REQUEST_TEMPLATE.md   # what changed / why (feeds the digest)
+.github/PULL_REQUEST_TEMPLATE.md   # what changed / why (for reviewers)
 .github/workflows/weekly-digest.yml
 scripts/weekly_digest.py           # stdlib only
 tests/test_weekly_digest.py        # pytest, fixture JSON, no network
