@@ -501,3 +501,42 @@ def test_render_html_escapes_untrusted_text():
 def test_render_html_empty_week():
     out = wd.render_html([], START, END, REPO)
     assert "За неделю изменений нет." in out
+
+
+def test_render_html_escapes_every_untrusted_field():
+    import html as _html
+
+    HOSTILE = '"><img src=x onerror=alert(1)>&'
+    hostile_repo = "acme/repo" + HOSTILE
+
+    pr = wd.MergedPR(
+        number=99,
+        title="Normal title",
+        url="https://x.test/" + HOSTILE,
+        author="a" + HOSTILE,
+        approvers=("b" + HOSTILE,),
+        merged_at=dt(2026, 9, 15, 10, 0),
+        files=(
+            wd.FileChange('languages/g"<x>&/s"<y>&/p.md', "added"),
+        ),
+    )
+
+    out = wd.render_html([pr], START, END, hostile_repo)
+
+    # Verify escaped forms appear
+    assert _html.escape("a" + HOSTILE) in out, "Author not escaped"
+    assert _html.escape("b" + HOSTILE) in out, "Approver not escaped"
+    assert _html.escape("https://x.test/" + HOSTILE) in out, "URL not escaped"
+    assert _html.escape('g"<x>&/s"<y>&') in out, "Group key not escaped"
+    assert _html.escape(hostile_repo) in out, "Repo name not escaped"
+    assert _html.escape('languages/g"<x>&/s"<y>&/p.md') in out, "File path not escaped"
+
+    # Verify escaped quote form appears
+    assert "&quot;" in out, "Escaped quote not found"
+
+    # Verify raw hostile substrings do NOT appear
+    assert "<img" not in out, "Raw <img found"
+    assert "<x>" not in out, "Raw <x> found"
+    assert "<y>" not in out, "Raw <y> found"
+    assert "<z>" not in out, "Raw <z> found"
+    assert '"><img' not in out, 'Raw "><img found'
