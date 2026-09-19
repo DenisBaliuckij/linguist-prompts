@@ -703,7 +703,10 @@ def test_main_sends_email_with_configured_recipients(smtp, capsys):
     msg, from_addr, to_addrs = conn.sent
     assert msg["Subject"] == "Сводка linguist-prompts: 13.09.2026–20.09.2026"
     assert list(to_addrs) == ["a@x.ru", "b@y.ru"]
-    assert "Sent:" in capsys.readouterr().out
+    captured = capsys.readouterr()
+    assert "Sent:" in captured.out
+    for secret in ("app-password", "a@x.ru", "b@y.ru", "bot@yandex.ru"):
+        assert secret not in captured.out + captured.err, f"leaked {secret!r}"
 
 
 def test_main_fails_fast_on_missing_mail_config_before_calling_api(smtp):
