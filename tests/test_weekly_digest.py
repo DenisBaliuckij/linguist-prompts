@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import smtplib
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -715,13 +716,188 @@ def test_main_requires_github_token_when_no_api_is_injected():
 WORKFLOW = Path(__file__).resolve().parent.parent / ".github" / "workflows" / "weekly-digest.yml"
 
 
-def test_workflow_keeps_schedule_environment_and_least_privilege():
+def workflow_problems(text: str) -> list[str]:
+    """Check workflow structural invariants. Return list of problem strings (empty = all good)."""
+    # Strip full-line comments
+    lines = text.split("\n")
+    content_lines = [
+        line for line in lines if not line.strip().startswith("#")
+    ]
+    content = "\n".join(content_lines)
+
+    problems = []
+
+    # Check: on: block exists and has only schedule and workflow_dispatch triggers
+    if not re.search(r"^on:\s*$", content, re.MULTILINE):
+        problems.append("on: block not found")
+    else:
+        # Extract section from on: until next top-level key (no indent)
+        on_section = re.search(
+            r"^on:\s*\n((?:(?!^\S).*\n)*)",
+            content, re.MULTILINE
+        )
+        if on_section:
+            on_block = on_section.group(1)
+            # Find all trigger keys (2-space indent + word + colon)
+            triggers = set(
+                re.findall(r"^  (\w+):", on_block, re.MULTILINE)
+            )
+            if triggers != {"schedule", "workflow_dispatch"}:
+                problems.append(
+                    f"Triggers must be exactly schedule and workflow_dispatch, got: {triggers}"
+                )
+
+    # Check: cron line at correct indent
+    if not re.search(r"^    - cron: \"0 18 \* \* 0\"$", content, re.MULTILINE):
+        problems.append('Cron line must be "    - cron: "0 18 * * 0""')
+
+    # Check: dry_run input has type: boolean and default: true
+    dry_run_section = re.search(
+        r"^      dry_run:\n((?:        \w+:.*\n)*)",
+        content, re.MULTILINE
+    )
+    if dry_run_section:
+        dry_run_block = dry_run_section.group(1)
+        if "type: boolean" not in dry_run_block:
+            problems.append("dry_run input must have type: boolean")
+        if "default: true" not in dry_run_block:
+            problems.append("dry_run input must have default: true")
+    else:
+        problems.append("dry_run input block not found")
+
+    # Check: top-level permissions block has exactly contents: read and pull-requests: read
+    if not re.search(r"^permissions:\s*$", content, re.MULTILINE):
+        problems.append("Top-level permissions: block not found")
+    else:
+        perms_section = re.search(
+            r"^permissions:\s*\n((?:(?!^\S).*\n)*)",
+            content, re.MULTILINE
+        )
+        if perms_section:
+            perms_block = perms_section.group(1)
+            if "contents: read" not in perms_block:
+                problems.append("permissions must include contents: read")
+            if "pull-requests: read" not in perms_block:
+                problems.append("permissions must include pull-requests: read")
+            if "write" in perms_block:
+                problems.append("permissions must not include write")
+
+    # Check: no job-level permissions block
+    if re.search(r"^\s{4}permissions:", content, re.MULTILINE):
+        problems.append("Job-level permissions: blocks are not allowed")
+
+    # Check: environment: digest at job indent (4 spaces)
+    if not re.search(r"^    environment: digest$", content, re.MULTILINE):
+        problems.append("Job must have 'environment: digest' at 4-space indent")
+
+    # Check: timeout-minutes: 10 at job indent (4 spaces)
+    if not re.search(r"^    timeout-minutes: 10$", content, re.MULTILINE):
+        problems.append("Job must have 'timeout-minutes: 10' at 4-space indent")
+
+    # Check: exact DRY_RUN expression
+    if not re.search(
+        r"^\s{10}DRY_RUN: \$\{\{ github\.event_name == 'workflow_dispatch' && inputs\.dry_run \}\}$",
+        content, re.MULTILINE
+    ):
+        problems.append(
+            'DRY_RUN must be: ${{ github.event_name == \'workflow_dispatch\' && inputs.dry_run }}'
+        )
+
+    # Check: run block contains required strings and no ${{ interpolation
+    run_section = re.search(
+        r"^\s{8}run: \|\n((?:(?!^\S).*\n)*)",
+        content, re.MULTILINE
+    )
+    if run_section:
+        run_block = run_section.group(1)
+        if '[ "$DRY_RUN" = "true" ]' not in run_block:
+            problems.append("run block must contain '[ \"$DRY_RUN\" = \"true\" ]'")
+        if "python scripts/weekly_digest.py --dry-run" not in run_block:
+            problems.append("run block must contain 'python scripts/weekly_digest.py --dry-run'")
+        if "python scripts/weekly_digest.py" not in run_block:
+            problems.append("run block must contain plain 'python scripts/weekly_digest.py'")
+        if "${{" in run_block:
+            problems.append("found ${{ in run block")
+    else:
+        problems.append("run: | block not found")
+
+    # Check: ${{ only appears in env section for secrets
+    env_section = re.search(
+        r"^\s{8}env:\n((?:(?!^\s{2}\S).*\n)*)",
+        content, re.MULTILINE
+    )
+    if env_section:
+        env_block = env_section.group(1)
+        secrets = [
+            "GITHUB_TOKEN", "SMTP_HOST", "SMTP_PORT", "SMTP_USER",
+            "SMTP_PASSWORD", "MAIL_FROM", "MAIL_TO"
+        ]
+        for secret in secrets:
+            if f"${{{{ secrets.{secret} }}}}" not in env_block:
+                problems.append(
+                    f"env must reference {secret} as ${{{{ secrets.{secret} }}}}"
+                )
+    else:
+        problems.append("env: block not found in step")
+
+    return problems
+
+
+def test_workflow_invariants_hold():
     text = WORKFLOW.read_text(encoding="utf-8")
-    assert 'cron: "0 18 * * 0"' in text
-    assert "environment: digest" in text
-    assert "contents: read" in text
-    assert "pull-requests: read" in text
-    assert "--dry-run" in text
-    # Secrets must never be reachable from PR-triggered runs.
-    assert "pull_request_target" not in text
-    assert "pull_request:" not in text
+    problems = workflow_problems(text)
+    assert problems == [], f"Workflow has problems:\n" + "\n".join(problems)
+
+
+@pytest.mark.parametrize(
+    "old,new,fragment",
+    [
+        ("default: true", "default: false", "default: true"),
+        ("environment: digest", "environment: staging", "environment: digest"),
+        ('    - cron: "0 18 * * 0"', '    - cron: "0 19 * * 0"', "cron"),
+        ("  workflow_dispatch:", "  pull_request:\n  workflow_dispatch:", "pull_request"),
+        ("  contents: read", "  contents: write", "contents: read"),
+        (
+            "DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}",
+            "DRY_RUN: ${{ github.event_name == 'workflow_dispatch' || inputs.dry_run }}",
+            "DRY_RUN",
+        ),
+        ('    - cron: "0 18 * * 0"', '    # - cron: "0 18 * * 0"', "cron"),
+        ("    environment: digest", "    # environment: digest", "environment"),
+        (
+            "            python scripts/weekly_digest.py --dry-run",
+            "            python scripts/weekly_digest.py --dry-run ${{ github.event.inputs.x }}",
+            "${{ in run",
+        ),
+    ],
+)
+def test_workflow_guard_catches_regressions(old, new, fragment):
+    text = WORKFLOW.read_text(encoding="utf-8")
+
+    # Verify the original string exists (no false negatives)
+    assert old in text, f"Original string not found in workflow: {old}"
+
+    # Apply mutation
+    mutated = text.replace(old, new, 1)
+
+    # Get problems from mutated workflow
+    problems = workflow_problems(mutated)
+
+    # Mutation must be caught
+    assert problems, f"Mutation not caught: {old} -> {new}"
+
+    # Problem description must relate to what changed
+    assert any(
+        fragment.lower() in p.lower() for p in problems
+    ), f"No problem mentions {fragment!r}. Problems: {problems}"
+
+
+def test_workflow_harmless_comment_does_not_cause_false_positive():
+    text = WORKFLOW.read_text(encoding="utf-8")
+
+    # Add a harmless comment that mentions things the guard checks
+    harmless = text + "\n# note: we never use pull_request: or environment: staging here\n"
+
+    # The guard should still pass
+    problems = workflow_problems(harmless)
+    assert problems == [], f"Harmless comment caused false positive: {problems}"
