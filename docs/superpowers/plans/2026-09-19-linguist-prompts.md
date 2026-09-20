@@ -37,7 +37,7 @@ Where the shipped code intentionally differs from the task text below. The shipp
 - Task 6's guard test is the structure-aware `workflow_problems()` helper with mutation cases (not the substring test shown), and the checkout step uses `persist-credentials: false`.
 - Appended test blocks are separated from earlier tests by two blank lines.
 - `collect_merged_prs` falls back to the author `ghost` when a PR's user is null.
-- On 2026-09-20 delivery moved from SMTP email to a GitHub Issue (see the change note at the top of the design spec): Task 5 (email message, SMTP send) and Task 7 Steps 3–6 (Environment `digest`, the six SMTP secrets, dry-run and real email test send) are superseded; the shipped code, workflow and tests are authoritative.
+- On 2026-09-20 delivery moved from SMTP email to a GitHub Issue (see the change note at the top of the design spec). Superseded: Task 4 (HTML/text renderers become one Markdown renderer), Task 5 (email message and SMTP send become issue creation), Task 6 (workflow secrets and Environment `digest` become `issues: write` plus the variable `DIGEST_NOTIFY`) and Task 7 Steps 3–4 (Environment and secrets). Task 7 Steps 5–6 (dry-run, then one real run) still apply, but the real run posts an issue; Steps 7–8 are unchanged. The shipped code, workflow and tests are authoritative.
 
 ## File Structure
 
