@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
+import json
+import os
 import re
-import smtplib
+import subprocess
+import sys
+import urllib.error
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -117,57 +121,58 @@ def test_approvers_ignores_pending_and_deleted_users():
     assert wd.approvers_from_reviews(reviews) == ()
 
 
-# --- mail config -----------------------------------------------------------
-
-GOOD_ENV = {
-    "SMTP_HOST": "smtp.yandex.ru",
-    "SMTP_PORT": "465",
-    "SMTP_USER": "bot@yandex.ru",
-    "SMTP_PASSWORD": "app-password",
-    "MAIL_FROM": "bot@yandex.ru",
-    "MAIL_TO": "a@x.ru, b@y.ru",
-}
+# --- parse_notify ----------------------------------------------------------
 
 
-def test_parse_mail_to_accepts_commas_and_semicolons():
-    assert wd.parse_mail_to("a@x.ru, b@y.ru;c@z.ru") == ("a@x.ru", "b@y.ru", "c@z.ru")
+def test_parse_notify_splits_on_whitespace_commas_and_semicolons():
+    assert wd.parse_notify("alice bob,carol;dave\n eve\t,;frank") == (
+        "alice",
+        "bob",
+        "carol",
+        "dave",
+        "eve",
+        "frank",
+    )
 
 
-def test_parse_mail_to_empty():
-    assert wd.parse_mail_to(" ; , ") == ()
+def test_parse_notify_strips_one_leading_at_sign():
+    assert wd.parse_notify("@alice, @bob-1 carol") == ("alice", "bob-1", "carol")
 
 
-def test_load_mail_config_ok():
-    cfg = wd.load_mail_config(GOOD_ENV)
-    assert cfg.host == "smtp.yandex.ru"
-    assert cfg.port == 465
-    assert cfg.user == "bot@yandex.ru"
-    assert cfg.password == "app-password"
-    assert cfg.sender == "bot@yandex.ru"
-    assert cfg.recipients == ("a@x.ru", "b@y.ru")
+def test_parse_notify_removes_duplicates_keeping_first_position():
+    assert wd.parse_notify("bob @alice, alice;bob carol") == ("bob", "alice", "carol")
 
 
-def test_load_mail_config_reports_all_missing_names():
-    env = {k: v for k, v in GOOD_ENV.items() if k not in ("SMTP_PASSWORD", "MAIL_TO")}
+@pytest.mark.parametrize("value", ["", "   ", " ; , ", "@", " @ ; @ "])
+def test_parse_notify_empty_means_nobody(value):
+    assert wd.parse_notify(value) == ()
+
+
+def test_parse_notify_accepts_the_longest_valid_login():
+    assert wd.parse_notify("a" * 39) == ("a" * 39,)
+
+
+@pytest.mark.parametrize(
+    "bad",
+    [
+        "ali_ce",
+        "-alice",
+        "alice/bob",
+        "@@alice",
+        "bob[bot]",
+        "alice.smith",
+        "a" * 40,
+        "\u0430lice",  # Cyrillic a
+        "ali\u200bce",  # zero-width space
+        "alice\u00e9",
+    ],
+)
+def test_parse_notify_rejects_invalid_logins_without_echoing_them(bad):
     with pytest.raises(wd.ConfigError) as exc:
-        wd.load_mail_config(env)
-    assert "SMTP_PASSWORD" in str(exc.value)
-    assert "MAIL_TO" in str(exc.value)
-
-
-def test_load_mail_config_rejects_non_integer_port():
-    with pytest.raises(wd.ConfigError, match="SMTP_PORT"):
-        wd.load_mail_config({**GOOD_ENV, "SMTP_PORT": "ssl"})
-
-
-def test_load_mail_config_rejects_from_different_from_user():
-    with pytest.raises(wd.ConfigError, match="MAIL_FROM"):
-        wd.load_mail_config({**GOOD_ENV, "MAIL_FROM": "other@yandex.ru"})
-
-
-def test_load_mail_config_rejects_empty_recipient_list():
-    with pytest.raises(wd.ConfigError, match="MAIL_TO"):
-        wd.load_mail_config({**GOOD_ENV, "MAIL_TO": " ; "})
+        wd.parse_notify(f"carol {bad}")
+    assert str(exc.value) == "DIGEST_NOTIFY contains an invalid GitHub login"
+    assert bad not in str(exc.value)
+    assert "carol" not in str(exc.value)
 
 
 # --- GitHub collection -----------------------------------------------------
@@ -441,20 +446,76 @@ def test_group_prs_puts_pr_without_files_into_other_group():
     assert wd.group_prs([pr]) == [(wd.OTHER_GROUP, [(pr, ())])]
 
 
-def test_render_text_normal_week():
-    text = wd.render_text([make_pr()], START, END, REPO)
+# --- Markdown escaping -----------------------------------------------------
 
-    assert "Сводка linguist-prompts" in text
-    assert "Период: 13.09.2026 18:00 – 20.09.2026 18:00 (UTC)" in text
-    assert "Репозиторий: https://github.com/acme/linguist-prompts" in text
-    assert "Всего: 1 слитый PR, 1 участник, 1 изменённый файл." in text
-    assert "== russian/grammar ==" in text
-    assert f"• #12 Добавить примеры падежей — https://github.com/{REPO}/pull/12" in text
-    assert "Автор: @alice · Одобрили: @bob · Слит: 15.09.2026" in text
-    assert "– добавлен: languages/russian/grammar/prompts.md" in text
+ZW = "\u200b"
 
 
-def test_render_text_multiple_groups_in_order_with_other_last():
+@pytest.mark.parametrize(
+    "raw, expected",
+    [
+        ("plain текст 123", "plain текст 123"),
+        ("a\nb\t\tc\r\nd", "a b c d"),
+        ("a & b", "a &amp; b"),
+        ("&#64;x &lt;b&gt;", "&amp;\\#64;x &amp;lt;b&amp;gt;"),
+        (
+            "\\ ` * _ [ ] < > ( ) # ~ | !",
+            "\\\\ \\` \\* \\_ \\[ \\] \\< \\> \\( \\) \\# \\~ \\| \\!",
+        ),
+        ("@everyone", f"@{ZW}everyone"),
+        ("a@b.example", f"a@{ZW}b.example"),
+        ("http://evil.example", f"http:{ZW}//evil.example"),
+        ("www.evil.example WWW.EVIL.EXAMPLE", f"www{ZW}.evil.example WWW{ZW}.EVIL.EXAMPLE"),
+    ],
+)
+def test_md_text(raw, expected):
+    assert wd.md_text(raw) == expected
+
+
+@pytest.mark.parametrize(
+    "raw, expected",
+    [
+        ("languages/a/b.md", "`languages/a/b.md`"),
+        ("a`b``c", "`a'b''c`"),
+        ("a\nb\r\nc\td", "`a b c d`"),
+        ("@x <y> #1 [z](u)", "`@x <y> #1 [z](u)`"),
+    ],
+)
+def test_md_code(raw, expected):
+    assert wd.md_code(raw) == expected
+
+
+# --- render_markdown -------------------------------------------------------
+
+REPO_LINK = f"[репозиторий](https://github.com/{REPO})"
+PERIOD_LINE = f"**Период:** 13.09.2026 18:00 – 20.09.2026 18:00 (UTC) · {REPO_LINK}"
+
+
+def test_render_markdown_normal_week_exact_layout():
+    body = wd.render_markdown([make_pr()], START, END, REPO)
+
+    assert body == (
+        f"{PERIOD_LINE}\n"
+        "\n"
+        "**Всего:** 1 слитый PR, 1 участник, 1 изменённый файл.\n"
+        "\n"
+        "### russian/grammar\n"
+        f"- [\\#12 Добавить примеры падежей](https://github.com/{REPO}/pull/12)\n"
+        "  Автор: [alice](https://github.com/alice)"
+        " · Одобрили: [bob](https://github.com/bob) · Слит: 15.09.2026\n"
+        "    - добавлен: `languages/russian/grammar/prompts.md`\n"
+    )
+
+
+def test_render_markdown_lists_every_approver_as_a_link():
+    body = wd.render_markdown([make_pr(approvers=("bob", "carol"))], START, END, REPO)
+    assert (
+        "Одобрили: [bob](https://github.com/bob), [carol](https://github.com/carol)"
+        " · Слит:"
+    ) in body
+
+
+def test_render_markdown_multiple_groups_in_order_with_other_last():
     pr = make_pr(
         files=[
             wd.FileChange("languages/russian/grammar/prompts.md", "modified"),
@@ -463,116 +524,271 @@ def test_render_text_multiple_groups_in_order_with_other_last():
         ]
     )
 
-    text = wd.render_text([pr], START, END, REPO)
+    body = wd.render_markdown([pr], START, END, REPO)
 
     assert (
-        text.index("== english/idioms ==")
-        < text.index("== russian/grammar ==")
-        < text.index("== Прочее ==")
+        body.index("### english/idioms")
+        < body.index("### russian/grammar")
+        < body.index("### Прочее")
     )
-    assert "Всего: 1 слитый PR, 1 участник, 3 изменённых файла." in text
+    assert "**Всего:** 1 слитый PR, 1 участник, 3 изменённых файла." in body
+    assert "    - изменён: `languages/russian/grammar/prompts.md`" in body
+    assert "    - добавлен: `languages/english/idioms/prompts.md`" in body
+    assert "    - изменён: `README.md`" in body
 
 
-def test_render_text_totals_count_unique_authors_and_files():
+def test_render_markdown_lists_prs_of_a_group_in_given_order():
+    prs = [make_pr(number=3), make_pr(number=1)]
+    body = wd.render_markdown(prs, START, END, REPO)
+    assert body.index("\\#3 ") < body.index("\\#1 ")
+    assert body.count("### russian/grammar") == 1
+
+
+def test_render_markdown_totals_count_unique_authors_and_files():
     prs = [make_pr(number=1), make_pr(number=2)]  # same author, same file
-    text = wd.render_text(prs, START, END, REPO)
-    assert "Всего: 2 слитых PR, 1 участник, 1 изменённый файл." in text
+    body = wd.render_markdown(prs, START, END, REPO)
+    assert "**Всего:** 2 слитых PR, 1 участник, 1 изменённый файл." in body
 
 
-def test_render_text_without_approvers_shows_dash():
-    text = wd.render_text([make_pr(approvers=())], START, END, REPO)
-    assert "Одобрили: —" in text
+@pytest.mark.parametrize(
+    "count, expected",
+    [
+        (1, "1 слитый PR, 1 участник, 1 изменённый файл."),
+        (2, "2 слитых PR, 2 участника, 2 изменённых файла."),
+        (5, "5 слитых PR, 5 участников, 5 изменённых файлов."),
+        (21, "21 слитый PR, 21 участник, 21 изменённый файл."),
+    ],
+)
+def test_render_markdown_totals_use_russian_plurals(count, expected):
+    prs = [
+        make_pr(
+            number=i + 1,
+            author=f"user{i}",
+            files=[wd.FileChange(f"README{i}.md", "modified")],
+        )
+        for i in range(count)
+    ]
+    body = wd.render_markdown(prs, START, END, REPO)
+    assert f"**Всего:** {expected}" in body
 
 
-def test_render_text_pr_without_files_is_still_listed():
-    text = wd.render_text([make_pr(files=[])], START, END, REPO)
-    assert "== Прочее ==" in text
-    assert "• #12" in text
+def test_render_markdown_without_approvers_shows_dash():
+    body = wd.render_markdown([make_pr(approvers=())], START, END, REPO)
+    assert "Одобрили: — · Слит: 15.09.2026" in body
 
 
-def test_render_text_empty_week():
-    text = wd.render_text([], START, END, REPO)
-    assert "За неделю изменений нет." in text
-    assert "Период: 13.09.2026 18:00 – 20.09.2026 18:00 (UTC)" in text
-    assert "Репозиторий: https://github.com/acme/linguist-prompts" in text
-    assert "Всего" not in text
-
-
-def test_render_html_normal_week():
-    out = wd.render_html([make_pr()], START, END, REPO)
-    assert "<h3>russian/grammar</h3>" in out
-    assert f'<a href="https://github.com/{REPO}/pull/12">' in out
-    assert "<code>languages/russian/grammar/prompts.md</code>" in out
-    assert "Автор: @alice" in out
-
-
-def test_render_html_escapes_untrusted_text():
-    out = wd.render_html(
-        [make_pr(title="<script>alert(1)</script> & co")], START, END, REPO
-    )
-    assert "&lt;script&gt;alert(1)&lt;/script&gt; &amp; co" in out
-    assert "<script>" not in out
-
-
-def test_render_html_empty_week():
-    out = wd.render_html([], START, END, REPO)
-    assert "За неделю изменений нет." in out
-
-
-def test_render_html_escapes_every_untrusted_field():
-    import html as _html
-
-    HOSTILE = '"><img src=x onerror=alert(1)>&'
-    hostile_repo = "acme/repo" + HOSTILE
-
-    pr = wd.MergedPR(
-        number=99,
-        title="Normal title",
-        url="https://x.test/" + HOSTILE,
-        author="a" + HOSTILE,
-        approvers=("b" + HOSTILE,),
-        merged_at=dt(2026, 9, 15, 10, 0),
-        files=(
-            wd.FileChange('languages/g"<x>&/s"<y>&/p.md', "added"),
-        ),
+def test_render_markdown_pr_without_files_is_still_listed():
+    body = wd.render_markdown([make_pr(files=[])], START, END, REPO)
+    assert body.endswith(
+        "### Прочее\n"
+        f"- [\\#12 Добавить примеры падежей](https://github.com/{REPO}/pull/12)\n"
+        "  Автор: [alice](https://github.com/alice)"
+        " · Одобрили: [bob](https://github.com/bob) · Слит: 15.09.2026\n"
     )
 
-    out = wd.render_html([pr], START, END, hostile_repo)
 
-    # Verify escaped forms appear
-    assert _html.escape("a" + HOSTILE) in out, "Author not escaped"
-    assert _html.escape("b" + HOSTILE) in out, "Approver not escaped"
-    assert _html.escape("https://x.test/" + HOSTILE) in out, "URL not escaped"
-    assert _html.escape('g"<x>&/s"<y>&') in out, "Group key not escaped"
-    assert _html.escape(hostile_repo) in out, "Repo name not escaped"
-    assert _html.escape('languages/g"<x>&/s"<y>&/p.md') in out, "File path not escaped"
-
-    # Verify escaped quote form appears
-    assert "&quot;" in out, "Escaped quote not found"
-
-    # Verify raw hostile substrings do NOT appear
-    assert "<img" not in out, "Raw <img found"
-    assert "<x>" not in out, "Raw <x> found"
-    assert "<y>" not in out, "Raw <y> found"
-    assert "<z>" not in out, "Raw <z> found"
-    assert '"><img' not in out, 'Raw "><img found'
+def test_render_markdown_empty_week():
+    body = wd.render_markdown([], START, END, REPO)
+    assert body == f"{PERIOD_LINE}\n\nЗа неделю изменений нет.\n"
+    assert "Всего" not in body
 
 
-# --- message, SMTP and CLI -------------------------------------------------
+def test_render_markdown_has_no_mention_line_without_notify():
+    body = wd.render_markdown([make_pr()], START, END, REPO)
+    assert body.startswith("**Период:**")
+    assert "Для:" not in body
+    assert "@" not in body, "logins must be linked, never @mentioned"
 
 
-class FakeSMTP:
-    instances: list[FakeSMTP] = []
-    send_result = None
-    send_error = None
+def test_render_markdown_mention_line_is_first_and_only_place_with_at_signs():
+    body = wd.render_markdown(
+        [make_pr()], START, END, REPO, notify=("carol", "dave-1")
+    )
+    lines = body.split("\n")
+    assert lines[0] == "Для: @carol @dave-1"
+    assert lines[1] == ""
+    assert lines[2].startswith("**Период:**")
+    assert "@" not in "\n".join(lines[1:])
+    assert body.count("@") == 2
 
-    def __init__(self, host, port, timeout=None):
-        self.host = host
-        self.port = port
-        self.timeout = timeout
-        self.logged_in = None
-        self.sent = None
-        FakeSMTP.instances.append(self)
+
+def test_render_markdown_mention_line_on_empty_week():
+    body = wd.render_markdown([], START, END, REPO, notify=("carol",))
+    assert body == f"Для: @carol\n\n{PERIOD_LINE}\n\nЗа неделю изменений нет.\n"
+
+
+@pytest.mark.parametrize(
+    "bad", ["everyone\n@here", "bad login", "a" * 40, "@carol", "carol]", ""]
+)
+def test_render_markdown_rejects_unvalidated_notify_logins(bad):
+    with pytest.raises(wd.ConfigError):
+        wd.render_markdown([], START, END, REPO, notify=("carol", bad))
+
+
+# --- render_markdown: untrusted text ---------------------------------------
+
+HOSTILE_TITLE = (
+    "@everyone #123 [x](http://evil.example) <img src=x> a_b*c `tick` "
+    "www.evil.example"
+)
+HOSTILE_AUTHOR = "eve) [pwn](http://evil.example) @everyone"
+HOSTILE_APPROVER = "bob\n@everyone <b>"
+HOSTILE_GROUPED_PATH = "languages/@team/#7 <b>@all/prompts.md"
+HOSTILE_OTHER_PATH = "docs/a`b@everyone <img src=x> #9.md"
+
+
+def strip_code_spans(text: str) -> str:
+    return re.sub(r"(?<!\\)`[^`\n]*`", "", text)
+
+
+@pytest.fixture
+def hostile_body():
+    pr = make_pr(
+        number=12,
+        title=HOSTILE_TITLE,
+        author=HOSTILE_AUTHOR,
+        approvers=("carol", HOSTILE_APPROVER),
+        files=[
+            wd.FileChange(HOSTILE_GROUPED_PATH, "added"),
+            wd.FileChange(HOSTILE_OTHER_PATH, "modified"),
+        ],
+    )
+    return wd.render_markdown([pr], START, END, REPO, notify=("carol", "dave"))
+
+
+def test_hostile_mention_line_is_the_only_line_with_a_live_mention(hostile_body):
+    lines = hostile_body.split("\n")
+    assert lines[0] == "Для: @carol @dave"
+    rest = strip_code_spans("\n".join(lines[1:]))
+    assert not re.search(r"@\w", rest), "live @mention outside the first line"
+    assert "@" + ZW + "everyone" in rest, "@ in untrusted text must be neutralised"
+
+
+def test_hostile_title_is_escaped_completely(hostile_body):
+    expected = (
+        f"\\#12 @{ZW}everyone \\#123 \\[x\\]\\(http:{ZW}//evil.example\\) "
+        f"\\<img src=x\\> a\\_b\\*c \\`tick\\` www{ZW}.evil.example"
+    )
+    assert f"- [{expected}](https://github.com/{REPO}/pull/12)\n" in hostile_body, (
+        "PR title was not escaped"
+    )
+
+
+def test_hostile_text_creates_no_cross_reference(hostile_body):
+    rest = strip_code_spans(hostile_body)
+    assert not re.search(r"(?<!\\)#\d", rest), "unescaped #<number> reference"
+
+
+def test_hostile_text_creates_no_html(hostile_body):
+    rest = strip_code_spans(hostile_body)
+    assert not re.search(r"(?<!\\)<", rest), "raw '<' outside a code span"
+    assert not re.search(r"(?<!\\)!\[", rest), "image syntax outside a code span"
+
+
+def test_hostile_text_creates_no_unintended_links(hostile_body):
+    destinations = re.findall(r"(?<!\\)\]\(([^)]*)\)", hostile_body)
+    # The PR touches two groups, so it (and its valid approver) is listed twice.
+    assert sorted(destinations) == sorted(
+        [
+            f"https://github.com/{REPO}",
+            f"https://github.com/{REPO}/pull/12",
+            f"https://github.com/{REPO}/pull/12",
+            "https://github.com/carol",
+            "https://github.com/carol",
+        ]
+    ), "unexpected link destinations"
+    assert hostile_body.count("://") == len(destinations), (
+        "a URL is left in a form that autolinks"
+    )
+    assert "http://" not in hostile_body.replace(f"http:{ZW}//", "")
+    assert not re.search(r"(?i)www\.", hostile_body), "www. autolink not neutralised"
+
+
+def test_hostile_author_is_escaped_and_not_linked(hostile_body):
+    assert (
+        f"Автор: eve\\) \\[pwn\\]\\(http:{ZW}//evil.example\\) @{ZW}everyone ·"
+        in hostile_body
+    ), "author login was not escaped"
+
+
+def test_hostile_approver_is_escaped_and_valid_approver_is_linked(hostile_body):
+    assert (
+        f"Одобрили: [carol](https://github.com/carol), bob @{ZW}everyone \\<b\\> ·"
+        in hostile_body
+    ), "approver login was not escaped"
+
+
+def test_hostile_group_key_heading_is_escaped(hostile_body):
+    assert f"\n### @{ZW}team/\\#7 \\<b\\>@{ZW}all\n" in hostile_body, (
+        "group key heading was not escaped"
+    )
+    assert "\n### Прочее\n" in hostile_body
+
+
+def test_hostile_file_paths_stay_inside_code_spans(hostile_body):
+    assert f"\n    - добавлен: `{HOSTILE_GROUPED_PATH}`\n" in hostile_body, (
+        "grouped path is not a plain code span"
+    )
+    assert "\n    - изменён: `docs/a'b@everyone <img src=x> #9.md`\n" in hostile_body, (
+        "backtick in a path must not end the code span"
+    )
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://evil.example/pull/12",
+        "http://github.com/acme/linguist-prompts/pull/12",
+        "https://github.com.evil.example/pull/12",
+        "https://github.com/x/pull/1) [p](http://evil.example)",
+        "https://github.com/x/pull/1 title",
+        "https://github.com/x/pull/1\n@everyone",
+        "https://github.com/x/<b>",
+        "javascript:alert(1)",
+        "",
+    ],
+)
+def test_pr_url_outside_github_is_not_linked(url):
+    pr = make_pr()
+    pr = wd.MergedPR(**{**pr.__dict__, "url": url})
+
+    body = wd.render_markdown([pr], START, END, REPO)
+
+    assert "- \\#12 Добавить примеры падежей\n" in body, "PR must render as plain text"
+    assert re.findall(r"(?<!\\)\]\(([^)]*)\)", body) == [
+        f"https://github.com/{REPO}",
+        "https://github.com/alice",
+        "https://github.com/bob",
+    ]
+    assert "evil" not in body
+
+
+@pytest.mark.parametrize(
+    "login",
+    ["bob[bot]", "-x", "a_b", "x" * 40, "x\n", "x y", "ali\u200bce"],
+)
+def test_invalid_logins_are_rendered_unlinked(login):
+    body = wd.render_markdown([make_pr(author=login, approvers=())], START, END, REPO)
+    assert "https://github.com/" + login not in body
+    assert f"Автор: {wd.md_text(login)} ·" in body
+    assert body.count("https://github.com/") == 2  # repo link and PR link only
+
+
+@pytest.mark.parametrize(
+    "repo", ["a/b) [x](http://evil.example)", "a b/c", "just-a-name"]
+)
+def test_odd_repository_value_is_not_linked(repo):
+    body = wd.render_markdown([], START, END, repo)
+    assert "](" not in body
+    assert "http://" not in body
+
+
+# --- issue delivery --------------------------------------------------------
+
+
+class FakeHTTPResponse:
+    def __init__(self, payload: bytes):
+        self.payload = payload
 
     def __enter__(self):
         return self
@@ -580,92 +796,83 @@ class FakeSMTP:
     def __exit__(self, *exc):
         return False
 
-    def login(self, user, password):
-        self.logged_in = (user, password)
-
-    def send_message(self, msg, from_addr=None, to_addrs=None):
-        if type(self).send_error:
-            raise type(self).send_error
-        self.sent = (msg, from_addr, to_addrs)
-        return type(self).send_result or {}
+    def read(self, *args):
+        return self.payload
 
 
-@pytest.fixture
-def smtp(monkeypatch):
-    FakeSMTP.instances = []
-    FakeSMTP.send_result = None
-    FakeSMTP.send_error = None
-    monkeypatch.setattr(wd.smtplib, "SMTP_SSL", FakeSMTP)
-    return FakeSMTP
+def fake_poster(response=None):
+    calls = []
+
+    def post(path, payload):
+        calls.append((path, payload))
+        return (
+            {"html_url": f"https://github.com/{REPO}/issues/7", "number": 7}
+            if response is None
+            else response
+        )
+
+    post.calls = calls
+    return post
 
 
-def test_build_message_has_headers_and_both_bodies():
-    msg = wd.build_message(
-        [make_pr()], START, END, REPO, "bot@yandex.ru", ("a@x.ru", "b@y.ru")
-    )
+def test_create_issue_posts_title_body_and_default_label():
+    post = fake_poster()
 
-    assert msg["Subject"] == "Сводка linguist-prompts: 13.09.2026–20.09.2026"
-    assert msg["From"] == "bot@yandex.ru"
-    assert msg["To"] == "a@x.ru, b@y.ru"
-    plain = msg.get_body(preferencelist=("plain",)).get_content()
-    html_body = msg.get_body(preferencelist=("html",)).get_content()
-    assert "== russian/grammar ==" in plain
-    assert "<h3>russian/grammar</h3>" in html_body
+    issue = wd.create_issue(post, REPO, "Заголовок", "Тело\n")
 
-
-def test_send_email_logs_in_over_ssl_and_sends_to_all_recipients(smtp):
-    cfg = wd.load_mail_config(GOOD_ENV)
-    msg = wd.build_message([], START, END, REPO, cfg.sender, cfg.recipients)
-
-    wd.send_email(msg, cfg)
-
-    [conn] = smtp.instances
-    assert (conn.host, conn.port) == ("smtp.yandex.ru", 465)
-    assert conn.logged_in == ("bot@yandex.ru", "app-password")
-    sent_msg, from_addr, to_addrs = conn.sent
-    assert sent_msg is msg
-    assert from_addr == "bot@yandex.ru"
-    assert list(to_addrs) == ["a@x.ru", "b@y.ru"]
+    assert post.calls == [
+        (
+            f"/repos/{REPO}/issues",
+            {"title": "Заголовок", "body": "Тело\n", "labels": ["digest"]},
+        )
+    ]
+    assert issue == {"html_url": f"https://github.com/{REPO}/issues/7", "number": 7}
 
 
-def test_send_email_raises_when_some_recipients_are_refused(smtp):
-    smtp.send_result = {"b@y.ru": (550, b"no such user")}
-    cfg = wd.load_mail_config(GOOD_ENV)
-    msg = wd.build_message([], START, END, REPO, cfg.sender, cfg.recipients)
-
-    with pytest.raises(RuntimeError) as exc:
-        wd.send_email(msg, cfg)
-
-    assert "1 of 2" in str(exc.value)
-    assert "b@y.ru" not in str(exc.value)
-    assert "a@x.ru" not in str(exc.value)
+def test_create_issue_accepts_custom_labels():
+    post = fake_poster()
+    wd.create_issue(post, REPO, "t", "b", labels=("digest", "weekly"))
+    assert post.calls[0][1]["labels"] == ["digest", "weekly"]
 
 
-def test_send_email_hides_addresses_when_smtp_refuses_all_recipients(smtp):
-    smtp.send_error = smtplib.SMTPRecipientsRefused(
-        {"a@x.ru": (550, b"x"), "b@y.ru": (550, b"y")}
-    )
-    cfg = wd.load_mail_config(GOOD_ENV)
-    msg = wd.build_message([], START, END, REPO, cfg.sender, cfg.recipients)
+def test_make_github_poster_posts_json_with_auth_and_parses_response(monkeypatch):
+    seen = {}
 
-    with pytest.raises(RuntimeError) as exc:
-        wd.send_email(msg, cfg)
+    def fake_urlopen(request, timeout=None):
+        seen["url"] = request.full_url
+        seen["method"] = request.get_method()
+        seen["data"] = request.data
+        seen["headers"] = {k.lower(): v for k, v in request.header_items()}
+        seen["timeout"] = timeout
+        return FakeHTTPResponse(b'{"html_url": "https://github.com/a/b/issues/1"}')
 
-    assert "a@x.ru" not in str(exc.value)
-    assert "b@y.ru" not in str(exc.value)
-    assert exc.value.__suppress_context__ is True
+    monkeypatch.setattr(wd.urllib.request, "urlopen", fake_urlopen)
+    payload = {"title": "Сводка", "body": "тело", "labels": ["digest"]}
+
+    result = wd.make_github_poster("tok")("/repos/a/b/issues", payload)
+
+    assert result == {"html_url": "https://github.com/a/b/issues/1"}
+    assert seen["url"] == "https://api.github.com/repos/a/b/issues"
+    assert seen["method"] == "POST"
+    assert isinstance(seen["data"], bytes)
+    assert json.loads(seen["data"].decode("utf-8")) == payload
+    assert seen["timeout"] == 30
+    headers = seen["headers"]
+    assert headers["content-type"] == "application/json"
+    assert headers["authorization"] == "Bearer tok"
+    assert headers["accept"] == "application/vnd.github+json"
+    assert headers["x-github-api-version"] == "2022-11-28"
+    assert headers["user-agent"] == "linguist-prompts-weekly-digest"
 
 
-def test_send_email_hides_sender_when_smtp_refuses_sender(smtp):
-    smtp.send_error = smtplib.SMTPSenderRefused(550, b"denied", "bot@yandex.ru")
-    cfg = wd.load_mail_config(GOOD_ENV)
-    msg = wd.build_message([], START, END, REPO, cfg.sender, cfg.recipients)
+def test_make_github_poster_lets_http_errors_propagate(monkeypatch):
+    def fake_urlopen(request, timeout=None):
+        raise urllib.error.HTTPError(request.full_url, 403, "Forbidden", {}, None)
 
-    with pytest.raises(RuntimeError) as exc:
-        wd.send_email(msg, cfg)
+    monkeypatch.setattr(wd.urllib.request, "urlopen", fake_urlopen)
 
-    assert "bot@yandex.ru" not in str(exc.value)
-    assert exc.value.__suppress_context__ is True
+    with pytest.raises(urllib.error.HTTPError):
+        wd.make_github_poster("tok")("/repos/a/b/issues", {})
 
 
 def test_parse_now_defaults_to_current_utc_time():
@@ -679,53 +886,194 @@ def test_parse_now_treats_naive_timestamps_as_utc():
     assert wd.parse_now("2026-09-20T21:05:00+03:00") == dt(2026, 9, 20, 18, 5)
 
 
-def test_main_dry_run_prints_digest_and_never_touches_smtp(smtp, capsys):
+# --- CLI -------------------------------------------------------------------
+
+NOW = "2026-09-20T18:05:00+00:00"
+TITLE = "Сводка linguist-prompts: 13.09.2026–20.09.2026"
+SCRIPT = Path(__file__).resolve().parent.parent / "scripts" / "weekly_digest.py"
+
+
+def week_api():
+    return fake_api(
+        {
+            list_path(1): [pr_json(12, "2026-09-15T10:00:00Z")],
+            files_path(12): [
+                file_json("languages/russian/grammar/prompts.md", "added")
+            ],
+            reviews_path(12): [review("bob", "APPROVED", "2026-09-15T09:00:00Z")],
+        }
+    )
+
+
+def forbidden_api(path):
+    raise AssertionError(f"the API must not be called, got {path}")
+
+
+def test_main_dry_run_prints_title_and_body_and_never_posts(capsys):
+    env = {"GITHUB_REPOSITORY": REPO, "DIGEST_NOTIFY": "@carol"}
+    post = fake_poster()
+
+    code = wd.main(["--dry-run", "--now", NOW], env=env, api=week_api(), post=post)
+
+    assert code == 0
+    body = wd.render_markdown(
+        [make_pr(number=12, title="PR 12", approvers=("bob",))],
+        START,
+        END,
+        REPO,
+        notify=("carol",),
+    )
+    assert capsys.readouterr().out == f"[dry run] Title: {TITLE}\n\n{body}"
+    assert body.startswith("Для: @carol\n\n**Период:**")
+    assert post.calls == []
+
+
+def test_main_dry_run_needs_no_token_when_api_is_injected(capsys):
+    code = wd.main(
+        ["--dry-run", "--now", NOW],
+        env={"GITHUB_REPOSITORY": REPO},
+        api=fake_api({list_path(1): []}),
+    )
+    assert code == 0
+    assert "За неделю изменений нет." in capsys.readouterr().out
+
+
+def test_main_posts_exactly_one_issue_with_title_label_and_body(capsys):
+    env = {"GITHUB_REPOSITORY": REPO, "DIGEST_NOTIFY": "carol, @dave"}
+    post = fake_poster()
+
+    code = wd.main(["--now", NOW], env=env, api=week_api(), post=post)
+
+    assert code == 0
+    [(path, payload)] = post.calls
+    assert path == f"/repos/{REPO}/issues"
+    assert payload["title"] == TITLE
+    assert payload["labels"] == ["digest"]
+    assert set(payload) == {"title", "body", "labels"}
+    body = payload["body"]
+    assert body.split("\n")[0] == "Для: @carol @dave"
+    assert f"[\\#12 PR 12](https://github.com/{REPO}/pull/12)" in body
+    assert "**Всего:** 1 слитый PR, 1 участник, 1 изменённый файл." in body
+    assert f"Posted: https://github.com/{REPO}/issues/7" in capsys.readouterr().out
+
+
+def test_main_posts_an_issue_for_an_empty_week_without_mention_line():
     env = {"GITHUB_REPOSITORY": REPO}
-    api = fake_api({list_path(1): []})
+    post = fake_poster()
 
-    code = wd.main(["--dry-run", "--now", "2026-09-20T18:05:00+00:00"], env=env, api=api)
-
-    assert code == 0
-    out = capsys.readouterr().out
-    assert "Сводка linguist-prompts: 13.09.2026–20.09.2026" in out
-    assert "За неделю изменений нет." in out
-    assert smtp.instances == []
-
-
-def test_main_sends_email_with_configured_recipients(smtp, capsys):
-    env = {"GITHUB_REPOSITORY": REPO, **GOOD_ENV}
-    api = fake_api({list_path(1): []})
-
-    code = wd.main(["--now", "2026-09-20T18:05:00+00:00"], env=env, api=api)
+    code = wd.main(["--now", NOW], env=env, api=fake_api({list_path(1): []}), post=post)
 
     assert code == 0
-    [conn] = smtp.instances
-    msg, from_addr, to_addrs = conn.sent
-    assert msg["Subject"] == "Сводка linguist-prompts: 13.09.2026–20.09.2026"
-    assert list(to_addrs) == ["a@x.ru", "b@y.ru"]
-    captured = capsys.readouterr()
-    assert "Sent:" in captured.out
-    for secret in ("app-password", "a@x.ru", "b@y.ru", "bot@yandex.ru"):
-        assert secret not in captured.out + captured.err, f"leaked {secret!r}"
-
-
-def test_main_fails_fast_on_missing_mail_config_before_calling_api(smtp):
-    def api(path):
-        raise AssertionError("API must not be called when config is invalid")
-
-    with pytest.raises(wd.ConfigError, match="SMTP_HOST"):
-        wd.main([], env={"GITHUB_REPOSITORY": REPO}, api=api)
-    assert smtp.instances == []
+    [(_, payload)] = post.calls
+    assert payload["title"] == TITLE
+    assert payload["body"] == f"{PERIOD_LINE}\n\nЗа неделю изменений нет.\n"
 
 
 def test_main_requires_github_repository():
     with pytest.raises(wd.ConfigError, match="GITHUB_REPOSITORY"):
-        wd.main(["--dry-run"], env={}, api=fake_api({}))
+        wd.main(["--dry-run"], env={}, api=forbidden_api)
 
 
 def test_main_requires_github_token_when_no_api_is_injected():
     with pytest.raises(wd.ConfigError, match="GITHUB_TOKEN"):
         wd.main(["--dry-run"], env={"GITHUB_REPOSITORY": REPO})
+
+
+def test_main_fails_before_any_api_call_when_posting_without_a_token():
+    with pytest.raises(wd.ConfigError, match="GITHUB_TOKEN"):
+        wd.main(["--now", NOW], env={"GITHUB_REPOSITORY": REPO}, api=forbidden_api)
+
+
+@pytest.mark.parametrize("dry_run", [True, False])
+@pytest.mark.parametrize("notify", ["bad_login", "carol @@dave", "carol,-x"])
+def test_main_fails_fast_on_invalid_notify_before_any_network_call(dry_run, notify):
+    env = {"GITHUB_REPOSITORY": REPO, "DIGEST_NOTIFY": notify}
+    post = fake_poster()
+    argv = ["--now", NOW] + (["--dry-run"] if dry_run else [])
+
+    with pytest.raises(wd.ConfigError, match="DIGEST_NOTIFY"):
+        wd.main(argv, env=env, api=forbidden_api, post=post)
+
+    assert post.calls == []
+
+
+def test_main_with_default_clients_uses_token_and_never_prints_it(monkeypatch, capsys):
+    token = "ghs_SECRET_TOKEN_VALUE"
+    requests = []
+
+    def fake_urlopen(request, timeout=None):
+        requests.append(request)
+        if request.get_method() == "POST":
+            return FakeHTTPResponse(
+                b'{"html_url": "https://github.com/acme/linguist-prompts/issues/9"}'
+            )
+        return FakeHTTPResponse(b"[]")
+
+    monkeypatch.setattr(wd.urllib.request, "urlopen", fake_urlopen)
+    env = {
+        "GITHUB_REPOSITORY": REPO,
+        "GITHUB_TOKEN": token,
+        "DIGEST_NOTIFY": "carol",
+    }
+
+    code = wd.main(["--now", NOW], env=env)
+
+    assert code == 0
+    assert [r.get_method() for r in requests] == ["GET", "POST"]
+    assert requests[1].full_url == f"https://api.github.com/repos/{REPO}/issues"
+    assert all(r.get_header("Authorization") == f"Bearer {token}" for r in requests)
+    sent = json.loads(requests[1].data.decode("utf-8"))
+    assert sent["title"] == TITLE
+    assert sent["labels"] == ["digest"]
+    assert sent["body"].startswith("Для: @carol\n\n")
+    captured = capsys.readouterr()
+    assert "Posted: https://github.com/acme/linguist-prompts/issues/9" in captured.out
+    assert token not in captured.out + captured.err
+    assert token not in sent["body"]
+
+
+def test_main_output_never_contains_the_token_in_dry_run(capsys):
+    token = "ghs_SECRET_TOKEN_VALUE"
+    env = {"GITHUB_REPOSITORY": REPO, "GITHUB_TOKEN": token}
+
+    wd.main(["--dry-run", "--now", NOW], env=env, api=week_api())
+
+    captured = capsys.readouterr()
+    assert token not in captured.out + captured.err
+
+
+def test_main_lets_post_failures_propagate():
+    def failing_post(path, payload):
+        raise urllib.error.HTTPError(path, 403, "Forbidden", {}, None)
+
+    with pytest.raises(urllib.error.HTTPError):
+        wd.main(
+            ["--now", NOW],
+            env={"GITHUB_REPOSITORY": REPO},
+            api=fake_api({list_path(1): []}),
+            post=failing_post,
+        )
+
+
+def test_script_exits_with_2_and_error_line_on_config_error():
+    env = {
+        k: v
+        for k, v in os.environ.items()
+        if k not in ("GITHUB_REPOSITORY", "GITHUB_TOKEN", "DIGEST_NOTIFY")
+    }
+
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), "--dry-run"],
+        env=env,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=60,
+    )
+
+    assert result.returncode == 2
+    assert result.stderr.startswith("error: ")
+    assert "GITHUB_REPOSITORY" in result.stderr
 
 
 # --- workflow invariants ---------------------------------------------------
@@ -782,7 +1130,8 @@ def workflow_problems(text: str) -> list[str]:
     else:
         problems.append("dry_run input block not found")
 
-    # Check: top-level permissions block has exactly contents: read and pull-requests: read
+    # Check: top-level permissions block is exactly contents: read,
+    # pull-requests: read and issues: write
     if not re.search(r"^permissions:\s*$", content, re.MULTILINE):
         problems.append("Top-level permissions: block not found")
     else:
@@ -791,21 +1140,25 @@ def workflow_problems(text: str) -> list[str]:
             content, re.MULTILINE
         )
         if perms_section:
-            perms_block = perms_section.group(1)
-            if "contents: read" not in perms_block:
-                problems.append("permissions must include contents: read")
-            if "pull-requests: read" not in perms_block:
-                problems.append("permissions must include pull-requests: read")
-            if "write" in perms_block:
-                problems.append("permissions must not include write")
+            perms = [
+                line.strip() for line in perms_section.group(1).split("\n")
+                if line.strip()
+            ]
+            wanted = ["contents: read", "pull-requests: read", "issues: write"]
+            for entry in wanted:
+                if entry not in perms:
+                    problems.append(f"permissions must include {entry}")
+            extra = [entry for entry in perms if entry not in wanted]
+            if extra:
+                problems.append(f"permissions has unexpected entries: {extra}")
 
     # Check: no job-level permissions block
     if re.search(r"^\s{4}permissions:", content, re.MULTILINE):
         problems.append("Job-level permissions: blocks are not allowed")
 
-    # Check: environment: digest at job indent (4 spaces)
-    if not re.search(r"^    environment: digest$", content, re.MULTILINE):
-        problems.append("Job must have 'environment: digest' at 4-space indent")
+    # Check: no environment: key anywhere (no secrets live in an Environment)
+    if re.search(r"^\s*environment:", content, re.MULTILINE):
+        problems.append("environment: is not allowed (the digest needs no Environment)")
 
     # Check: timeout-minutes: 10 at job indent (4 spaces)
     if not re.search(r"^    timeout-minutes: 10$", content, re.MULTILINE):
@@ -849,22 +1202,32 @@ def workflow_problems(text: str) -> list[str]:
     else:
         problems.append("run: | block not found")
 
-    # Check: ${{ only appears in env section for secrets
+    # Check: ${{ only appears inside the step's env: mapping, and only for the
+    # token, the notify variable and the DRY_RUN expression
     env_section = re.search(
-        r"^\s{8}env:\n((?:(?!^\s{2}\S).*\n)*)",
+        r"^\s{8}env:\n((?: {10,}.*\n)*)",
         content, re.MULTILINE
     )
     if env_section:
         env_block = env_section.group(1)
-        secrets = [
-            "GITHUB_TOKEN", "SMTP_HOST", "SMTP_PORT", "SMTP_USER",
-            "SMTP_PASSWORD", "MAIL_FROM", "MAIL_TO"
-        ]
-        for secret in secrets:
-            if f"${{{{ secrets.{secret} }}}}" not in env_block:
+        if "${{" in content.replace(env_block, "", 1):
+            problems.append("found ${{ outside the env: mapping")
+        allowed = {
+            "secrets.GITHUB_TOKEN",
+            "vars.DIGEST_NOTIFY",
+            "github.event_name == 'workflow_dispatch' && inputs.dry_run",
+        }
+        for expression in re.findall(r"\$\{\{\s*(.*?)\s*\}\}", env_block):
+            if expression not in allowed:
                 problems.append(
-                    f"env must reference {secret} as ${{{{ secrets.{secret} }}}}"
+                    f"env references a disallowed expression: {expression}"
                 )
+        for name, source in (
+            ("GITHUB_TOKEN", "secrets.GITHUB_TOKEN"),
+            ("DIGEST_NOTIFY", "vars.DIGEST_NOTIFY"),
+        ):
+            if f"          {name}: ${{{{ {source} }}}}\n" not in env_block:
+                problems.append(f"env must set {name} as ${{{{ {source} }}}}")
     else:
         problems.append("env: block not found in step")
 
@@ -891,17 +1254,50 @@ def test_workflow_invariants_hold():
     "old,new,fragment",
     [
         ("default: true", "default: false", "default: true"),
-        ("environment: digest", "environment: staging", "environment: digest"),
         ('    - cron: "0 18 * * 0"', '    - cron: "0 19 * * 0"', "cron"),
         ("  workflow_dispatch:", "  pull_request:\n  workflow_dispatch:", "pull_request"),
         ("  contents: read", "  contents: write", "contents: read"),
+        ("  issues: write", "  issues: read", "issues: write"),
+        ("  issues: write\n", "", "issues: write"),
+        ("  issues: write\n", "  issues: write\n  actions: read\n", "unexpected"),
+        (
+            "    timeout-minutes: 10\n",
+            "    timeout-minutes: 10\n    permissions:\n      contents: read\n",
+            "permissions",
+        ),
+        (
+            "    timeout-minutes: 10\n",
+            "    timeout-minutes: 10\n    environment: digest\n",
+            "environment",
+        ),
+        (
+            "          DRY_RUN: ${{ github.event_name",
+            "          EXTRA: ${{ secrets.SOMETHING }}\n"
+            "          DRY_RUN: ${{ github.event_name",
+            "secrets.SOMETHING",
+        ),
+        (
+            "          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}\n",
+            "          GITHUB_TOKEN: ${{ secrets.OTHER_TOKEN }}\n",
+            "secrets.OTHER_TOKEN",
+        ),
+        (
+            "          DIGEST_NOTIFY: ${{ vars.DIGEST_NOTIFY }}\n",
+            "          DIGEST_NOTIFY: ${{ secrets.DIGEST_NOTIFY }}\n",
+            "secrets.DIGEST_NOTIFY",
+        ),
+        ("          DIGEST_NOTIFY: ${{ vars.DIGEST_NOTIFY }}\n", "", "DIGEST_NOTIFY"),
+        (
+            'python-version: "3.12"',
+            "python-version: ${{ secrets.SOMETHING }}",
+            "outside",
+        ),
         (
             "DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}",
             "DRY_RUN: ${{ github.event_name == 'workflow_dispatch' || inputs.dry_run }}",
             "DRY_RUN",
         ),
         ('    - cron: "0 18 * * 0"', '    # - cron: "0 18 * * 0"', "cron"),
-        ("    environment: digest", "    # environment: digest", "environment"),
         (
             "            python scripts/weekly_digest.py --dry-run",
             "            python scripts/weekly_digest.py --dry-run ${{ github.event.inputs.x }}",

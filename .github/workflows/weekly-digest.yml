@@ -13,6 +13,7 @@ on:
 permissions:
   contents: read
   pull-requests: read
+  issues: write
 
 concurrency:
   group: weekly-digest
@@ -22,7 +23,6 @@ jobs:
   digest:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    environment: digest
     steps:
       - uses: actions/checkout@v4
         with:
@@ -35,12 +35,7 @@ jobs:
       - name: Build and send the digest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SMTP_HOST: ${{ secrets.SMTP_HOST }}
-          SMTP_PORT: ${{ secrets.SMTP_PORT }}
-          SMTP_USER: ${{ secrets.SMTP_USER }}
-          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
-          MAIL_FROM: ${{ secrets.MAIL_FROM }}
-          MAIL_TO: ${{ secrets.MAIL_TO }}
+          DIGEST_NOTIFY: ${{ vars.DIGEST_NOTIFY }}
           DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
         run: |
           if [ "$DRY_RUN" = "true" ]; then

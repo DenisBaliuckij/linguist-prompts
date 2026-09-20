@@ -1,4 +1,4 @@
-"""Weekly digest of merged pull requests, emailed in Russian.
+"""Weekly digest of merged pull requests, posted as a GitHub issue in Russian.
 
 Stdlib only. Run by .github/workflows/weekly-digest.yml every Sunday 18:00 UTC.
 """
@@ -6,17 +6,14 @@ Stdlib only. Run by .github/workflows/weekly-digest.yml every Sunday 18:00 UTC.
 from __future__ import annotations
 
 import argparse
-import html
 import json
 import os
 import re
-import smtplib
 import sys
 import urllib.request
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from email.message import EmailMessage
 from typing import Any
 
 GITHUB_API = "https://api.github.com"
@@ -24,30 +21,19 @@ OTHER_GROUP = "Прочее"
 DIGEST_WEEKDAY = 6  # Sunday, as returned by datetime.weekday()
 DIGEST_HOUR_UTC = 18
 
-REQUIRED_MAIL_ENV = (
-    "SMTP_HOST",
-    "SMTP_PORT",
-    "SMTP_USER",
-    "SMTP_PASSWORD",
-    "MAIL_FROM",
-    "MAIL_TO",
-)
+DIGEST_LABEL = "digest"
 
 _GROUP_RE = re.compile(r"^languages/([^/]+)/([^/]+)/")
+_LOGIN_RE = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$")
+_REPO_RE = re.compile(r"[A-Za-z0-9._-]+/[A-Za-z0-9._-]+")
+_GITHUB_URL_RE = re.compile(r"https://github\.com/[A-Za-z0-9._~%/-]+")
+_MD_SPECIAL_RE = re.compile(r"[\\`*_\[\]<>()#~|!]")
+_WWW_RE = re.compile(r"(www)\.", re.IGNORECASE)
+_ZWSP = "\u200b"
 
 
 class ConfigError(Exception):
     """Raised when required configuration is missing or invalid."""
-
-
-@dataclass(frozen=True)
-class MailConfig:
-    host: str
-    port: int
-    user: str
-    password: str
-    sender: str
-    recipients: tuple[str, ...]
 
 
 def digest_window(now: datetime) -> tuple[datetime, datetime]:
@@ -86,37 +72,18 @@ def approvers_from_reviews(reviews: list[dict[str, Any]]) -> tuple[str, ...]:
     return tuple(sorted(u for u, s in latest.items() if s == "APPROVED"))
 
 
-def parse_mail_to(value: str) -> tuple[str, ...]:
-    return tuple(p.strip() for p in re.split(r"[;,]", value) if p.strip())
-
-
-def load_mail_config(env: Mapping[str, str]) -> MailConfig:
-    missing = [name for name in REQUIRED_MAIL_ENV if not env.get(name)]
-    if missing:
-        raise ConfigError(
-            "Missing required environment variables: " + ", ".join(missing)
-        )
-    try:
-        port = int(env["SMTP_PORT"])
-    except ValueError:
-        raise ConfigError("SMTP_PORT must be an integer") from None
-    user = env["SMTP_USER"].strip()
-    sender = env["MAIL_FROM"].strip()
-    if sender.lower() != user.lower():
-        raise ConfigError(
-            "MAIL_FROM must equal SMTP_USER (Yandex rejects other From addresses)"
-        )
-    recipients = parse_mail_to(env["MAIL_TO"])
-    if not recipients:
-        raise ConfigError("MAIL_TO contains no addresses")
-    return MailConfig(
-        host=env["SMTP_HOST"],
-        port=port,
-        user=user,
-        password=env["SMTP_PASSWORD"],
-        sender=sender,
-        recipients=recipients,
-    )
+def parse_notify(value: str) -> tuple[str, ...]:
+    """Split DIGEST_NOTIFY into unique, validated GitHub logins (no leading @)."""
+    logins: list[str] = []
+    for part in re.split(r"[\s,;]+", value):
+        login = part.removeprefix("@")
+        if not login:
+            continue
+        if not _LOGIN_RE.fullmatch(login):
+            raise ConfigError("DIGEST_NOTIFY contains an invalid GitHub login")
+        if login not in logins:
+            logins.append(login)
+    return tuple(logins)
 
 
 @dataclass(frozen=True)
@@ -147,21 +114,54 @@ def normalize_status(raw: str) -> str:
     return raw if raw in ("added", "removed", "renamed") else "modified"
 
 
+Poster = Callable[[str, dict[str, Any]], Any]
+
+
+def _github_headers(token: str) -> dict[str, str]:
+    return {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "User-Agent": "linguist-prompts-weekly-digest",
+    }
+
+
 def make_github_api(token: str) -> Api:
     def api(path: str) -> Any:
         request = urllib.request.Request(
-            GITHUB_API + path,
-            headers={
-                "Authorization": f"Bearer {token}",
-                "Accept": "application/vnd.github+json",
-                "X-GitHub-Api-Version": "2022-11-28",
-                "User-Agent": "linguist-prompts-weekly-digest",
-            },
+            GITHUB_API + path, headers=_github_headers(token)
         )
         with urllib.request.urlopen(request, timeout=30) as response:
             return json.load(response)
 
     return api
+
+
+def make_github_poster(token: str) -> Poster:
+    def post(path: str, payload: dict[str, Any]) -> Any:
+        request = urllib.request.Request(
+            GITHUB_API + path,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={**_github_headers(token), "Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(request, timeout=30) as response:
+            return json.load(response)
+
+    return post
+
+
+def create_issue(
+    post: Poster,
+    repo: str,
+    title: str,
+    body: str,
+    labels: tuple[str, ...] = (DIGEST_LABEL,),
+) -> dict[str, Any]:
+    return post(
+        f"/repos/{repo}/issues",
+        {"title": title, "body": body, "labels": list(labels)},
+    )
 
 
 def paginate(api: Api, path: str) -> list[Any]:
@@ -282,104 +282,86 @@ def _totals_sentence(prs: list[MergedPR]) -> str:
     )
 
 
-def _approvers_text(pr: MergedPR) -> str:
-    return ", ".join(f"@{login}" for login in pr.approvers) or "—"
+def md_text(value: str) -> str:
+    """Make untrusted plain text safe to embed in Markdown.
+
+    The result renders as the original text but can neither ping anyone, nor
+    cross-reference an issue, nor inject HTML, an image or a link.
+    """
+    value = re.sub(r"[\r\n\t]+", " ", value)
+    value = value.replace("&", "&amp;")
+    value = _MD_SPECIAL_RE.sub(lambda m: "\\" + m[0], value)
+    value = value.replace("@", "@" + _ZWSP)
+    value = value.replace("://", ":" + _ZWSP + "//")
+    return _WWW_RE.sub(lambda m: m[1] + _ZWSP + ".", value)
 
 
-def render_text(
-    prs: list[MergedPR], start: datetime, end: datetime, repo: str
-) -> str:
-    lines = [
-        f"Сводка {_repo_name(repo)}",
-        f"Период: {_fmt_datetime(start)} – {_fmt_datetime(end)} (UTC)",
-        f"Репозиторий: https://github.com/{repo}",
-        "",
-    ]
-    if not prs:
-        lines.append("За неделю изменений нет.")
-        return "\n".join(lines) + "\n"
-    lines.append(_totals_sentence(prs))
-    for key, entries in group_prs(prs):
-        lines += ["", f"== {key} =="]
-        for pr, changes in entries:
-            lines.append(f"• #{pr.number} {pr.title} — {pr.url}")
-            lines.append(
-                f"  Автор: @{pr.author} · Одобрили: {_approvers_text(pr)}"
-                f" · Слит: {_fmt_date(pr.merged_at)}"
-            )
-            for change in changes:
-                lines.append(f"  – {STATUS_LABELS[change.status]}: {change.path}")
-    return "\n".join(lines) + "\n"
+def md_code(value: str) -> str:
+    """Wrap untrusted text in a Markdown code span that it cannot break out of."""
+    return "`" + re.sub(r"[\r\n\t]+", " ", value).replace("`", "'") + "`"
 
 
-def render_html(
-    prs: list[MergedPR], start: datetime, end: datetime, repo: str
-) -> str:
-    esc = html.escape
-    repo_url = f"https://github.com/{repo}"
-    parts = [
-        '<html><body style="font-family: sans-serif">',
-        f"<h2>Сводка {esc(_repo_name(repo))}</h2>",
-        f"<p>Период: {_fmt_datetime(start)} – {_fmt_datetime(end)} (UTC)<br>"
-        f'Репозиторий: <a href="{esc(repo_url)}">{esc(repo_url)}</a></p>',
-    ]
-    if not prs:
-        parts.append("<p>За неделю изменений нет.</p>")
-    else:
-        parts.append(f"<p>{esc(_totals_sentence(prs))}</p>")
-        for key, entries in group_prs(prs):
-            parts.append(f"<h3>{esc(key)}</h3><ul>")
-            for pr, changes in entries:
-                parts.append(
-                    f'<li><a href="{esc(pr.url)}">#{pr.number} {esc(pr.title)}</a><br>'
-                    f"Автор: @{esc(pr.author)} · Одобрили: {esc(_approvers_text(pr))}"
-                    f" · Слит: {_fmt_date(pr.merged_at)}<ul>"
-                )
-                for change in changes:
-                    parts.append(
-                        f"<li>{STATUS_LABELS[change.status]}: "
-                        f"<code>{esc(change.path)}</code></li>"
-                    )
-                parts.append("</ul></li>")
-            parts.append("</ul>")
-    parts.append("</body></html>")
-    return "\n".join(parts) + "\n"
+def _md_login(login: str) -> str:
+    if _LOGIN_RE.fullmatch(login):
+        return f"[{login}](https://github.com/{login})"
+    return md_text(login)
 
 
-def build_message(
+def _md_link(text: str, url: str) -> str:
+    if _GITHUB_URL_RE.fullmatch(url):
+        return f"[{text}]({url})"
+    return text
+
+
+def _approvers_markdown(pr: MergedPR) -> str:
+    return ", ".join(_md_login(login) for login in pr.approvers) or "—"
+
+
+def render_markdown(
     prs: list[MergedPR],
     start: datetime,
     end: datetime,
     repo: str,
-    sender: str,
-    recipients: tuple[str, ...],
-) -> EmailMessage:
-    msg = EmailMessage()
-    msg["Subject"] = digest_subject(repo, start, end)
-    msg["From"] = sender
-    msg["To"] = ", ".join(recipients)
-    msg.set_content(render_text(prs, start, end, repo))
-    msg.add_alternative(render_html(prs, start, end, repo), subtype="html")
-    return msg
+    notify: tuple[str, ...] = (),
+) -> str:
+    """Render the digest as the Markdown body of a GitHub issue.
 
-
-def send_email(msg: EmailMessage, cfg: MailConfig) -> None:
-    with smtplib.SMTP_SSL(cfg.host, cfg.port, timeout=30) as smtp:
-        smtp.login(cfg.user, cfg.password)
-        try:
-            refused = smtp.send_message(
-                msg, from_addr=cfg.sender, to_addrs=list(cfg.recipients)
+    The `Для: @login ...` line is the only place a real @mention is emitted,
+    and only for logins that pass validation. Everything derived from pull
+    requests (titles, logins, paths, group keys) is escaped.
+    """
+    lines: list[str] = []
+    if notify:
+        if not all(_LOGIN_RE.fullmatch(login) for login in notify):
+            raise ConfigError("DIGEST_NOTIFY contains an invalid GitHub login")
+        lines += ["Для: " + " ".join(f"@{login}" for login in notify), ""]
+    if _REPO_RE.fullmatch(repo):
+        repo_text = _md_link("репозиторий", f"https://github.com/{repo}")
+    else:
+        repo_text = md_text(repo)
+    lines.append(
+        f"**Период:** {_fmt_datetime(start)} – {_fmt_datetime(end)} (UTC)"
+        f" · {repo_text}"
+    )
+    lines.append("")
+    if not prs:
+        lines.append("За неделю изменений нет.")
+        return "\n".join(lines) + "\n"
+    lines.append(_totals_sentence(prs).replace("Всего:", "**Всего:**", 1))
+    for key, entries in group_prs(prs):
+        lines += ["", f"### {md_text(key)}"]
+        for pr, changes in entries:
+            heading = md_text(f"#{pr.number} {pr.title}")
+            lines.append(f"- {_md_link(heading, pr.url)}")
+            lines.append(
+                f"  Автор: {_md_login(pr.author)} · Одобрили: {_approvers_markdown(pr)}"
+                f" · Слит: {_fmt_date(pr.merged_at)}"
             )
-        except (smtplib.SMTPRecipientsRefused, smtplib.SMTPSenderRefused):
-            raise RuntimeError(
-                "SMTP server refused the sender or all recipients; "
-                "check MAIL_FROM and MAIL_TO"
-            ) from None
-    if refused:
-        raise RuntimeError(
-            f"SMTP server refused {len(refused)} of {len(cfg.recipients)} "
-            "recipients; check MAIL_TO"
-        )
+            for change in changes:
+                lines.append(
+                    f"    - {STATUS_LABELS[change.status]}: {md_code(change.path)}"
+                )
+    return "\n".join(lines) + "\n"
 
 
 def parse_now(value: str | None) -> datetime:
@@ -391,12 +373,12 @@ def parse_now(value: str | None) -> datetime:
 
 def parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Send the weekly linguist-prompts digest."
+        description="Post the weekly linguist-prompts digest as a GitHub issue."
     )
     parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="print the digest to stdout instead of emailing it",
+        help="print the digest to stdout instead of posting the issue",
     )
     parser.add_argument(
         "--now", help="ISO-8601 timestamp that overrides the clock (for testing)"
@@ -408,6 +390,7 @@ def main(
     argv: list[str] | None = None,
     env: Mapping[str, str] | None = None,
     api: Api | None = None,
+    post: Poster | None = None,
 ) -> int:
     args = parse_args(argv)
     env = os.environ if env is None else env
@@ -415,25 +398,30 @@ def main(
     repo = env.get("GITHUB_REPOSITORY")
     if not repo:
         raise ConfigError("Missing required environment variable: GITHUB_REPOSITORY")
-    # Validate mail settings first so a misconfigured run fails before any API call.
-    mail_cfg = None if args.dry_run else load_mail_config(env)
+    # Validate all configuration first so a misconfigured run fails before any
+    # network call.
+    notify = parse_notify(env.get("DIGEST_NOTIFY", ""))
+    token = env.get("GITHUB_TOKEN")
+    needs_token = api is None or (post is None and not args.dry_run)
+    if needs_token and not token:
+        raise ConfigError("Missing required environment variable: GITHUB_TOKEN")
     if api is None:
-        token = env.get("GITHUB_TOKEN")
-        if not token:
-            raise ConfigError("Missing required environment variable: GITHUB_TOKEN")
         api = make_github_api(token)
+    if post is None and not args.dry_run:
+        post = make_github_poster(token)
 
     start, end = digest_window(parse_now(args.now))
     prs = collect_merged_prs(api, repo, start, end)
+    title = digest_subject(repo, start, end)
+    body = render_markdown(prs, start, end, repo, notify)
 
-    if mail_cfg is None:
-        print(f"[dry run] Subject: {digest_subject(repo, start, end)}\n")
-        print(render_text(prs, start, end, repo))
+    if args.dry_run:
+        print(f"[dry run] Title: {title}\n")
+        print(body, end="")
         return 0
 
-    msg = build_message(prs, start, end, repo, mail_cfg.sender, mail_cfg.recipients)
-    send_email(msg, mail_cfg)
-    print(f"Sent: {msg['Subject']} -> {len(mail_cfg.recipients)} recipient(s)")
+    issue = create_issue(post, repo, title, body)
+    print(f"Posted: {issue.get('html_url', '(no URL in the response)')}")
     return 0
 
 
