@@ -1,0 +1,206 @@
+{
+  "name": "Use-case generator ontology",
+  "description": "A step-by-step guide for finding and extracting annotated use-cases to test a lemmatizer of a given language L. Organized into three modules: Mission, Source collection, Use-case extraction.",
+
+  "module_1": {
+    "name": "Mission",
+    "goal": "Find and extract pre-annotated use-cases for testing a lemmatizer of a given language L.",
+
+    "refresher": "Before acting at any step, consult main_notions and constraints.",
+
+    "main_notions": {
+      "use_case": {
+        "definition": "A test item that allows comparison of a lemmatizer's output against a known-correct answer.",
+        "types": [
+          {
+            "type": "annotated sentence",
+            "description": "A complete sentence in UD-format with all of its tokens annotated. Not just a single annotated token in the sentence — every token must carry annotation.",
+            "preferred": true
+          },
+          {
+            "type": "bare wordform",
+            "description": "A single wordform with gold grammatical tags and/or lemma.",
+            "preferred": false,
+            "note": "Fallback type, used only when annotated sentences are unavailable."
+          }
+        ],
+        "rule": "Use-cases must be pre-annotated. The system never annotates them itself.",
+        "non_triviality_rule": "Use-cases must be non-trivial: the wordform must differ from its lemma. A use-case whose wordform equals its lemma is rejected."
+      },
+
+      "relevant_annotation": {
+        "definition": "Only the following annotation kinds are usable for the task.",
+        "kinds": [
+          "lexical (lemma, citation form, word-level identity)",
+          "semantic (sense, gloss, meaning)",
+          "morphological (POS, grammatical tags, inflectional features)",
+          "syntactic (dependency or constituency structure)"
+        ],
+        "excluded": [
+          "phonological",
+          "phonetic",
+          "prosodic / tonal",
+          "audio or other non-written annotation"
+        ],
+        "rationale": "The lemmatizer operates on written orthographic wordforms, not on sounds."
+      },
+
+      "hidden_annotation": {
+        "definition": "Relevant annotation found inside a source whose stated topic is something else.",
+        "rule": "A source is judged by its content, not by its title or stated subject.",
+        "examples": [
+          "A phonology paper containing interlinear glossed examples.",
+          "A grammar sketch containing annotated example sentences within prose description.",
+          "A dictionary entry containing usage examples with morphological segmentation and glosses."
+        ]
+      },
+
+      "source_quality": {
+        "rule": "A source is bad only if its content is irrelevant, i.e. it contains no relevant annotation.",
+        "access_rule": "Access is not a reason for removing a source. Inaccessible sources remain in the collection with their access_type and are handled in Module 3, Step 2."
+      }
+    },
+
+    "constraints": [
+      "Sources must be pre-annotated. Use-cases are not annotated by the system.",
+      "Use-cases must already carry annotation in the source.",
+      "Annotated sentences are preferred; bare wordforms are used only as a fallback.",
+      "Annotation must come from a reliable source, not from machine guesses.",
+      "Only lexical, semantic, morphological, or syntactic annotation is relevant.",
+      "A source is judged by its content, not by its stated topic. Hidden glossed examples count.",
+      "Access is not a filter and not a reason to mark a source bad. Only irrelevant content makes a source bad.",
+      "Finding no sources is the worst outcome; searching must be very thorough.",
+      "Always check the bibliography or reference list at the end of every source and follow up on the sources it points to.",
+      "If language L has multiple names, all known names and spellings must be used in searching.",
+      "Classification of a source as good or bad must be definitive. Hedging is not permitted.",
+      "Use-cases must be non-trivial: the wordform must differ from its lemma."
+    ]
+  },
+
+  "module_2": {
+    "name": "Source collection",
+    "goal": "Find and record pre-annotated sources of lemmatizer use-cases for language L. Use-cases are not extracted at this stage.",
+
+    "steps": [
+      {
+        "step": 1,
+        "name": "Take input",
+        "action": "Take language L as input."
+      },
+      {
+        "step": 2,
+        "name": "Collect name variants",
+        "action": "Collect all alternative names, spellings, and identifiers of language L. Every variant will be used in searching.",
+        "record": {
+          "primary_name": "",
+          "alternative_names": [],
+          "iso_codes": [],
+          "notes": "Exonyms, autonyms, dialect names, colonial-era spellings, and other identifiers."
+        }
+      },
+      {
+        "step": 3,
+        "name": "Search sources",
+        "action": "Search for sources across the categories below, using every name variant from Step 2.",
+        "categories": [
+          "Corpora — sentence collections annotated for morphology and/or syntax.",
+          "Lexicographic — dictionaries and Wiktionary/Wikipedia with lemmas as headwords and usage examples.",
+          "Descriptive — grammar sketches, descriptive grammars, articles with glossed examples, fieldwork notebooks.",
+          "Pedagogical — language-learning textbooks and phrasebooks.",
+          "Databases — morphological databases giving form-to-lemma mappings.",
+          "Religious — Bible corpora with token-by-token annotation (not verse-level alignment)."
+        ],
+        "note": "New subtypes within each category may be added during the search."
+      },
+      {
+        "step": 4,
+        "name": "Inspect each source",
+        "action": "Inspect each found source to determine definitively whether it contains relevant annotation.",
+        "substeps": [
+          "Open the source.",
+          "Look for annotated or glossed material of the relevant kinds.",
+          "Check for hidden annotation inside off-topic sources.",
+          "Reach a definitive conclusion. No hedging."
+        ],
+        "outcomes": [
+          "Contains annotation → record per Step 5.",
+          "Does not contain annotation → record as bad per Step 6.",
+          "Cannot be opened → keep in collection, record access_type, mark for Module 3, Step 2. Do not mark bad."
+        ]
+      },
+      {
+        "step": 5,
+        "name": "Record the source",
+        "action": "For every usable source, record exactly these fields:",
+        "fields": {
+          "url": "",
+          "short_description": "Brief description of what the source is.",
+          "annotation_type": "Exactly what annotation is present. Definitive, not a guess.",
+          "access_type": "open | paywalled | offline | login | unknown"
+        }
+      },
+      {
+        "step": 6,
+        "name": "Record bad sources",
+        "action": "If a source contains text material in L but no relevant annotation, record it as a bad source with a reason.",
+        "fields": {
+          "url": "",
+          "reason": ""
+        },
+        "rule": "Only irrelevant content is a reason. Inaccessibility is not."
+      },
+      {
+        "step": 7,
+        "name": "Record 'no sources found'",
+        "action": "If no sources are found at all, record this explicitly.",
+        "fields": {
+          "sources": [],
+          "note": "It is explicitly stated that no sources were found."
+        }
+      }
+    ]
+  },
+
+  "module_3": {
+    "name": "Use-case extraction",
+    "goal": "Given a source found in Module 2, extract use-cases from it.",
+
+    "steps": [
+      {
+        "step": 1,
+        "name": "Verify the source",
+        "action": "Check whether each collected URL can be opened and whether it truly contains usable information. Verify it does not lead to an empty page or a dead end."
+      },
+      {
+        "step": 2,
+        "name": "Try fallback access",
+        "action": "If a source cannot be opened or is inaccessible (dead link, paywall, login wall, offline), attempt alternative routes to obtain its content. The set of routes is open and may include archives, repositories, document delivery, and direct contact with authors or publishers."
+      },
+      {
+        "step": 3,
+        "name": "Update the source record",
+        "action": "Update the record in light of what was learned in Steps 1 and 2. Update the URL, access_type, or annotation_type as needed. Reclassify as bad if the content turns out to be irrelevant. Retain with a note if it remains inaccessible."
+      },
+      {
+        "step": 4,
+        "name": "Extract use-cases",
+        "action": "Extract use-cases from the source, in this order:",
+        "order": [
+          "First, extract annotated sentences. An annotated sentence means a complete sentence in UD-format with all of its tokens annotated — not just a single annotated token in the sentence.",
+          "Then, if no annotated sentences are available, extract bare wordforms."
+        ],
+        "rule": "Reject any use-case where the wordform is identical to its lemma."
+      },
+      {
+        "step": 5,
+        "name": "Save use-cases with annotation and meta",
+        "action": "Save use-cases with annotation and meta."
+      },
+      {
+        "step": 6,
+        "name": "Final check",
+        "action": "Before finishing, make sure annotated sentences (the preferred use-case type) were not overlooked. Only fall back to bare wordforms if no annotated sentences exist."
+      }
+    ]
+  }
+}
