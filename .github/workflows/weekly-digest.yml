@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       dry_run:
-        description: "Print the digest to the log instead of emailing it"
+        description: "Print the digest to the log instead of posting it as an issue"
         type: boolean
         default: true
 
@@ -32,7 +32,7 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Build and send the digest
+      - name: Build and post the digest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DIGEST_NOTIFY: ${{ vars.DIGEST_NOTIFY }}

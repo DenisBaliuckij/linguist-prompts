@@ -1,6 +1,13 @@
 """Weekly digest of merged pull requests, posted as a GitHub issue in Russian.
 
 Stdlib only. Run by .github/workflows/weekly-digest.yml every Sunday 18:00 UTC.
+
+The issue body is Markdown. Text taken from pull requests (titles, logins,
+file paths) is untrusted: it is escaped so that it cannot @mention anyone,
+create #N or GH-N references, inject HTML or images, or autolink a URL. Only
+the first line of the body may contain real @mentions, and only for logins
+validated from the DIGEST_NOTIFY variable. The body is kept under GitHub's
+65,536-character limit by fit_body().
 """
 
 from __future__ import annotations
@@ -10,6 +17,7 @@ import json
 import os
 import re
 import sys
+import urllib.error
 import urllib.request
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
@@ -22,12 +30,24 @@ DIGEST_WEEKDAY = 6  # Sunday, as returned by datetime.weekday()
 DIGEST_HOUR_UTC = 18
 
 DIGEST_LABEL = "digest"
+# GitHub rejects issue bodies over 65,536 characters (HTTP 422); stay well below.
+MAX_BODY_CHARS = 60_000
+COMPACT_NOTE = "Списки файлов опущены: сводка не помещается в ограничение GitHub."
+ERROR_EXCERPT_CHARS = 300
 
 _GROUP_RE = re.compile(r"^languages/([^/]+)/([^/]+)/")
+# Loose rule: enough to build a safe https://github.com/<login> link.
 _LOGIN_RE = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$")
+# Strict rule for DIGEST_NOTIFY (real @mentions): GitHub forbids leading,
+# trailing and consecutive hyphens.
+_NOTIFY_LOGIN_RE = re.compile(r"(?=.{1,39}$)[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*")
 _REPO_RE = re.compile(r"[A-Za-z0-9._-]+/[A-Za-z0-9._-]+")
 _GITHUB_URL_RE = re.compile(r"https://github\.com/[A-Za-z0-9._~%/-]+")
-_MD_SPECIAL_RE = re.compile(r"[\\`*_\[\]<>()#~|!]")
+_MD_SPECIAL_RE = re.compile(r"[\\`*_\[\]<>()#~|!$]")
+_GH_REF_RE = re.compile(r"(gh-)(?=[0-9])", re.IGNORECASE)
+_LINEBREAK_RE = re.compile(r"[\r\n\t\u2028\u2029]+")
+# C0/C1 controls (line breaks are handled above), bidi marks and overrides.
+_CONTROL_RE = re.compile(r"[\x00-\x08\x0b-\x1f\x7f-\x9f\u200e\u200f\u202a-\u202e\u2066-\u2069]")
 _WWW_RE = re.compile(r"(www)\.", re.IGNORECASE)
 _ZWSP = "\u200b"
 
@@ -79,7 +99,7 @@ def parse_notify(value: str) -> tuple[str, ...]:
         login = part.removeprefix("@")
         if not login:
             continue
-        if not _LOGIN_RE.fullmatch(login):
+        if not _NOTIFY_LOGIN_RE.fullmatch(login):
             raise ConfigError("DIGEST_NOTIFY contains an invalid GitHub login")
         if login not in logins:
             logins.append(login)
@@ -126,13 +146,37 @@ def _github_headers(token: str) -> dict[str, str]:
     }
 
 
+def _github_error(
+    error: urllib.error.HTTPError, method: str, path: str, token: str
+) -> RuntimeError:
+    """A readable, bounded error: status, request line and GitHub's message."""
+    try:
+        text = error.read(4096).decode("utf-8", errors="replace")
+    except Exception:  # an unreadable body just means no message
+        text = ""
+    try:
+        data = json.loads(text)
+    except ValueError:
+        data = None
+    if isinstance(data, dict) and isinstance(data.get("message"), str):
+        text = data["message"]
+    message = " ".join(text.split())
+    if token:
+        message = message.replace(token, "***")
+    message = message[:ERROR_EXCERPT_CHARS] or " ".join(str(error.reason).split())
+    return RuntimeError(f"GitHub API {error.code} for {method} {path}: {message}")
+
+
 def make_github_api(token: str) -> Api:
     def api(path: str) -> Any:
         request = urllib.request.Request(
             GITHUB_API + path, headers=_github_headers(token)
         )
-        with urllib.request.urlopen(request, timeout=30) as response:
-            return json.load(response)
+        try:
+            with urllib.request.urlopen(request, timeout=30) as response:
+                return json.load(response)
+        except urllib.error.HTTPError as exc:
+            raise _github_error(exc, "GET", path, token) from None
 
     return api
 
@@ -145,8 +189,11 @@ def make_github_poster(token: str) -> Poster:
             headers={**_github_headers(token), "Content-Type": "application/json"},
             method="POST",
         )
-        with urllib.request.urlopen(request, timeout=30) as response:
-            return json.load(response)
+        try:
+            with urllib.request.urlopen(request, timeout=30) as response:
+                return json.load(response)
+        except urllib.error.HTTPError as exc:
+            raise _github_error(exc, "POST", path, token) from None
 
     return post
 
@@ -282,15 +329,23 @@ def _totals_sentence(prs: list[MergedPR]) -> str:
     )
 
 
+def _clean(value: str) -> str:
+    """Line breaks and tabs become a space; bidi and control characters go."""
+    return _CONTROL_RE.sub("", _LINEBREAK_RE.sub(" ", value))
+
+
 def md_text(value: str) -> str:
     """Make untrusted plain text safe to embed in Markdown.
 
-    The result renders as the original text but can neither ping anyone, nor
-    cross-reference an issue, nor inject HTML, an image or a link.
+    The result renders as the original text but cannot ping anyone (@mentions),
+    cannot create an issue/PR reference (#N, GH-N), and contains no HTML, image,
+    Markdown link or autolinked URL (`://` and `www.`). Other autolinks, such
+    as a bare commit SHA, are not neutralised.
     """
-    value = re.sub(r"[\r\n\t]+", " ", value)
+    value = _clean(value)
     value = value.replace("&", "&amp;")
     value = _MD_SPECIAL_RE.sub(lambda m: "\\" + m[0], value)
+    value = _GH_REF_RE.sub(lambda m: m[1] + _ZWSP, value)
     value = value.replace("@", "@" + _ZWSP)
     value = value.replace("://", ":" + _ZWSP + "//")
     return _WWW_RE.sub(lambda m: m[1] + _ZWSP + ".", value)
@@ -298,7 +353,7 @@ def md_text(value: str) -> str:
 
 def md_code(value: str) -> str:
     """Wrap untrusted text in a Markdown code span that it cannot break out of."""
-    return "`" + re.sub(r"[\r\n\t]+", " ", value).replace("`", "'") + "`"
+    return "`" + _clean(value).replace("`", "'") + "`"
 
 
 def _md_login(login: str) -> str:
@@ -317,25 +372,23 @@ def _approvers_markdown(pr: MergedPR) -> str:
     return ", ".join(_md_login(login) for login in pr.approvers) or "—"
 
 
-def render_markdown(
+def _render_markdown(
     prs: list[MergedPR],
     start: datetime,
     end: datetime,
     repo: str,
-    notify: tuple[str, ...] = (),
+    notify: tuple[str, ...],
+    compact: bool,
+    shown: int | None,
 ) -> str:
-    """Render the digest as the Markdown body of a GitHub issue.
-
-    The `Для: @login ...` line is the only place a real @mention is emitted,
-    and only for logins that pass validation. Everything derived from pull
-    requests (titles, logins, paths, group keys) is escaped.
-    """
+    """Render the digest; `shown` limits the listed PR entries (None: all)."""
     lines: list[str] = []
     if notify:
-        if not all(_LOGIN_RE.fullmatch(login) for login in notify):
+        if not all(_NOTIFY_LOGIN_RE.fullmatch(login) for login in notify):
             raise ConfigError("DIGEST_NOTIFY contains an invalid GitHub login")
         lines += ["Для: " + " ".join(f"@{login}" for login in notify), ""]
-    if _REPO_RE.fullmatch(repo):
+    repo_ok = _REPO_RE.fullmatch(repo) is not None
+    if repo_ok:
         repo_text = _md_link("репозиторий", f"https://github.com/{repo}")
     else:
         repo_text = md_text(repo)
@@ -348,20 +401,98 @@ def render_markdown(
         lines.append("За неделю изменений нет.")
         return "\n".join(lines) + "\n"
     lines.append(_totals_sentence(prs).replace("Всего:", "**Всего:**", 1))
-    for key, entries in group_prs(prs):
+    if compact:
+        lines += ["", COMPACT_NOTE]
+    groups = group_prs(prs)
+    total_entries = sum(len(entries) for _, entries in groups)
+    remaining = total_entries if shown is None else shown
+    for key, entries in groups:
+        if remaining <= 0:
+            break
         lines += ["", f"### {md_text(key)}"]
-        for pr, changes in entries:
+        listed = entries[:remaining]
+        remaining -= len(listed)
+        for pr, changes in listed:
             heading = md_text(f"#{pr.number} {pr.title}")
             lines.append(f"- {_md_link(heading, pr.url)}")
             lines.append(
                 f"  Автор: {_md_login(pr.author)} · Одобрили: {_approvers_markdown(pr)}"
                 f" · Слит: {_fmt_date(pr.merged_at)}"
             )
+            if compact:
+                continue
             for change in changes:
                 lines.append(
                     f"    - {STATUS_LABELS[change.status]}: {md_code(change.path)}"
                 )
+    if shown is not None:
+        if repo_ok:
+            rest = (
+                f"[слитые PR](https://github.com/{repo}/pulls"
+                "?q=is%3Apr+is%3Amerged)"
+            )
+        else:
+            rest = "слитые PR репозитория"
+        lines += [
+            "",
+            f"**Показаны не все изменения** ({shown} из {total_entries} PR):"
+            f" остальные — {rest}.",
+        ]
     return "\n".join(lines) + "\n"
+
+
+def render_markdown(
+    prs: list[MergedPR],
+    start: datetime,
+    end: datetime,
+    repo: str,
+    notify: tuple[str, ...] = (),
+    *,
+    compact: bool = False,
+) -> str:
+    """Render the digest as the Markdown body of a GitHub issue.
+
+    The `Для: @login ...` line is the only place a real @mention is emitted,
+    and only for logins that pass validation. Everything derived from pull
+    requests (titles, logins, paths, group keys) goes through `md_text` or
+    `md_code`, which neutralise @mentions, #N and GH-N references, URLs and
+    HTML. `compact` leaves out the per-file lines.
+    """
+    return _render_markdown(prs, start, end, repo, notify, compact, None)
+
+
+def fit_body(
+    prs: list[MergedPR],
+    start: datetime,
+    end: datetime,
+    repo: str,
+    notify: tuple[str, ...] = (),
+    limit: int = MAX_BODY_CHARS,
+) -> str:
+    """Render the digest so that it fits GitHub's issue body limit.
+
+    1. the full rendering, if it fits (identical to `render_markdown`);
+    2. otherwise the compact rendering without per-file lines;
+    3. otherwise the compact rendering cut back to as many leading PR entries
+       as fit, ending with a notice (the totals still count every PR).
+    """
+    body = render_markdown(prs, start, end, repo, notify)
+    if len(body) <= limit:
+        return body
+    body = render_markdown(prs, start, end, repo, notify, compact=True)
+    if len(body) <= limit:
+        return body
+    # The length grows with the number of listed entries: binary-search the
+    # largest count that fits (0 is the fallback: header, totals and notice).
+    low, high = 0, sum(len(entries) for _, entries in group_prs(prs)) - 1
+    while low < high:
+        middle = (low + high + 1) // 2
+        candidate = _render_markdown(prs, start, end, repo, notify, True, middle)
+        if len(candidate) <= limit:
+            low = middle
+        else:
+            high = middle - 1
+    return _render_markdown(prs, start, end, repo, notify, True, low)
 
 
 def parse_now(value: str | None) -> datetime:
@@ -413,7 +544,7 @@ def main(
     start, end = digest_window(parse_now(args.now))
     prs = collect_merged_prs(api, repo, start, end)
     title = digest_subject(repo, start, end)
-    body = render_markdown(prs, start, end, repo, notify)
+    body = fit_body(prs, start, end, repo, notify)
 
     if args.dry_run:
         print(f"[dry run] Title: {title}\n")

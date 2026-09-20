@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import io
 import json
 import os
 import re
@@ -152,11 +153,18 @@ def test_parse_notify_accepts_the_longest_valid_login():
     assert wd.parse_notify("a" * 39) == ("a" * 39,)
 
 
+def test_parse_notify_accepts_single_hyphens_inside_a_login():
+    assert wd.parse_notify("a-b-c 1-2 x") == ("a-b-c", "1-2", "x")
+
+
 @pytest.mark.parametrize(
     "bad",
     [
         "ali_ce",
         "-alice",
+        "-x",
+        "bob-",  # GitHub forbids a trailing hyphen
+        "a--b",  # ... and consecutive hyphens
         "alice/bob",
         "@@alice",
         "bob[bot]",
@@ -459,9 +467,18 @@ ZW = "\u200b"
         ("a & b", "a &amp; b"),
         ("&#64;x &lt;b&gt;", "&amp;\\#64;x &amp;lt;b&amp;gt;"),
         (
-            "\\ ` * _ [ ] < > ( ) # ~ | !",
-            "\\\\ \\` \\* \\_ \\[ \\] \\< \\> \\( \\) \\# \\~ \\| \\!",
+            "\\ ` * _ [ ] < > ( ) # ~ | ! $",
+            "\\\\ \\` \\* \\_ \\[ \\] \\< \\> \\( \\) \\# \\~ \\| \\! \\$",
         ),
+        ("GH-12", f"GH-{ZW}12"),
+        ("see gh-7, Gh-3 and gH-40x", f"see gh-{ZW}7, Gh-{ZW}3 and gH-{ZW}40x"),
+        ("GH- GH-x AGH-1", f"GH- GH-x AGH-{ZW}1"),
+        # bidi and other control characters are removed, newlines become spaces
+        ("a\u202eb\u202ac\u200ed\u200fe\u2066f\u2069g", "abcdefg"),
+        ("a\x00b\x07c\x1bd\x7fe\x85f\x9fg", "abcdefg"),
+        ("a\u2028b\u2029c", "a b c"),
+        ("x\u202e@everyone", f"x@{ZW}everyone"),  # stripped before neutralising
+        (f"keep{ZW}own", f"keep{ZW}own"),  # a zero-width space is not stripped
         ("@everyone", f"@{ZW}everyone"),
         ("a@b.example", f"a@{ZW}b.example"),
         ("http://evil.example", f"http:{ZW}//evil.example"),
@@ -479,6 +496,9 @@ def test_md_text(raw, expected):
         ("a`b``c", "`a'b''c`"),
         ("a\nb\r\nc\td", "`a b c d`"),
         ("@x <y> #1 [z](u)", "`@x <y> #1 [z](u)`"),
+        ("a\u202eb\u200fc\u2067d", "`abcd`"),
+        ("a\x00b\x1bc\x85d", "`abcd`"),
+        ("a\u2028b", "`a b`"),
     ],
 )
 def test_md_code(raw, expected):
@@ -618,7 +638,8 @@ def test_render_markdown_mention_line_on_empty_week():
 
 
 @pytest.mark.parametrize(
-    "bad", ["everyone\n@here", "bad login", "a" * 40, "@carol", "carol]", ""]
+    "bad",
+    ["everyone\n@here", "bad login", "a" * 40, "@carol", "carol]", "", "bob-", "a--b"],
 )
 def test_render_markdown_rejects_unvalidated_notify_logins(bad):
     with pytest.raises(wd.ConfigError):
@@ -774,6 +795,50 @@ def test_invalid_logins_are_rendered_unlinked(login):
     assert body.count("https://github.com/") == 2  # repo link and PR link only
 
 
+@pytest.mark.parametrize("login", ["bob-", "a--b", "GH-1", "x" * 39])
+def test_authors_that_only_fail_the_strict_notify_rule_are_still_linked(login):
+    # GitHub's own rules are stricter than what is needed to build a safe link.
+    body = wd.render_markdown([make_pr(author=login, approvers=())], START, END, REPO)
+    assert f"Автор: [{login}](https://github.com/{login}) ·" in body
+
+
+def test_github_issue_references_in_untrusted_text_are_neutralised():
+    pr = make_pr(
+        title="Fixes GH-12 and gh-7",
+        author="GH-1[bot]",
+        approvers=(),
+        files=[wd.FileChange("languages/GH-1/gh-2/prompts.md", "added")],
+    )
+
+    body = wd.render_markdown([pr], START, END, REPO)
+
+    assert f"\n### GH-{ZW}1/gh-{ZW}2\n" in body, "group key heading"
+    assert f"Fixes GH-{ZW}12 and gh-{ZW}7]" in body, "PR title"
+    assert f"Автор: GH-{ZW}1\\[bot\\] ·" in body, "unlinked login fallback"
+    assert not re.search(r"(?i)gh-\d", strip_code_spans(body)), "GH-<number> left intact"
+
+
+def test_dollar_signs_in_untrusted_text_are_escaped():
+    body = wd.render_markdown([make_pr(title="$x$ and $$y$$")], START, END, REPO)
+    assert "\\$x\\$ and \\$\\$y\\$\\$" in body
+
+
+def test_bidi_controls_are_removed_from_every_untrusted_field():
+    rlo, lro = "\u202e", "\u202d"
+    pr = make_pr(
+        title=f"fdp{rlo}.exe",
+        author=f"a{rlo}b",
+        approvers=(f"c{lro}d",),
+        files=[wd.FileChange(f"languages/x{rlo}/y{lro}/f{rlo}.md", "added")],
+    )
+
+    body = wd.render_markdown([pr], START, END, REPO)
+
+    assert not re.search("[\u200e\u200f\u202a-\u202e\u2066-\u2069]", body)
+    assert "\n### x/y\n" in body
+    assert "`languages/x/y/f.md`" in body
+
+
 @pytest.mark.parametrize(
     "repo", ["a/b) [x](http://evil.example)", "a b/c", "just-a-name"]
 )
@@ -781,6 +846,179 @@ def test_odd_repository_value_is_not_linked(repo):
     body = wd.render_markdown([], START, END, repo)
     assert "](" not in body
     assert "http://" not in body
+
+
+# --- fitting the body into GitHub's limit ----------------------------------
+
+FILES_NOTE = "Списки файлов опущены: сводка не помещается в ограничение GitHub."
+NOT_ALL_NOTICE = "**Показаны не все изменения**"
+NOTIFY = ("carol", "dave")
+
+
+def big_pr(number, n_files, title=None):
+    return make_pr(
+        number=number,
+        title=title or f"Большое изменение номер {number}: обновление примеров и пояснений",
+        files=[
+            wd.FileChange(
+                f"languages/lang{number % 5}/topic/section-{number}/file-{i:04d}.md",
+                "modified",
+            )
+            for i in range(n_files)
+        ],
+    )
+
+
+def assert_markdown_is_not_broken(body):
+    for line in body.split("\n"):
+        opened = len(re.findall(r"(?<!\\)\[", line))
+        links = len(re.findall(r"(?<!\\)\]\(", line))
+        assert opened == links, f"unbalanced link on a line: {line!r}"
+        assert len(re.findall(r"(?<!\\)`", line)) % 2 == 0, f"dangling code span: {line!r}"
+
+
+def test_max_body_chars_is_below_githubs_limit():
+    assert wd.MAX_BODY_CHARS == 60_000
+    assert wd.MAX_BODY_CHARS < 65_536
+
+
+def test_render_markdown_compact_omits_file_lists_and_adds_a_note():
+    pr = make_pr(
+        files=[
+            wd.FileChange("languages/russian/grammar/prompts.md", "modified"),
+            wd.FileChange("README.md", "added"),
+        ]
+    )
+
+    body = wd.render_markdown([pr], START, END, REPO, compact=True)
+
+    pr_block = (
+        f"- [\\#12 Добавить примеры падежей](https://github.com/{REPO}/pull/12)\n"
+        "  Автор: [alice](https://github.com/alice)"
+        " · Одобрили: [bob](https://github.com/bob) · Слит: 15.09.2026\n"
+    )
+    assert body == (
+        f"{PERIOD_LINE}\n"
+        "\n"
+        "**Всего:** 1 слитый PR, 1 участник, 2 изменённых файла.\n"
+        "\n"
+        f"{FILES_NOTE}\n"
+        "\n"
+        f"### russian/grammar\n{pr_block}"
+        "\n"
+        f"### Прочее\n{pr_block}"
+    )
+    assert "    - " not in body
+
+
+def test_render_markdown_compact_flag_is_keyword_only():
+    with pytest.raises(TypeError):
+        wd.render_markdown([], START, END, REPO, (), True)
+
+
+@pytest.mark.parametrize("notify", [(), NOTIFY])
+@pytest.mark.parametrize(
+    "prs",
+    [
+        [],
+        [make_pr()],
+        [make_pr(number=1), make_pr(number=2, files=[]), big_pr(3, 40)],
+    ],
+)
+def test_fit_body_is_identical_to_render_markdown_when_it_fits(prs, notify):
+    expected = wd.render_markdown(prs, START, END, REPO, notify)
+    assert wd.fit_body(prs, START, END, REPO, notify) == expected
+    assert wd.fit_body(prs, START, END, REPO, notify, limit=len(expected)) == expected
+    assert wd.fit_body(prs, START, END, REPO, notify, limit=10**9) == expected
+
+
+def test_fit_body_falls_back_to_the_compact_rendering():
+    prs = [make_pr(number=1), big_pr(2, 40)]
+    full = wd.render_markdown(prs, START, END, REPO, NOTIFY)
+    compact = wd.render_markdown(prs, START, END, REPO, NOTIFY, compact=True)
+    assert len(compact) < len(full)
+
+    body = wd.fit_body(prs, START, END, REPO, NOTIFY, limit=len(full) - 1)
+
+    assert body == compact
+    assert FILES_NOTE in body
+    assert NOT_ALL_NOTICE not in body
+
+
+def test_fit_body_shortens_a_pr_with_thousands_of_files():
+    pr = big_pr(1, 3000)
+    assert len(wd.render_markdown([pr], START, END, REPO, NOTIFY)) > wd.MAX_BODY_CHARS
+
+    body = wd.fit_body([pr], START, END, REPO, NOTIFY)
+
+    assert len(body) <= wd.MAX_BODY_CHARS
+    assert body.split("\n")[0] == "Для: @carol @dave"
+    assert FILES_NOTE in body, "files-omitted note missing"
+    assert NOT_ALL_NOTICE not in body, "a single PR must not be dropped"
+    assert "    - " not in body, "file lines must be omitted"
+    assert "\\#1 Большое изменение номер 1" in body, "the PR line must be kept"
+    assert "**Всего:** 1 слитый PR, 1 участник, 3000 изменённых файлов." in body
+    assert_markdown_is_not_broken(body)
+
+
+def test_fit_body_drops_trailing_prs_of_a_huge_week_and_says_so():
+    prs = [big_pr(i, 10) for i in range(1, 301)]
+    compact = wd.render_markdown(prs, START, END, REPO, NOTIFY, compact=True)
+    assert len(compact) > wd.MAX_BODY_CHARS, "precondition: compact must not fit"
+
+    body = wd.fit_body(prs, START, END, REPO, NOTIFY)
+
+    assert len(body) <= wd.MAX_BODY_CHARS
+    lines = body.split("\n")
+    assert lines[0] == "Для: @carol @dave"
+    assert FILES_NOTE in body
+    notice = (
+        r"\n\*\*Показаны не все изменения\*\* \((\d+) из (\d+) PR\): остальные — "
+        r"\[слитые PR\]\(https://github\.com/acme/linguist-prompts/pulls"
+        r"\?q=is%3Apr\+is%3Amerged\)\.\n"
+    )
+    match = re.search(notice + r"$", body)
+    assert match, "the not-all-changes notice must be the last line"
+    shown, total = int(match[1]), int(match[2])
+    assert total == 300
+    assert 0 < shown < total
+    assert shown == len(re.findall(r"^- \[", body, re.MULTILINE)), "N must count listed PRs"
+    assert "**Всего:** 300 слитых PR," in body, "totals must still count every PR"
+    # whole blocks only: the last block before the notice is complete
+    before_notice = body[: match.start()].split("\n")
+    assert before_notice[-2].startswith("  Автор: ")
+    assert before_notice[-1] == "", "the notice is separated by a blank line"
+    assert_markdown_is_not_broken(body)
+    # the listed PRs are the first ones in group order
+    expected_order = [pr.number for _, entries in wd.group_prs(prs) for pr, _ in entries]
+    listed = [int(n) for n in re.findall(r"^- \[\\#(\d+) ", body, re.MULTILINE)]
+    assert listed == expected_order[:shown]
+
+
+@pytest.mark.parametrize("limit", [6000, 3000, 1800, 1200, 800])
+def test_fit_body_respects_any_limit_and_keeps_as_many_prs_as_fit(limit):
+    prs = [big_pr(i, 5) for i in range(1, 41)]
+
+    body = wd.fit_body(prs, START, END, REPO, NOTIFY, limit=limit)
+
+    assert len(body) <= limit
+    assert body.startswith("Для: @carol @dave\n\n")
+    match = re.search(r"\((\d+) из (\d+) PR\)", body)
+    if match:
+        shown = int(match[1])
+        one_more = wd._render_markdown(prs, START, END, REPO, NOTIFY, True, shown + 1)
+        assert len(one_more) > limit, "a further PR would still have fitted"
+    assert_markdown_is_not_broken(body)
+
+
+def test_fit_body_with_an_unlinkable_repo_still_ends_with_the_notice():
+    prs = [big_pr(i, 5) for i in range(1, 41)]
+
+    body = wd.fit_body(prs, START, END, "not a repo", NOTIFY, limit=2000)
+
+    assert len(body) <= 2000
+    assert NOT_ALL_NOTICE in body
+    assert "pulls?q=" not in body
 
 
 # --- issue delivery --------------------------------------------------------
@@ -865,14 +1103,112 @@ def test_make_github_poster_posts_json_with_auth_and_parses_response(monkeypatch
     assert headers["user-agent"] == "linguist-prompts-weekly-digest"
 
 
-def test_make_github_poster_lets_http_errors_propagate(monkeypatch):
+def http_error(code, body, reason="Reason Phrase"):
+    fp = None if body is None else io.BytesIO(body)
+    return urllib.error.HTTPError("https://api.github.com/x", code, reason, {}, fp)
+
+
+def raise_from_urlopen(monkeypatch, error):
     def fake_urlopen(request, timeout=None):
-        raise urllib.error.HTTPError(request.full_url, 403, "Forbidden", {}, None)
+        raise error
 
     monkeypatch.setattr(wd.urllib.request, "urlopen", fake_urlopen)
 
-    with pytest.raises(urllib.error.HTTPError):
-        wd.make_github_poster("tok")("/repos/a/b/issues", {})
+
+def call_poster(path="/repos/a/b/issues", token="tok"):
+    return wd.make_github_poster(token)(path, {"title": "t"})
+
+
+def call_api(path="/repos/a/b/pulls?per_page=100&page=1", token="tok"):
+    return wd.make_github_api(token)(path)
+
+
+def test_make_github_poster_raises_a_readable_error_with_githubs_message(monkeypatch):
+    body = (
+        b'{"message": "Validation Failed", "errors": [{"code": "invalid"}],'
+        b' "documentation_url": "https://docs.github.com/x"}'
+    )
+    raise_from_urlopen(monkeypatch, http_error(422, body))
+
+    with pytest.raises(RuntimeError) as exc:
+        call_poster()
+
+    assert str(exc.value) == (
+        "GitHub API 422 for POST /repos/a/b/issues: Validation Failed"
+    )
+    assert exc.value.__cause__ is None
+    assert exc.value.__suppress_context__ is True
+
+
+def test_make_github_api_raises_a_readable_error_with_githubs_message(monkeypatch):
+    raise_from_urlopen(monkeypatch, http_error(404, b'{"message": "Not Found"}'))
+
+    with pytest.raises(RuntimeError) as exc:
+        call_api()
+
+    assert str(exc.value) == (
+        "GitHub API 404 for GET /repos/a/b/pulls?per_page=100&page=1: Not Found"
+    )
+    assert exc.value.__suppress_context__ is True
+
+
+@pytest.mark.parametrize("caller", [call_poster, call_api])
+def test_http_error_with_a_non_json_body_uses_a_short_text_excerpt(monkeypatch, caller):
+    body = b"<html><body>Bad gateway</body></html>" + b"x" * 2000
+    raise_from_urlopen(monkeypatch, http_error(502, body))
+
+    with pytest.raises(RuntimeError) as exc:
+        caller()
+
+    text = str(exc.value)
+    assert text.startswith("GitHub API 502 for ")
+    assert "<html><body>Bad gateway</body></html>" in text
+    assert len(text) < 450, "the response body excerpt must be bounded"
+
+
+@pytest.mark.parametrize("body", [b"", None, b"  \n "])
+def test_http_error_without_a_body_falls_back_to_the_reason(monkeypatch, body):
+    raise_from_urlopen(monkeypatch, http_error(410, body))
+
+    with pytest.raises(RuntimeError) as exc:
+        call_poster()
+
+    assert str(exc.value) == "GitHub API 410 for POST /repos/a/b/issues: Reason Phrase"
+
+
+@pytest.mark.parametrize("body", [b"[1, 2]", b'{"message": 5}', b'{"error": "x"}'])
+def test_http_error_with_json_but_no_message_string_shows_the_body(monkeypatch, body):
+    raise_from_urlopen(monkeypatch, http_error(500, body))
+
+    with pytest.raises(RuntimeError) as exc:
+        call_poster()
+
+    assert str(exc.value) == (
+        f"GitHub API 500 for POST /repos/a/b/issues: {body.decode()}"
+    )
+
+
+def test_http_error_text_never_contains_the_token_or_headers(monkeypatch):
+    token = "ghs_SECRET_TOKEN_VALUE"
+    body = ('{"message": "Bad credentials for %s"}' % token).encode()
+    for caller in (call_poster, call_api):
+        error = http_error(401, body)
+        error.headers = {"Authorization": f"Bearer {token}"}
+        raise_from_urlopen(monkeypatch, error)
+        with pytest.raises(RuntimeError) as exc:
+            caller(token=token)
+        assert token not in str(exc.value)
+        assert "Bearer" not in str(exc.value)
+        assert "Bad credentials" in str(exc.value)
+
+
+def test_http_error_message_is_collapsed_to_one_line(monkeypatch):
+    raise_from_urlopen(monkeypatch, http_error(400, b'{"message": "a\\nb\\r\\n  c"}'))
+
+    with pytest.raises(RuntimeError) as exc:
+        call_poster()
+
+    assert str(exc.value).endswith(": a b c")
 
 
 def test_parse_now_defaults_to_current_utc_time():
@@ -967,6 +1303,52 @@ def test_main_posts_an_issue_for_an_empty_week_without_mention_line():
     [(_, payload)] = post.calls
     assert payload["title"] == TITLE
     assert payload["body"] == f"{PERIOD_LINE}\n\nЗа неделю изменений нет.\n"
+
+
+def huge_week_api(n_files=2950):
+    files = [
+        file_json(f"languages/russian/grammar/file-{i:04d}.md", "added")
+        for i in range(n_files)
+    ]
+    routes = {
+        list_path(1): [pr_json(12, "2026-09-15T10:00:00Z")],
+        reviews_path(12): [],
+    }
+    for page, start in enumerate(range(0, len(files) + 1, 100), start=1):
+        routes[files_path(12, page)] = files[start : start + 100]
+    return fake_api(routes)
+
+
+def test_main_dry_run_prints_the_fitted_body(capsys):
+    env = {"GITHUB_REPOSITORY": REPO, "DIGEST_NOTIFY": "carol"}
+
+    code = wd.main(["--dry-run", "--now", NOW], env=env, api=huge_week_api())
+
+    assert code == 0
+    out = capsys.readouterr().out
+    prefix = f"[dry run] Title: {TITLE}\n\n"
+    assert out.startswith(prefix)
+    body = out[len(prefix) :]
+    assert len(body) <= wd.MAX_BODY_CHARS
+    assert body.startswith("Для: @carol\n\n")
+    assert FILES_NOTE in body
+
+
+def test_main_posts_the_fitted_body_and_dry_run_shows_the_same_text(capsys):
+    env = {"GITHUB_REPOSITORY": REPO, "DIGEST_NOTIFY": "carol"}
+    post = fake_poster()
+
+    code = wd.main(["--now", NOW], env=env, api=huge_week_api(), post=post)
+
+    assert code == 0
+    [(_, payload)] = post.calls
+    body = payload["body"]
+    assert len(body) <= wd.MAX_BODY_CHARS < 65_536
+    assert body.split("\n")[0] == "Для: @carol"
+    assert FILES_NOTE in body
+    capsys.readouterr()
+    wd.main(["--dry-run", "--now", NOW], env=env, api=huge_week_api())
+    assert capsys.readouterr().out == f"[dry run] Title: {TITLE}\n\n{body}"
 
 
 def test_main_requires_github_repository():
@@ -1242,6 +1624,16 @@ def workflow_problems(text: str) -> list[str]:
         problems.append("checkout step must set persist-credentials: false")
 
     return problems
+
+
+def test_workflow_texts_describe_issue_delivery():
+    text = WORKFLOW.read_text(encoding="utf-8")
+    assert (
+        'description: "Print the digest to the log instead of posting it as an issue"'
+        in text
+    )
+    assert "      - name: Build and post the digest\n" in text
+    assert "mail" not in text.lower(), "the workflow no longer sends email"
 
 
 def test_workflow_invariants_hold():
