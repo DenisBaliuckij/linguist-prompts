@@ -1,5 +1,13 @@
 # linguist-prompts — design
 
+**Изменение 2026-09-20 / Change 2026-09-20:** delivery switched from SMTP email to a GitHub Issue (Microsoft disabled SMTP password sign-in for the planned Outlook mailbox); sections below that mention SMTP/secrets/Environment `digest` are superseded as follows:
+
+- Decisions table rows "Digest delivery" and "Recipients", and the Trigger lines `environment: digest` and the permissions list: each run creates one GitHub Issue (label `digest`, title unchanged) with the workflow's `GITHUB_TOKEN`; permissions are `contents: read`, `pull-requests: read`, `issues: write`, and there is no `environment:`. Recipients are the logins in the Actions variable `DIGEST_NOTIFY` plus anyone watching the repo; GitHub's own mailer sends the notifications.
+- "Email" section: the issue body is Markdown in Russian (first line `Для: @login1 @login2` only when `DIGEST_NOTIFY` is non-empty, then period, totals and one block per `language/subject`). An empty week still posts an issue saying «За неделю изменений нет.». Everything derived from PR titles, logins and paths is escaped so the issue cannot ping anyone, cross-reference issues or inject HTML/links. `--dry-run` prints title and body without posting.
+- "Secrets — GitHub Environment `digest`" section (and the `MAIL_TO` parsing item under Testing): replaced by the plain Actions variable `DIGEST_NOTIFY` (GitHub logins separated by spaces, commas or semicolons). There are no SMTP secrets and no Environment.
+- Bootstrap order steps 2–3 (create Environment `digest`, set the six secrets) are dropped; the dry-run dispatch and a real test post remain, and the rest keeps its order.
+- Known limitation about new Yandex mailboxes is replaced by: recipients need GitHub accounts with email notifications turned on.
+
 Date: 2026-09-19 · Owner: DenisBaliuckij · Status: awaiting review
 
 ## Purpose
