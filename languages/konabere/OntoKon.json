@@ -1,0 +1,2091 @@
+{
+  "meta": {
+    "title": "Konabère (Bobo Madaré Nord) Language Ontology",
+    "version": "3.0",
+    "description": "A comprehensive ontology of the Konabère language (Bobo Madaré Nord, ISO 639-3: bbo), a Niger-Congo Mande language spoken in Mali and Burkina Faso. This ontology follows the GOLD OntoLing structure with every node fully expanded and populated with Konabère-specific data from all available linguistic sources.",
+    "sources": [
+      "Boone, C.J.L. (2016). Tone in the Bobo Madare North Noun System. Master's thesis, Leiden University.",
+      "Coulibaly, N., Diarra, D., Kiénou, D., Wolthuis, W.M.C., Boone, C. (2023). Dictionnaire konabéré-français. SIL International.",
+      "Diarra, D., Wolthuis, W. (2017). Guide d'orthographe konabéré. SIL.",
+      "Diarra, S., Makeeva, N. (2025). La formation du pluriel des noms en konabéré. Mandenkan 72.",
+      "Makeeva, N.V. (2024). Garmoniya glasnykh v yazyke konabere. Acta Linguistica Petropolitana 21.1.",
+      "Makeeva, N.V. (forthcoming). Dolgiye glasnyye i diftongi v yazyke konabere.",
+      "Prost, A. (1983). Essai de description grammaticale du dialecte bobo de Tansila, Haute-Volta. Mandenkan 5.",
+      "Tiendrébéogo, B. (1998). Rapport sociolinguistique sur la langue bobo madaré. SIL/ANTBA.",
+      "Wolthuis, W. (2019). Esquisse phonologique du bobo madaré nord (konabéré). SIL International."
+    ],
+    "language_name": "Konabère (Bobo Madaré Nord)",
+    "iso_code": "bbo",
+    "classification": "Niger-Congo, Mande, Western, North-western, Soninke-Bobo, Bobo",
+    "speaker_population": "60000",
+    "location": "Mali (Ségou and Sikasso regions) and Burkina Faso (Banwa province)",
+    "dialects": ["Tinkire", "Yebe", "Bana", "Sa", "Kure", "Mafouné", "Tansila"],
+    "standard_dialect": "Tansila",
+    "gold_base_uri": "http://purl.org/linguistics/gold/"
+  },
+
+  "Core_Foundations": {
+    "Language": {
+      "definition": "Konabère (Kʋ̀nnàbɩ̄rɩ̀) is a Mande language of the Bobo-Samogo group, spoken by approximately 60,000 people in Mali and Burkina Faso. The speakers call themselves Konakuma (sg. Konasun). The name 'konabéré' means 'language of the territory' (kʋ̄ʋ̄ = terrain, nà = genitive/connective particle, bɩ̄rɩ̀ = language).",
+      "key_properties": [
+        "SOV word order",
+        "Postpositional language",
+        "Tonal (3 level tones: H, M, L)",
+        "Complete ATR vowel harmony system",
+        "Complex nominal plural formation",
+        "Progressive vowel harmony (4 dynamic rules)"
+      ],
+      "components": {
+        "Lexicon": {
+          "definition": "The inventory of sign units (words and morphemes) in Konabère",
+          "details": "Approximately 7,500+ entries in the Konabère-French dictionary, including nouns, verbs, adjectives, adverbs, pronouns, postpositions, particles, numerals, and ideophones."
+        },
+        "Grammar": {
+          "definition": "The set of rules for operating on these units",
+          "details": "Includes morphological rules (plural formation, derivation, inflection), syntactic rules (SOV word order, postpositional case marking, clause types), and phonological rules (ATR harmony, nasal harmony, tonal rules)."
+        }
+      },
+      "Language_vs_Speech": {
+        "Language": {
+          "definition": "Abstract linguistic system in the minds of speakers",
+          "details": "3-level tone system, 9-vowel system with ATR contrast, complete harmonic system, complex plural formation rules."
+        },
+        "Speech": {
+          "definition": "The concrete realization of language in communication",
+          "details": "Actual spoken forms; dialectal variation between Mafouné (simpler tone system) and Tansila (standard). Fast speech reduction processes (elision of vowels)."
+        }
+      }
+    },
+    "Linguistic_System": {
+      "definition": "A term used to describe a language as a whole, with each of its component parts functioning according to an overall convention of usage.",
+      "konabere_details": "Konabère is characterized by a system of 21 consonants, 18 vowels (9 oral + 9 nasal), 3 level tones, ATR harmony, and a unique system of nominal plural formation with over 7 distinct suffix types and multiple vowel alternation patterns.",
+      "system_of_systems": "Konabère can be described as a 'system of systems' with hierarchically ordered levels: phonology, morphology, syntax, semantics. Each level has its own units and rules that interact with other levels."
+    },
+    "Linguistic_Taxon": {
+      "definition": "The class of Taxons whose instances are used in the scientific classification of language varieties.",
+      "konabere_classification": "Konabère is classified within the Mande language family, Bobo-Samogo group, Western branch of Mande.",
+      "taxonomic_levels": [
+        "Phylum: Niger-Congo",
+        "Family: Mande",
+        "Branch: Western",
+        "Group: North-western",
+        "Sub-group: Soninke-Bobo",
+        "Language: Bobo Madaré",
+        "Variety: Konabère (Northern)"
+      ]
+    },
+    "Taxon": {
+      "definition": "The class of scientific categories used to create a taxonomy and determined according to scientific principles in a given domain.",
+      "konabere_taxonomy": "Konabère belongs to the Niger-Congo phylum, Mande family, Western branch, North-western group, Soninke-Bobo sub-group, Bobo-Samogo branch."
+    },
+    "Genetic_Taxon": {
+      "definition": "The class of all taxons whose members are based on genetic relatedness.",
+      "konabere_genetic_classification": "Konabère is a Niger-Congo language of the Mande family, Western branch, North-western group, Soninke-Bobo sub-group, Bobo-Samogo branch.",
+      "genetic_notes": "Dwyer classifies Bobo Madare as an early off-split from the Eastern Mande branch (1989:50, 1994:30)."
+    },
+    "Context_of_Use_Taxon": {
+      "definition": "The class of taxons whose instances classify language varieties according to how they are primarily used.",
+      "konabere_contexts": [
+        "Literary/Standard: Based on Tansila dialect, used in Bible translation and literacy materials",
+        "Daily communication: Used by all generations in all domains of life",
+        "Religious: Used in Catholic and Protestant church services",
+        "Oral tradition: Used in storytelling, proverbs, and traditional ceremonies"
+      ]
+    },
+    "Geographic_Taxon": {
+      "definition": "The class of linguistic taxons whose instances are groupings based on where language varieties are used.",
+      "konabere_geography": "Konabère is spoken in Mali (Ségou and Sikasso regions) and Burkina Faso (Banwa province), West Africa.",
+      "area": "Approximately 4,200 km² (2,100 km² in Burkina Faso and 2,100 km² in Mali)."
+    },
+    "Political_Taxon": {
+      "definition": "The class of taxons whose instances are groupings based on political entities.",
+      "konabere_political_status": "Konabère is a cross-border language spoken in both Mali and Burkina Faso. In Mali it is referred to as Konabéré, in Burkina Faso as Bobobéré. It is recognized as a national language for literacy development in both countries."
+    },
+    "Endangerment_Taxon": {
+      "definition": "Categorization of language endangerment situations.",
+      "konabere_status": "Konabère is listed as 'vigorous' in Ethnologue, with 60,000 speakers and intergenerational transmission. The language is 'unstandardized and in vigorous use among all generations'.",
+      "vitality_factors": [
+        "Speaker population: 60,000",
+        "Intergenerational transmission: Yes",
+        "Official status: Recognized for literacy",
+        "Documentation: New Testament published 2020",
+        "Literacy programs: Active in multiple locations"
+      ]
+    },
+    "Language_Family": {
+      "definition": "Group of languages that are genetically related, i.e., can be traced to a common proto-language.",
+      "konabere_family": "Mande languages, specifically the Western branch, North-western group, Soninke-Bobo sub-group, Bobo-Samogo branch.",
+      "related_languages": [
+        "Southern Bobo Madaré (Sya) - ISO 639-3: bwq",
+        "Seenku",
+        "Samogo languages (Jowulu, Dzùùngoo, Duungoma)",
+        "Bozo languages"
+      ]
+    },
+    "Language_Stock": {
+      "definition": "A term used for postulated but undemonstrated higher-order, more inclusive families.",
+      "konabere_stock": "Konabère is part of the Mande stock, which belongs to the Niger-Congo phylum."
+    },
+    "Language_Subfamily": {
+      "definition": "A group of languages within a language family which are more closely related to each other than to other languages of that family.",
+      "konabere_subfamily": "Bobo-Samogo group within Western Mande. Closely related to Southern Bobo Madaré (Sya).",
+      "subgroup_members": ["Konabère (Northern Bobo)", "Southern Bobo Madaré (Sya)", "Seenku"]
+    },
+    "Isolate": {
+      "definition": "A language variety such that there are no other varieties that are genetically related.",
+      "konabere_isolate_status": "Konabère is not an isolate; it has close relatives including Southern Bobo Madaré, Seenku, and other Samogo languages."
+    },
+    "Dialect": {
+      "definition": "A regional, temporal or social variety of a language, differing in pronunciation, grammar and vocabulary from the standard language.",
+      "konabere_dialects": [
+        {
+          "name": "Tinkire (Tankre)",
+          "location": "Burkina Faso",
+          "notes": "Northern dialect"
+        },
+        {
+          "name": "Yebe (Yaba/Yabe)",
+          "location": "Burkina Faso",
+          "notes": "Northern dialect"
+        },
+        {
+          "name": "Bana (Sankuma)",
+          "location": "Burkina Faso",
+          "notes": "Northern dialect"
+        },
+        {
+          "name": "Sa",
+          "location": "Burkina Faso",
+          "notes": "Northern dialect"
+        },
+        {
+          "name": "Kure (Kukoma)",
+          "location": "Burkina Faso, east of Tansila",
+          "notes": "Northern dialect"
+        },
+        {
+          "name": "Mafouné",
+          "location": "Mali",
+          "notes": "Spoken in Mali; somewhat simpler tonal system; base for much of the research data"
+        },
+        {
+          "name": "Tansila",
+          "location": "Burkina Faso",
+          "notes": "Chosen as standard for literature development; best understood by other speakers; used in Bible translation"
+        }
+      ],
+      "standard_dialect": "Tansila (selected based on sociolinguistic research showing it is the best understood by other Konabère speakers)"
+    },
+    "The_Linguistic_Sign": {
+      "definition": "A fundamental unit establishing a conventional relation between form and content. An abstract structure whose instances participate in a linguistic system.",
+      "components": {
+        "Signifier": {
+          "definition": "The external form (sound or written representation)",
+          "konabere_details": "Phonological form including segmental features (consonants, vowels) and suprasegmental features (tone, length)."
+        },
+        "Signified": {
+          "definition": "The meaning, content, or concept",
+          "konabere_details": "Lexical meaning (e.g., sùŋ 'man') and grammatical meaning (e.g., plural marking)."
+        }
+      },
+      "properties": {
+        "Arbitrariness": {
+          "definition": "No natural relation between signifier and signified",
+          "konabere_details": "Predominantly arbitrary, with some onomatopoeic elements (e.g., popo 'moto', kokori 'coq')."
+        },
+        "Linear_Character": {
+          "definition": "Elements follow one another in time",
+          "konabere_details": "SOV word order; morphemes combine linearly; phonemes occur in sequence."
+        },
+        "Double_Articulation": {
+          "definition": "Signs are composed of smaller meaningful signs (primary) and non-meaningful units (secondary)",
+          "konabere_details": "Primary: morphemes (e.g., sɔ̄ŋ-ta 'cultivator' = root + suffix). Secondary: phonemes (e.g., /s/, /ɔ/, /ŋ/)."
+        }
+      },
+      "examples": "Words and morphemes are the primary linguistic signs: sùŋ 'man', nàà 'woman', -rèè (plural), -ta (agentive)."
+    },
+    "Linguistic_Unit": {
+      "definition": "Any entity which constitutes the focus of linguistic enquiry. The unit is the stretch of language that carries grammatical patterns.",
+      "konabere_units": [
+        {
+          "level": "Phonological",
+          "units": ["Phoneme", "Syllable", "Foot", "Phonological Word"]
+        },
+        {
+          "level": "Morphological",
+          "units": ["Morpheme", "Word", "Stem", "Root"]
+        },
+        {
+          "level": "Syntactic",
+          "units": ["Phrase", "Clause", "Sentence"]
+        }
+      ]
+    },
+    "Form_Unit": {
+      "definition": "Denotes the sensorily perceptible aspect of the linguistic sign.",
+      "konabere_form": "Phonological form including segments (consonants, vowels) and suprasegmental features (tone, length).",
+      "examples": [
+        "The form /sùŋ/ for 'man'",
+        "The form /nàà/ for 'woman'",
+        "The form /-rèè/ for 'plural'"
+      ]
+    },
+    "Grammar_Unit": {
+      "definition": "The structural component of the linguistic sign and includes notions such as morpheme, syntactic word, and construction.",
+      "konabere_grammar_units": [
+        {
+          "type": "Morpheme",
+          "examples": ["-rèè (plural)", "-ta (agentive)", "ma- (causative prefix)", "di- (derivational prefix)"]
+        },
+        {
+          "type": "Syntactic Word",
+          "examples": ["sùŋ 'man'", "kimi 'steal'", "fɔɔ 'good'"]
+        },
+        {
+          "type": "Construction",
+          "examples": ["Noun Phrase: [Det] [Poss] [Noun] [Adj]", "Verb Phrase: [(Aux)] [Neg] [VP]"]
+        }
+      ]
+    },
+    "Semantic_Unit": {
+      "definition": "The class of semantics elements, or units of semantic structure (sometimes called a sememe).",
+      "konabere_semantic_units": [
+        {
+          "type": "Lexical Meaning",
+          "definition": "Meaning of words: sùŋ 'man', kīrì 'village', kimi 'steal'"
+        },
+        {
+          "type": "Grammatical Meaning",
+          "definition": "Meaning expressed by grammatical markers: plural, tense, aspect, mood"
+        },
+        {
+          "type": "Thematic Roles",
+          "definition": "Agent, Patient, Beneficiary, Location, Instrument"
+        }
+      ]
+    },
+    "Linguistic_Expression": {
+      "definition": "Any physical form (sound, visual image or sequence thereof) used to represent a linguistic unit.",
+      "konabere_expressions": {
+        "Spoken": "The physical sound form of Konabère, produced by the vocal apparatus",
+        "Written": "The written physical form of Konabère using the Latin-based alphabet of 30 letters",
+        "Signed": "Not applicable to Konabère; the language is primarily spoken and written"
+      }
+    },
+    "Spoken_Linguistic_Expression": {
+      "definition": "The physical sound form of language as distinct from either signed or spoken expressions.",
+      "konabere_spoken": "The physical sound form of Konabère produced during a speaking event. Includes all phonetic and tonal variations, dialectal differences, and fast speech processes."
+    },
+    "Written_Linguistic_Expression": {
+      "definition": "The written physical form of language as distinct from either signed or spoken expressions.",
+      "konabere_written": "The written form of Konabère using the Latin-based alphabet of 30 letters. Standardized orthography based on the Tansila dialect was developed in 2017. The New Testament was published in Konabère in 2020."
+    },
+    "Signed_Linguistic_Expression": {
+      "definition": "The signed physical form of language as distinct from either written or spoken expressions.",
+      "konabere_signed": "Not applicable. Konabère is primarily a spoken and written language; no signed variety is documented."
+    },
+    "Linguistic_Property": {
+      "definition": "The class of properties that pertain to linguistic units. A unit's properties determine its behavior in a grammatical system.",
+      "konabere_properties": {
+        "Phonological": ["ATR value", "Tone value", "Nasality", "Length"],
+        "Morphological": ["Plural class (I-IV)", "Part of speech", "Derivational status"],
+        "Syntactic": ["Argument structure", "Valency", "Case"],
+        "Semantic": ["Thematic role", "Referential status", "Quantification"]
+      }
+    },
+    "Linguistic_Data_Structure": {
+      "definition": "An abstract container for grouping together instances of linguistic data, usually to suit a particular theory or computational implementation.",
+      "konabere_structures": [
+        {
+          "type": "Lexical Entry",
+          "definition": "Dictionary entry with form, meaning, grammatical category, and additional properties"
+        },
+        {
+          "type": "Paradigm",
+          "definition": "Set of related forms showing inflectional patterns (e.g., singular/plural pairs)"
+        },
+        {
+          "type": "Feature Structure",
+          "definition": "Set of features associated with a linguistic unit (e.g., [ATR=+], [tone=H], [plural_class=Type_I])"
+        }
+      ]
+    },
+    "Language_varieties": {
+      "Literary_Language": {
+        "definition": "The codified, supra-dialectal, polyfunctional standard form.",
+        "variants": {
+          "Codified": {
+            "definition": "Used in official/prepared communication",
+            "examples": "Bible translation (New Testament 2020), dictionaries, literacy materials, formal education."
+          },
+          "Spoken": {
+            "definition": "Used in informal/unprepared communication",
+            "examples": "Daily conversation, storytelling, church services."
+          }
+        }
+      },
+      "Non-literary_Varieties": {
+        "Territorial_Dialects": {
+          "definition": "Systems functioning in a part of the language's territory",
+          "list": ["Tinkire", "Yebe", "Bana", "Sa", "Kure"]
+        },
+        "Social_Dialects": {
+          "definition": "Systems used among certain social groups",
+          "examples": "Differences between older and younger speakers; rural vs urban varieties."
+        },
+        "Vernacular": {
+          "definition": "Language of non-educated people with deviations from the norm",
+          "notes": "All varieties of Konabère are used by all education levels; no stigmatized vernacular variety is documented."
+        }
+      },
+      "Cross-border_varieties": {
+        "Mafouné_dialect": {
+          "definition": "Spoken in Mali, somewhat simpler tonal system, base for much of the research data",
+          "notes": "Used in the 2012-2014 research; some tonal differences from Tansila dialect"
+        },
+        "Tansila_dialect": {
+          "definition": "Spoken in Burkina Faso, chosen as standard for literature development, best understood by other speakers",
+          "notes": "Used in Bible translation, literacy materials, and the Konabère-French dictionary"
+        }
+      }
+    },
+    "Thing": {
+      "definition": "In Web Ontology Language, Thing is the superclass of all classes. The most basic concepts in a domain should correspond to classes that are the roots of various taxonomic trees.",
+      "konabere_thing": "In Konabère ontology, Thing is the superclass of all classes. All Konabère linguistic units are instances of Thing."
+    },
+    "Abstract": {
+      "definition": "Properties or qualities as distinguished from any particular embodiment of the properties/qualities in a physical medium.",
+      "konabere_abstract": "Grammatical categories in Konabère are abstract: number, tense, aspect, mood, definiteness. These exist independently of any particular spoken utterance."
+    },
+    "Object": {
+      "definition": "Corresponds roughly to the class of ordinary objects. Examples include normal physical objects, geographical regions, and locations of processes.",
+      "konabere_object": "Konabère nouns refer to objects: sùŋ 'man' (human object), kīrì 'village' (location), dibi 'stone' (physical object)."
+    },
+    "Process": {
+      "definition": "The class of things that happen and have temporal parts or stages. Examples include extended events, actions, and biological processes.",
+      "konabere_process": "Konabère verbs describe processes, actions, and states: kimi 'steal' (action), nyimi 'dance' (activity), wʊɔ 'cry' (process), ti 'be' (state)."
+    }
+  },
+
+  "Phonetics_and_Phonology": {
+    "Phonetics": {
+      "definition": "The branch of linguistics studying the sound side of speech communication in Konabère.",
+      "branches": {
+        "Substantive_Phonetics": {
+          "definition": "Studies physical and physiological aspects.",
+          "sub-branches": {
+            "Articulatory": {
+              "definition": "Anatomy and physiology of speech production",
+              "konabere_details": "Study of how Konabère speech sounds are produced using the vocal apparatus."
+            },
+            "Acoustic": {
+              "definition": "Physical properties of the sound signal",
+              "konabere_details": "Study of the acoustic properties of Konabère sounds: formants, fundamental frequency, intensity."
+            },
+            "Perceptual": {
+              "definition": "Mechanisms of speech perception",
+              "konabere_details": "Study of how Konabère sounds are perceived and categorized by native speakers."
+            }
+          }
+        },
+        "Linguistic_Phonetics": {
+          "definition": "Studies the function of sound means in language.",
+          "konabere_details": "Study of how phonetic features function in the Konabère phonological system to distinguish meaning."
+        }
+      }
+    },
+    "Phonetic_Units": {
+      "definition": "Linear objects that can follow one another in the speech chain.",
+      "Segment_Units": {
+        "definition": "Minimal linear units in the speech chain.",
+        "types": [
+          {
+            "name": "Sound",
+            "definition": "Concrete realization in a specific context"
+          },
+          {
+            "name": "Sound Type",
+            "definition": "Abstract grouping of phonetically similar sounds"
+          },
+          {
+            "name": "Phoneme",
+            "definition": "Abstract unit that distinguishes meaning in the language"
+          }
+        ]
+      },
+      "Suprasegmental_Units": {
+        "definition": "Units consisting of segmental units organized into larger prosodic structures.",
+        "types": [
+          "Syllable",
+          "Phonetic Word",
+          "Syntagma",
+          "Phrase"
+        ]
+      }
+    },
+    "Phonetic_Features": {
+      "definition": "Properties characterizing phonetic units in Konabère.",
+      "Segment_Features": {
+        "definition": "Characteristics of segment units",
+        "examples": [
+          "Voicing (voiced vs voiceless)",
+          "Place of articulation (labial, alveolar, velar, etc.)",
+          "Manner of articulation (stop, fricative, nasal, approximant)",
+          "ATR (Advanced Tongue Root)",
+          "Nasality (oral vs nasal)"
+        ]
+      },
+      "Suprasegmental_Features": {
+        "definition": "Features applying to groups of segments",
+        "examples": [
+          "Tone (H, M, L)",
+          "Length (short vs long vowels)",
+          "Stress (not phonemic in Konabère)",
+          "Intonation"
+        ]
+      }
+    },
+    "Phonetic_Rules": {
+      "definition": "Rules governing the use and variation of phonetic units in Konabère.",
+      "Phonological_Rules": {
+        "definition": "Conscious, regulable rules that are part of the speaker's knowledge",
+        "examples": [
+          "ATR harmony (vowels in a root must share ATR value)",
+          "Nasal harmony (nasalization spreads from triggers)",
+          "Liquid harmony (/l/ allomorph after roots ending in /l/)"
+        ]
+      },
+      "Coarticulatory_Rules": {
+        "definition": "Unconscious, non-controllable rules resulting from articulatory processes",
+        "examples": [
+          "Nasalization of vowels adjacent to nasal consonants",
+          "Assimilation in fast speech",
+          "Elision of vowels in rapid speech"
+        ]
+      }
+    },
+    "Segment_Units": {
+      "Consonants": {
+        "definition": "21 consonant phonemes in Konabère",
+        "inventory": {
+          "Labial": {
+            "phonemes": ["p", "b", "f", "m", "w"],
+            "notes": {
+              "p": "voiceless stop; not in medial position",
+              "b": "voiced stop; not in medial position",
+              "f": "voiceless fricative; rare in medial position",
+              "m": "nasal; phonemic; predominantly before nasal vowels, limited cases before oral vowels: mɛ̀ɛ̄ 'se coincer', māā 'moudre'",
+              "w": "approximant; see diphthongs section"
+            }
+          },
+          "Alveolar": {
+            "phonemes": ["t", "d", "s", "n", "r", "l"],
+            "notes": {
+              "t": "voiceless stop",
+              "d": "voiced stop; rare in medial position; [r] is allophone of /d/ in intervocalic position",
+              "s": "voiceless fricative",
+              "n": "nasal; allophone of /l/ before nasal vowels",
+              "r": "vibrant; only in medial position; marginal phoneme",
+              "l": "lateral"
+            }
+          },
+          "Palatal": {
+            "phonemes": ["j", "ɲ", "y"],
+            "notes": {
+              "j": "affricate; corresponds to /z/ in Southern Bobo",
+              "ɲ": "nasal; allophone of /y/ before nasal vowels",
+              "y": "approximant; rare in medial position"
+            }
+          },
+          "Velar": {
+            "phonemes": ["k", "g", "ŋ"],
+            "notes": {
+              "k": "voiceless stop; free variation [k]~[c] before front vowels (i, ɩ, e, ɛ); rare in medial position",
+              "g": "voiced stop; rare in initial position; can be weakened to [s] between vowels: bāġɩ~bāsi 'planter', dòġɩ~dòsi 'accompagner'",
+              "ŋ": "nasal; phonemic; can be syllabic; only consonant that can appear in coda position"
+            }
+          },
+          "Labio-velar": {
+            "phonemes": ["kp", "gb", "ŋm"],
+            "notes": {
+              "kp": "voiceless labio-velar stop; not in medial position",
+              "gb": "voiced labio-velar stop; not in medial position",
+              "ŋm": "labio-velar nasal; allophone of /w/ before nasal vowels; not in medial position"
+            }
+          },
+          "Laryngeal": {
+            "phonemes": ["h"],
+            "notes": "voiceless fricative; mainly in loanwords; not a phoneme in native words"
+          }
+        },
+        "phonological_notes": {
+          "g_initial": "/g/ is rare in initial position; found in: gani 'world' (3 occurrences in native words), gaabu 'sword', galsura 'saw'",
+          "r_distribution": "/r/ is marginal, occurring only in medial position; /d/ is rare in medial position, [r] is allophone of /d/ in intervocalic position",
+          "nasal_allophony": "[n], [ɲ], [ŋm] are allophones of /l/, /y/, /w/ respectively before nasalized vowels: lɔ̀ɔ̀ 'poverty' vs. nɔ̰̄ɔ̰̀ 'child'; yaa 'sickle' vs. ɲà̰à̰ 'woman'; wɪɪ 'duration' vs. ŋmɪ̰̀ ɪ̰́ 'razor'",
+          "k_variation": "/k/ can be pronounced [k] or [c] before front vowels (i, ɩ, e, ɛ) - free variation: kini ~ cini 'front', kibiri ~ cibiri 'aile'",
+          "g_weakening": "Between vowels /g/ is sometimes weakened to [s]: bāġɩ ~ bāsi 'planter', dòġɩ ~ dòsi 'accompagner', dīġɩ ~ dīsi 'plume'",
+          "d-r_allophony": "[r] is allophone of /d/ in medial position: tan 's'asseoir' → tanru 'chez' (from *tandu), bee 'vers' → beeru 'vers'"
+        },
+        "minimal_pairs": [
+          {
+            "pair": "pírí 'joue' vs bírí 'insulter'",
+            "contrast": "p vs b"
+          },
+          {
+            "pair": "pàrà 'trouer' vs kpàrà 'être habitué'",
+            "contrast": "p vs kp"
+          },
+          {
+            "pair": "bàrì 'causerie' vs gbàrí 'lépreux'",
+            "contrast": "b vs gb"
+          },
+          {
+            "pair": "tárá 'échanger' vs dárá 'jeter'",
+            "contrast": "t vs d"
+          },
+          {
+            "pair": "sáá 'balai' vs fáá 'chose'",
+            "contrast": "s vs f"
+          },
+          {
+            "pair": "kúú 'raison' vs gúú 'noir'",
+            "contrast": "k vs g"
+          },
+          {
+            "pair": "kpírí 'tortue' vs gbírì 'frapper'",
+            "contrast": "kp vs gb"
+          },
+          {
+            "pair": "jàà 'voir' vs ɲàà 'femme' vs yàà 'tuer'",
+            "contrast": "j vs ɲ vs y"
+          },
+          {
+            "pair": "ŋàmà 'mâcher' vs ŋmàmà 'brûler'",
+            "contrast": "ŋ vs ŋm"
+          }
+        ]
+      },
+      "Vowels": {
+        "definition": "18 vowel phonemes: 9 oral and 9 nasal, with full ATR contrast across all heights",
+        "oral_vowels": {
+          "+ATR": {
+            "front_unrounded": ["i", "e"],
+            "back_rounded": ["u", "o"]
+          },
+          "-ATR": {
+            "front_unrounded": ["ɩ", "ɛ"],
+            "back_rounded": ["ʊ", "ɔ"],
+            "central": ["a"]
+          }
+        },
+        "nasal_vowels": {
+          "+ATR": {
+            "front_unrounded": ["ĩ", "ẽ"],
+            "back_rounded": ["ũ", "õ"]
+          },
+          "-ATR": {
+            "front_unrounded": ["ɩ̰", "ɛ̰"],
+            "back_rounded": ["ʊ̰", "ɔ̰"],
+            "central": ["ã"]
+          }
+        },
+        "orthographic_representation": {
+          "oral": "i, e, u, o, ɩ, ɛ, ʊ, ɔ, a",
+          "nasal": "in, en, un, on, ɩn, ɛn, ʊn, ɔn, an",
+          "notes": "Nasal vowels are written with a following 'n' (e.g., finin [fĩ] 'troubler', tan [tã] 'vérité')"
+        },
+        "minimal_pairs_by_contrast": {
+          "i-ɩ": [
+            {"word1": "sìì 'nid'", "word2": "sɩ̄ 'regarder'"},
+            {"word1": "kibi 'arbre (déterium)'", "word2": "kibɩ 'écaille, coque'"},
+            {"word1": "jii 'sexe'", "word2": "jɩɩ 'bracelet'"}
+          ],
+          "i-e": [
+            {"word1": "dīní 'pencher'", "word2": "dēnī 'partager'"},
+            {"word1": "gbīīī 'mettre à vif'", "word2": "gbēīī 'échouer'"},
+            {"word1": "wīīī 'bosse'", "word2": "wēīī 'pénis'"}
+          ],
+          "i-u": [
+            {"word1": "fīrī 'banco'", "word2": "fúrú 'champ'"},
+            {"word1": "wīīī 'bosse'", "word2": "wúlú 'perceuse'"},
+            {"word1": "fii 'venin, bile'", "word2": "fūū 'rosée'"}
+          ],
+          "ɩ-e": [
+            {"word1": "tɩrɩ 'ramasser'", "word2": "tīrē 's'envoler'"},
+            {"word1": "fɩrɩ 'banco'", "word2": "fere 'd'abord'"},
+            {"word1": "wɩrɩ 'œuf de sauterelle'", "word2": "wīrē 'gazelle'"}
+          ],
+          "ɩ-ɛ": [
+            {"word1": "tɩ̄ɩ̄ 'fumée'", "word2": "tɛ̀ɛ̀ 'acheter'"},
+            {"word1": "kɩbɩ 'pêcher'", "word2": "kɛ̄bɛ̀ 'butter'"},
+            {"word1": "pɩ́rɩ́ 'fromager'", "word2": "pɔ̀rɔ̀ 'gravier'"}
+          ],
+          "e-ɛ": [
+            {"word1": "keni 'tam-tam'", "word2": "kɛ̄nɩ 'poison'"},
+            {"word1": "bīrē 'guetter'", "word2": "bīrɛ̀ 'picorer'"},
+            {"word1": "tee 'choisir'", "word2": "tɛ̀ɛ̀ 'acheter'"}
+          ],
+          "ɛ-a": [
+            {"word1": "bɛ̃ 's'entendre'", "word2": "ban 'rapprocher'"},
+            {"word1": "pél 'épaule'", "word2": "pál 'pieu'"},
+            {"word1": "tɛ̀ 'acheter'", "word2": "tàa 's'arrêter'"}
+          ],
+          "a-ɔ": [
+            {"word1": "bàa 'se taire'", "word2": "bɔ̃ 'cesser'"},
+            {"word1": "pà̃ 'force'", "word2": "pɔ̃ 'lance'"},
+            {"word1": "wàɡɩ 'gratter'", "word2": "wɔ̀ɡɩ 'tousser'"}
+          ],
+          "oral-nasal": [
+            {"word1": "sā 'se coucher'", "word2": "sā̃ 'balayer'"},
+            {"word1": "tɔ̄ 'péter'", "word2": "tɔ̃ 'raison, mobile'"},
+            {"word1": "kīè 'l'année dernière'", "word2": "kīè 'effleurer'"}
+          ]
+        },
+        "length_contrast": {
+          "definition": "All vowels can be lengthened; length is phonemic and contrasts with short vowels",
+          "minimal_pairs": [
+            {"short": "tɩ 'faire'", "long": "tɩ̄ɩ̄ 's'arrêter'"},
+            {"short": "sɩ 'cueillir du miel'", "long": "sɩ̄ 'regarder'"},
+            {"short": "to 'faire'", "long": "tōō 's'arrêter'"},
+            {"short": "la 'croire'", "long": "lāā 'ramasser (pâte)'"},
+            {"short": "sʊ 'raison'", "long": "sʊ̄ʊ̄ 'natte'"},
+            {"short": "tiri 'ramasser'", "long": "tiri 'tourner'"},
+            {"short": "wɛri 'variété de hache'", "long": "weeri 'ouvrier volontaire'"}
+          ]
+        }
+      },
+      "Diphthongs": {
+        "definition": "Combinations of two vowels with different qualities within a single syllable",
+        "characteristics": "Each diphthong consists of two components with identical values for backness and [ATR]; exceptions include diphthongs with [a] as second component",
+        "oral_diphthongs": {
+          "+ATR": [
+            {"diphthong": "ei", "example": "jéí 'miel cru'"},
+            {"diphthong": "ie", "example": "síè 'pouvoir'"},
+            {"diphthong": "iu", "example": "lìú 'défaut'"},
+            {"diphthong": "ou", "example": "lóù 'froid'"},
+            {"diphthong": "uo", "example": "júò 'mouiller'"},
+            {"diphthong": "ia", "example": "jìà 'goûter'"},
+            {"diphthong": "ua", "example": "wùàà 'faire pleurer'"},
+            {"diphthong": "oa", "example": "yòà 'envoyer'"}
+          ],
+          "-ATR": [
+            {"diphthong": "ɛi", "example": "jɛ̃ 'mélanger'"},
+            {"diphthong": "iɛ", "example": "sɪ̀ɛ̃ 'varan'"},
+            {"diphthong": "iɩ", "example": "kpɪɩ 'crapaud'"},
+            {"diphthong": "ɔu", "example": "lɔ̀ù 'froid'"},
+            {"diphthong": "uɔ", "example": "jʊ̀ɔ̃ 'puiser'"},
+            {"diphthong": "ia", "example": "jɪ̀à 'goûter'"},
+            {"diphthong": "ɔa", "example": "kʊ̀ɔ 'cour'"}
+          ]
+        },
+        "nasal_diphthongs": {
+          "+ATR": [
+            {"diphthong": "iɛ̃", "example": "kɪ̀ɛ̃ 'trancher'"},
+            {"diphthong": "iã", "example": "tɪ̀ã 'vérité'"},
+            {"diphthong": "uɔ̃", "example": "tʊ̀ɔ̃ 'sang'"},
+            {"diphthong": "uõ", "example": "wʊ̃ɔ̃ 'pleurer'"}
+          ],
+          "-ATR": [
+            {"diphthong": "ɛĩ", "example": "jɛ̃ĩ 'mélanger'"},
+            {"diphthong": "ɔũ", "example": "lɔ̃ũ 'froid, fièvre'"},
+            {"diphthong": "uɔ̃", "example": "kʊ̀ɔ̃ 'peau'"}
+          ]
+        },
+        "length_in_diphthongs": {
+          "definition": "Diphthongs can be lengthened; length is realized on the second component",
+          "minimal_pairs": [
+            {"short": "bie 'retourner chez soi'", "long": "biee 'fardeau'"},
+            {"short": "sei 'prosaïque'", "long": "seii 'beaucoup'"},
+            {"short": "soo 'rescapé'", "long": "sooo 'blanc-sale'"},
+            {"short": "kie 'couper'", "long": "kiee 'l'année dernière'"},
+            {"short": "maa 'entendre'", "long": "maaa 'beignets'"}
+          ]
+        }
+      },
+      "Syllabic_Nasal": {
+        "definition": "16 words containing a syllabic nasal, representing underlying CV(V) structures where the vowel has been lost through historical reduction",
+        "phonetic_characteristics": [
+          "All are velar except one (bilabial)",
+          "In 7 words, the syllabic nasal is preceded by a velar plosive",
+          "In 4 words, by a homorganic voiceless nasal",
+          "The remaining 5 words consist of a syllabic nasal only"
+        ],
+        "examples": [
+          {"phonetic": "[gŋ] H", "orthographic": "<huun>", "meaning": "soleil", "plural": "sumo", "Southern_Bobo_cognate": "sī"},
+          {"phonetic": "[ŋ] B", "orthographic": "<huun>", "meaning": "homme (masculin)", "plural": "sinee", "Southern_Bobo_cognate": "sō"},
+          {"phonetic": "[ŋ] M", "orthographic": "<hun>", "meaning": "tout de suite", "Southern_Bobo_cognate": "suu"},
+          {"phonetic": "[ŋ] BMB", "orthographic": "<njun>", "meaning": "dormir", "Southern_Bobo_cognate": "nī"},
+          {"phonetic": "[ŋ] H", "orthographic": "<njun>", "meaning": "odeur", "Southern_Bobo_cognate": "ŋwunu"},
+          {"phonetic": "[ŋ] HM", "orthographic": "<njun>", "meaning": "huile", "plural": "ŋunno", "Southern_Bobo_cognate": "nī"},
+          {"phonetic": "[ŋ] BMB", "orthographic": "<njun>", "meaning": "tête", "plural": "ŋuno", "Southern_Bobo_cognate": "ŋwō"},
+          {"phonetic": "[kŋ] HM", "orthographic": "<kuun>", "meaning": "marché", "plural": "kumo", "Southern_Bobo_cognate": "tū"},
+          {"phonetic": "[kŋ] B", "orthographic": "<kuun>", "meaning": "guerre", "plural": "kumo", "Southern_Bobo_cognate": "kū"},
+          {"phonetic": "[kŋ] B", "orthographic": "<kuon>", "meaning": "corps, peau", "plural": "koma/kama", "Southern_Bobo_cognate": "kō"},
+          {"phonetic": "[kŋ] H", "orthographic": "<kuon>", "meaning": "paludisme", "plural": "koma/kama"},
+          {"phonetic": "[gŋ] BMB", "orthographic": "<guun>", "meaning": "noir", "plural": "gumo", "Southern_Bobo_cognate": "dungu/si"},
+          {"phonetic": "[gŋ] M", "orthographic": "<guun>", "meaning": "hier", "Southern_Bobo_cognate": "dugu"},
+          {"phonetic": "[gŋ] H", "orthographic": "<guun>", "meaning": "four (karité)", "plural": "gumo", "Southern_Bobo_cognate": "du"},
+          {"phonetic": "[m] M", "orthographic": "<hum>", "meaning": "dix", "Southern_Bobo_cognate": "fü"}
+        ],
+        "analysis": {
+          "+ATR_nasals": "The syllabic nasal with +ATR quality represents the nasalized back closed vowel [u] in velar context",
+          "-ATR_nasals": "The syllabic nasal with -ATR quality represents the nasalized back closed vowel [ʊ] in velar context",
+          "initial_consonants": [
+            "For words with [k] or [g] at the surface, the initial consonant is velar",
+            "For words with a simple syllabic nasal, the initial consonant is a velar nasal",
+            "For the 3 words with a voiceless nasal, the initial consonant is an underlying voiceless fricative (as shown by [s] in the plural)"
+          ],
+          "bilabial_exception": "The word [m] 'ten' has bilabial quality; a labial fricative is posited underlyingly (supported by Southern Bobo cognate [fū])"
+        }
+      }
+    },
+    "Suprasegmental_Units": {
+      "Syllable": {
+        "definition": "The tone-bearing unit (TBU) in Konabère is the mora",
+        "evidence": [
+          "Bimoraic CVCV, CVV, and CVC words have melodies consisting of two tones",
+          "Monomoraic CV verbs have one-tone melodies",
+          "Each mora carries exactly one tone (except for LML contour which is exceptional)"
+        ],
+        "structures": {
+          "V": {
+            "description": "Rare; occurs in some personal pronouns (a 'il/elle'), the logophoric pronoun, definite articles (a, i), and demonstratives",
+            "distribution": "Only in word-initial position",
+            "examples": ["á 'je'", "à 'il'", "í 'tu'", "í 'ils'"]
+          },
+          "CV": {
+            "description": "Most frequent syllable structure; used in predicate markers (auxiliaries), demonstrative pronouns, conjunctions, postpositions, various particles, and fewer than a dozen verbs",
+            "distribution": "All positions",
+            "examples": ["bi 'estomac'", "sā 'se coucher'", "fà.nà 'singe'", "sà.bí.rí 'étranger'"]
+          },
+          "CVV": {
+            "description": "Second most frequent syllable structure; can be used as a full word or as one of the syllables in a multisyllabic word",
+            "distribution": "All positions",
+            "examples": ["dè 'déménager'", "jàâ 'voir'", "kîà 'cousin'", "sûû 'remède'"]
+          },
+          "CVN": {
+            "description": "The final consonant is always [ŋ]; about 7% of nouns in tone research have this structure",
+            "distribution": "All positions except medial in trisyllabic words",
+            "examples": ["bən 'noix de palme'", "kàn.ko 'variété de panier'", "bɔ.rɔn 'bambou'"]
+          },
+          "CVVV": {
+            "description": "Often the result of a morphological process; 12 monomorphemic words found",
+            "distribution": "Word-final only",
+            "examples": ["biee 'fardeau'", "fiee 'griller'", "kpiee 'jumeaux'", "piee 'couvercle'", "kuee 'effleurer'", "kueen 'l'année dernière'", "nɪeən 'frire'", "kpiːe 'cœur'", "miaan 'mener'", "ŋmiaan 'très petit'", "kɔɔɔ 'étroit'", "suoo 'vanner'"]
+          }
+        },
+        "number_of_syllables_per_word": {
+          "monosyllabic": "27%",
+          "disyllabic": "53% (most common)",
+          "trisyllabic": "16%",
+          "tetrasyllabic": "4% (rare)"
+        },
+        "fast_speech_reduction": {
+          "description": "In fast speech, certain words can be contracted",
+          "conditions": [
+            "In disyllabic words, the vowel of the first syllable can be elided if it follows a stop or fricative and precedes a liquid ([l] or [r]) AND if the vowel is [a] or [i]"
+          ],
+          "examples": [
+            {"full": "/pālà/", "reduced": "[plà]", "meaning": "deux"},
+            {"full": "/tárá/", "reduced": "[trá]", "meaning": "oreilles (PL)"},
+            {"full": "/bàrà/", "reduced": "[brà]", "meaning": "pourrir"},
+            {"full": "/dígí/", "reduced": "[díg]", "meaning": "abdomen, ventre"}
+          ]
+        }
+      }
+    },
+    "Phonetic_Features": {
+      "ATR_Harmony": {
+        "definition": "Konabère has a complete ATR (Advanced Tongue Root) vowel harmony system with both static and dynamic patterns. The [+ATR] feature functions as dominant.",
+        "acoustic_correlation": "The main acoustic correlate is F1 value: [-ATR] vowels have higher F1 values than their [+ATR] counterparts.",
+        "articulatory_description": "[-ATR] vowels are produced with: (1) sphincteric constriction of the aryepiglottic folds, (2) tongue root moving backward and downward, (3) larynx raising. [+ATR] vowels are produced with larynx in relaxed position or working to expand the epilaryngeal tube.",
+        "vowel_sets": {
+          "+ATR": ["i", "e", "u", "o"],
+          "-ATR": ["ɩ", "ɛ", "ʊ", "ɔ", "a"],
+          "neutral": ["a"]
+        },
+        "static_harmony": {
+          "definition": "Within a root morpheme, vowels must belong to the same ATR set; /a/ is neutral and can combine with both sets",
+          "+ATR_examples": [
+            "píéé 'couvercle'",
+            "nɛ̀mɛ́ 'danser'",
+            "bóù 'maladie'",
+            "ŋmɛ̀ɔ̀ 'énergie, courage'"
+          ],
+          "-ATR_examples": [
+            "pélí 'épaule'",
+            "nɛ̀ɛ́ 'espèce d'herbe'",
+            "sɛ̀nɩ 'orphelin'",
+            "lɛ̀ɔ 'terre'"
+          ],
+          "loanword_integration": "Loanwords adapt to ATR harmony: ègìlìsi 'église' (< fr. église), misée 'monsieur' (< fr. monsieur), lɛ̀kɛ̀lɩ 'école' (< fr. école)",
+          "compounds": "Compounds do not require or allow ATR harmonization: yee-tee-naa 'femme qui ramasse les noix de karité'"
+        },
+        "dynamic_harmony_rules": {
+          "Rule_1": {
+            "name": "Dynamic Rule 1 (Plural suffix -rV(V))",
+            "context": "Plural suffix -rV(V) with additive plural meaning",
+            "description": "Values of [ATR] and rounding spread rightward to the suffixal morpheme containing a non-high vowel",
+            "trigger_groups": {
+              "+ATR_round": {"-round": ["i", "e"], "+round": ["u", "o"]},
+              "-ATR": {"+high": ["ɩ", "ʊ"], "-high": {"-round": ["ɛ", "a"], "+round": ["ɔ"]}}
+            },
+            "vowel_selection_table": {
+              "root_vowel": {"o,u": "o,u", "e,i": "e,i", "ɔ": "ɔ", "a,ɛ,ɩ,ʊ": "ɛ"}
+            },
+            "examples": [
+              {"singular": "jiföö 'djembé'", "plural": "jifö-ròò"},
+              {"singular": "tüü 'forêt'", "plural": "tüü-ró"},
+              {"singular": "tèbèè 'mygale'", "plural": "tèbè-rèè"},
+              {"singular": "kpii 'tourterelle'", "plural": "kpii-ré"},
+              {"singular": "sáá 'balai'", "plural": "sáá-rí"},
+              {"singular": "tápáá 'collègue'", "plural": "tápáá-réè"},
+              {"singular": "dëlëë 'hache'", "plural": "dëlë-lèè"}
+            ],
+            "tonal_behavior": "The suffix has lexical L tone. When the root ends in H tone, it spreads to the suffix: túú 'forêt' → túú-ró; kúó 'cour' → kúó-róò."
+          },
+          "Rule_2": {
+            "name": "Dynamic Rule 2 (Diminutive suffix -lV(V))",
+            "context": "Diminutive suffix -lV(V)",
+            "description": "Values of [ATR] and rounding spread rightward to the suffixal morpheme containing a non-high vowel",
+            "trigger_groups": {
+              "+ATR_round": {"-round": ["i", "e"], "+round": ["u", "o"]},
+              "-ATR": {"+high": ["ɩ", "ʊ"], "-high": {"-round": ["ɛ"], "+round": ["ɔ"]}},
+              "a": "behaves as [-ATR] in this rule"
+            },
+            "examples": [
+              {"root": "jòɔri 'habit'", "diminutive": "jɔ̃-lɔ̃ɔ̃"},
+              {"root": "fürú 'champ'", "diminutive": "fürɔ̃-lɔ̃ɔ̃"},
+              {"root": "bidóin 'bidon'", "diminutive": "bidõn-nõõ"},
+              {"root": "séléé 'support'", "diminutive": "séléë-lëë"},
+              {"root": "kpii 'tourterelle'", "diminutive": "kpi-lëë"},
+              {"root": "sõõ 'arbre'", "diminutive": "sõ-lõõ"},
+              {"root": "pɔɩ 'arc'", "diminutive": "pɔ̃ñ-nɔ̃ɔ̃"},
+              {"root": "sòɔ 'route'", "diminutive": "sɔ̃-lãã"}
+            ]
+          },
+          "Rule_3": {
+            "name": "Dynamic Rule 3 (Plural suffix -V)",
+            "context": "Plural suffix -V (with vowel change)",
+            "description": "Values of [ATR] and rounding spread rightward to the suffixal morpheme containing a mid vowel. The final vowel of the root is elided.",
+            "trigger_groups": {
+              "+ATR_round": {"-round": ["i", "e"], "+round": ["u", "o"]},
+              "-ATR": {"-high": {"+round": ["ɔ"]}, "others": ["a", "ɛ", "ɩ", "ʊ"]}
+            },
+            "examples": [
+              {"singular": "kòrì 'masque'", "plural": "kòr-ɔ̀ɔ̀"},
+              {"singular": "wúlú 'perceuse'", "plural": "wúl-ɔ̀ɔ̀"},
+              {"singular": "bàbàlī 'alouette'", "plural": "bàbàl-èè"},
+              {"singular": "fànà 'singe'", "plural": "fàn-èè"},
+              {"singular": "jijà 'clôture'", "plural": "jij-ɛ̀ɛ̀"},
+              {"singular": "jakuma 'chat'", "plural": "jakom-ɛ̀ɛ̀"}
+            ]
+          },
+          "Rule_4": {
+            "name": "Dynamic Rule 4 (Plural suffix -li)",
+            "context": "Plural suffix -li (used with diminutive-derived nouns)",
+            "description": "This is the only dynamic harmony rule that dictates spreading of [ATR] without combination with rounding.",
+            "examples": [
+              {"singular_diminutive": "fürö-löö 'petit champ'", "plural": "fürö-lä"},
+              {"singular_diminutive": "gbëlëë 'usé'", "plural": "gbëë-lä"},
+              {"singular_diminutive": "këlëë 'épervier'", "plural": "këë-lä"},
+              {"singular_diminutive": "yàlàà 'oiseau'", "plural": "yàà-lì"}
+            ]
+          }
+        },
+        "feature_hierarchy": {
+          "definition": "[ATR] > [round] > [high]",
+          "explanation": "Rounding harmony affects all [+ATR] vowels and non-high [-ATR] vowels, but not high [-ATR] vowels."
+        },
+        "dominance_and_default_values": {
+          "definition": "[+ATR] is the dominant value and [-ATR] is the recessive/default value",
+          "evidence": [
+            "Non-harmonizing affixes contain [-ATR] vowels: -rɛ́ɛ̀ (locative), -rɔ́ɔ̀ (locative), -pɩ́ɩ́ (abstract state)",
+            "Loanwords take the default [-ATR] allomorph: mīsēē-rēē 'monsieurs', Jàrà-rèè 'les Diarra'"
+          ]
+        }
+      },
+      "Nasal_Harmony": {
+        "definition": "Nasalization spreads from triggers (nasal consonants and nasalized vowels) to adjacent phonemes, affecting both vowels and consonants",
+        "domain": "The syllable",
+        "nasal_allomorphs": {
+          "plural_suffix_-rV": {
+            "allomorphs": ["-nV", "-mV"],
+            "condition": "When the root ends in a nasalized vowel or velar nasal",
+            "examples": [
+              "kòòn 'peau' → kòò-mà",
+              "fàà 'lan' → fàà-mɛ̀ɛ̀",
+              "nāà 'femme' → nāà-nì"
+            ]
+          },
+          "plural_suffix_-V": {
+            "allomorphs": ["-Vn"],
+            "condition": "When the root ends in a nasal consonant",
+            "examples": [
+              "jijà 'clôture' → jij-ɛ̀ɛ̀n",
+              "fànà 'singe' → fàn-èè"
+            ]
+          },
+          "plural_suffix_-li": {
+            "allomorphs": ["-ni"],
+            "condition": "When the root is a diminutive with nasalized final vowel",
+            "examples": [
+              "bīēn-nēē 'petite corne' → bīēn-nī",
+              "nāmā-nāā 'petit enfant' → nāmā-nī"
+            ]
+          }
+        }
+      },
+      "Liquid_Harmony": {
+        "definition": "Progressive consonant harmony affecting the initial consonant of suffixes -rV(V) and -li",
+        "rule": "Allomorph with /l/ appears when the final syllable of the root begins with /l/",
+        "examples_by_suffix": {
+          "-rV": [
+            {"root": "tápaá 'collègue'", "plural": "tápaá-réè", "note": "default allomorph"},
+            {"root": "dēlēē 'hache'", "plural": "dēlē-lèè", "note": "/l/ allomorph"}
+          ],
+          "-li": [
+            {"root": "pàān 'hangar'", "plural": "pàā-là", "note": "/l/ allomorph"},
+            {"root": "yèlēē 'fils'", "plural": "yèē-lì", "note": "/l/ allomorph"}
+          ]
+        },
+        "exceptions": {
+          "agentive_-rāà": ["nəŋ 'pêcher' → nəŋ-rāà 'pêcheur'"],
+          "locative_-rɛ́ɛ̀": ["taŋ 's'asseoir' → taŋ-rɛ́ɛ̀ 'lieu de résidence'"],
+          "diminutive_-lV": ["kīrī 'village' → kīrē-lēē 'petit village'"]
+        }
+      }
+    },
+    "Phonological_System": {
+      "definition": "Tone system of Konabère as described in Boone (2016) and Wolthuis (2019)",
+      "tone_levels": {
+        "High (H)": {
+          "definition": "Contrastive in nouns and some verbs; in verbs it corresponds in height to mid tone in nouns",
+          "notation": "á"
+        },
+        "Mid (M)": {
+          "definition": "Contrastive in nouns; in verbs it corresponds in height to mid tone in nouns",
+          "notation": "ā"
+        },
+        "Low (L)": {
+          "definition": "Contrastive in both nouns and verbs",
+          "notation": "à"
+        }
+      },
+      "tone_in_nouns": {
+        "melodies": {
+          "CVCV_nouns": {
+            "HH": "48 (23%) - ku.ru 'groupe d'âge'",
+            "HM": "1 (<1%) - wɩ.re 'gazelle'",
+            "HL": "5 (2%) - ga.n 'monde'",
+            "MM": "5 (2%) - ba.s 'hydromel'",
+            "ML": "36 (17%) - kɩ.lu 'aile'",
+            "LH": "28 (13%) - wɩ.ri 'hyène'",
+            "LM": "24 (12%) - wɩ.lu 'jour'",
+            "LL": "52 (25%) - kɩ.b 'côté'",
+            "LML": "9 (4%) - wɩ.r 'lumière'"
+          },
+          "CVV_nouns": {
+            "HH": "30 (19%) - kau 'raison'",
+            "MM": "23 (15%) - kau 'bas du dos'",
+            "ML": "26 (17%) - tʊ 'nom'",
+            "LH": "23 (15%) - kau 'rivière'",
+            "LM": "19 (12%) - kʊ 'cinq'",
+            "LL": "22 (14%) - kau 'dette'",
+            "LML": "10 (7%) - kau 'varan'"
+          },
+          "CVC_nouns": {
+            "HH": "10 (29%) - gɔŋ 'enclos'",
+            "MM": "2 (6%) - kəŋ 'grenier'",
+            "ML": "5 (15%) - bəŋ 'bambou'",
+            "LH": "3 (9%) - dɛn 'voisin'",
+            "LM": "2 (6%) - paŋ 'force'",
+            "LL": "10 (29%) - maŋ 'bœuf'",
+            "LML": "2 (6%) - məŋ 'manguier'"
+          }
+        },
+        "frequency": {
+          "most_frequent": ["HH (22%)", "LL (21%)", "ML (17%)", "LH (14%)", "LM (11%)"],
+          "least_frequent": ["HM (<1%)", "HL (1%)", "LML (5%)"]
+        },
+        "notable_absences": ["MH pattern not found in our data"]
+      },
+      "tone_in_verbs": {
+        "melodies": {
+          "CVCV_verbs": {"MM": "42 (22%)", "ML": "74 (38%)", "LM": "57 (30%)", "LL": "18 (9%)", "LML": "2 (1%)"},
+          "CVV_verbs": {"MM": "16 (13%)", "ML": "50 (42%)", "LM": "44 (37%)", "LL": "5 (4%)", "LML": "4 (3%)"},
+          "CVC_verbs": {"MM": "6 (21%)", "ML": "12 (43%)", "LM": "8 (29%)", "LL": "2 (7%)"},
+          "CV_verbs": {"M": "9 (100%)"}
+        },
+        "mapping": "Verb low tone corresponds to noun low tone; verb high tone corresponds in height to noun mid tone",
+        "minimal_pairs": [
+          {"word1": "bee M 'dire'", "word2": "bee L 'tomber'"},
+          {"word1": "be ML 'prier'", "word2": "be LM 'orner'"},
+          {"word1": "baa ML 'grimper'", "word2": "baa LM 'se taire'"}
+        ]
+      },
+      "automatic_downstep": {
+        "definition": "After a low tone, the next high tone is realized at a lower frequency than an earlier high tone",
+        "example": "Jèlē dúrú párà à kā kúó rɩ̀",
+        "in_verbs": "In the verb system, a mid tone may also undergo downstep"
+      },
+      "non-automatic_downstep": {
+        "definition": "Tone register is lowered after a floating L tone",
+        "contexts": ["Verb system", "Noun system"]
+      },
+      "upstep": {
+        "definition": "Occasionally a raised or upstepped tone is found; possibly cases of local upstep",
+        "context": "Both verb system and noun system"
+      },
+      "verb_tone_rules": {
+        "Rule_1": {
+          "description": "Two consecutive L tones cause a preceding M tone to be elevated (MLL → M)",
+          "example": "Verb dabà 'borrow' in Imperfective",
+          "process": "Floating M tone added before verb and floating L tone added after verb. Floating M merges with M tone of verb. Floating L tone, in combination with L tone on verb, causes M tone of verb to be raised.",
+          "representation": "L MML L → L MLL L → L MM"
+        },
+        "Rule_2": {
+          "description": "A L tone between two M tones merges with the following M tone and causes it to be lowered (MLM → M+M)",
+          "example": "Verb tamā 'get up' in Imperfective",
+          "representation": "L MLM L → L MLM L"
+        }
+      }
+    },
+    "Orthographic_System": {
+      "definition": "Standard orthography based on Tansila dialect, developed by Diarra and Wolthuis (2017)",
+      "alphabet": "30 letters: 21 consonants and 9 vowels",
+      "letter_list": "A a, B b, D d, E e, Ɛ ɛ, F f, G g, Gb gb, H h, I i, Ɩ ɩ, J j, K k, Kp kp, L l, M m, N n, Ŋ ŋ, Ɲ ɲ, Ŋm ŋm, O o, Ɔ ɔ, P p, R r, S s, T t, U u, Ʋ ʊ, W w, Y y",
+      "vowel_representation": {
+        "oral": "a, e, ɛ, i, ɩ, o, ɔ, u, ʊ",
+        "nasal": "Vn (e.g., finin [fĩ] 'troubler', tan [tã] 'vérité')",
+        "distinction": "Syllables ending in <n> are open syllables; syllables written with final <ŋ> are closed CVC syllables"
+      },
+      "tone_marking": {
+        "marked_tones": [
+          "á, í (first and second person singular pronouns)",
+          "âgu 'moi' vs. agu 'lui, celui-ci'",
+          "ûma 'ce, cette' vs. una 'le, la'"
+        ],
+        "inaccompli_marker": "Asterisk (*) before verb indicates inaccompli (action in progress)",
+        "examples": [
+          {"accompli": "Á tama. 'Je me suis levé'", "inaccompli": "Á 'tama. 'Je me lève'"},
+          {"accompli": "Fanta juo dei. 'Fanta a posé l'eau'", "inaccompli": "Fanta juo 'dei. 'Fanta pose l'eau'"}
+        ]
+      },
+      "punctuation": {
+        "period": {"name": "taa tebunŋ", "symbol": ".", "use": "Marks a stop at the end of a sentence"},
+        "comma": {"name": "paŋ darɩ tebunŋ", "symbol": ",", "use": "Marks a light pause"},
+        "semicolon": {"name": "taa fɛnnɩ tebunŋ", "symbol": ";", "use": "Indicates a medium pause"},
+        "question_mark": {"name": "tɔɩ tebunŋ", "symbol": "?", "use": "Marks interrogation"},
+        "exclamation_mark": {"name": "kaaŋmɩ tebunŋ", "symbol": "!", "use": "Marks exclamation"},
+        "colon": {"name": "bɛdaŋ bii tebunŋ", "symbol": ":", "use": "Announces an explanation"},
+        "parentheses": {"name": "sɔnmwan tebunŋ", "symbol": "( )", "use": "Indicates secondary information"},
+        "quotation_marks": {"name": "bɛdaŋ yura tebunŋ", "symbol": "« »", "use": "Highlights speech"},
+        "dash": {"name": "bartiɩ tebunŋ", "symbol": "-", "use": "Indicates change of speaker"},
+        "ellipsis": {"name": "bɛdaŋ bura tebunŋ", "symbol": "…", "use": "Indicates unfinished statement"}
+      },
+      "interrogation_particles": {
+        "yes_no": ["nɔ", "naa", "ke"],
+        "example": "Musa m'a sgu tɛ naa? 'Est-ce Moussa qui a acheté la chèvre?'"
+      }
+    }
+  },
+
+  "Morphology": {
+    "definition": "The branch of linguistics studying the internal structure of words, their forms, and the rules for combining meaningful units in Konabère.",
+    "key_focus": "Identifying patterns of systematic covariation between form and meaning, particularly in complex plural formation and ATR harmony.",
+    "Goals": {
+      "elegant_description": "Capture generalizations, not just list facts",
+      "cognitively_realistic_description": "Reflect mental grammar of speakers",
+      "system_external_explanation": "Link patterns to factors outside the system"
+    },
+    "Basic_Units": {
+      "Word": {
+        "definition": "A complex concept with several distinct senses in Konabère",
+        "senses": {
+          "Lexeme": {
+            "definition": "An abstract dictionary word representing a core meaning",
+            "types": [
+              "Simple: sùŋ 'man', nàà 'woman', kīrì 'village'",
+              "Compound: sɔ-kālɩ̀ 'tree branch', yee-tee-naa 'shea nut collector'",
+              "Derived: sɔ̄ŋ-ta 'cultivator', sɔ̀-pɩ́ɩ́ 'humanism'"
+            ]
+          },
+          "Word-form": {
+            "definition": "A concrete occurrence of a lexeme in speech",
+            "key_property": "Part of a paradigm",
+            "examples": {
+              "singular": "fúrú 'field'",
+              "plural": "fúró 'fields'",
+              "non-autonomous": "fur- (used in compounds)"
+            }
+          },
+          "Word_token": {
+            "definition": "A specific occurrence in a text",
+            "example": "The token fúrú in the sentence 'A you fúrú di'"
+          }
+        }
+      },
+      "Morpheme": {
+        "definition": "The smallest meaningful (sign) unit; a two-sided unit. Cannot be divided into smaller meaningful parts.",
+        "key_properties": "Cannot be divided into smaller meaningful parts",
+        "types": {
+          "Free": {
+            "definition": "Can stand alone as a word",
+            "examples": ["nū 'child'", "sūɔ 'horse'", "kīrì 'village'"]
+          },
+          "Bound": {
+            "definition": "Cannot stand alone, must attach to another morpheme",
+            "examples": ["-rèè (plural)", "-ta (agentive)", "-pu (abstract)", "-wa (causative)"]
+          }
+        },
+        "deviations_from_additive_model": {
+          "Cumulation": {
+            "definition": "Expression of multiple meanings by a single marker",
+            "types": [
+              "Grammatical: plural suffix -rèè also shows ATR harmony",
+              "Lexical and Grammatical: -wa marks causative and voice"
+            ]
+          },
+          "Idiomaticity": "Meaning of whole is not derived from parts: yee-tee-naa 'shea nut collector'",
+          "Allomorphy": {
+            "definition": "Variation in form of a morpheme",
+            "conditioning": [
+              "Phonological: ATR harmony (-rèè vs -ròò vs -rì)",
+              "Grammatical: plural vs associative plural (-rèè vs -rì)",
+              "Lexical: lexically determined plural class"
+            ]
+          },
+          "Fusion": "Loss of clear boundary between morphemes: vowel change plurals (fúrú → fúró)"
+        },
+        "types_by_expression": {
+          "Segmental": "Linear sequence of phonemes: -rèè, -nèè, -lì",
+          "Operational": "Modification of another morpheme: vowel alternation",
+          "Zero": "Meaningful absence: some singular forms"
+        }
+      },
+      "Morph": {
+        "definition": "A concrete, linear realization of a morpheme",
+        "examples": {
+          "-rèè": "allomorph of plural suffix after a,e",
+          "-lèè": "allomorph of plural suffix after /l/",
+          "-nèè": "allomorph of plural suffix after nasals"
+        }
+      },
+      "Affix": {
+        "definition": "A morpheme with an abstract meaning which can only be used when added to a root morpheme",
+        "types_by_position": {
+          "Prefix": {
+            "definition": "Attach to beginning",
+            "examples": ["ma- (ma-kuro 'heal')", "di- (di-saa 'sweep inside')"]
+          },
+          "Suffix": {
+            "definition": "Attach to end",
+            "examples": ["-ta (agentive)", "-pu (abstract)", "-le (diminutive)", "-wa (causative)", "-rɛ́ɛ̀ (locative)"]
+          }
+        }
+      },
+      "Base_and_Root": {
+        "Root": {
+          "definition": "The base form of a word which cannot be further analyzed without total loss of identity",
+          "examples": {
+            "free": "sùŋ 'man', nàà 'woman'",
+            "bound": "sɔ- in compounds (from sùŋ), na- in compounds (from nàà)"
+          }
+        },
+        "Stem": {
+          "definition": "The class of morphological units that are analyzable into a root and possibly one or more derivational units",
+          "examples": {
+            "simple": "sɔ̄ŋ-ta 'cultivator' (root sɔŋ + suffix -ta)",
+            "compound": "sɔ-kālɩ̀ 'tree branch' (root sɔ + root kālɩ̀)"
+          }
+        },
+        "Three_Forms_of_Nouns": {
+          "definition": "Nouns have three distinct forms: singular, plural, and non-autonomous (used in compounds)",
+          "Type_I_NA_equals_SG": "bàbàlì 'alouette' → bàbàl-èè (PL) → babal- (NA)",
+          "Type_II_SG_equals_NA": "tòló 'montagne' → tàlá (PL) → tala- (NA)",
+          "Type_III_NA_less_than_SG": "sūɔ 'arbre' → sūɔ-rì (PL) → sō-lɔ- (NA)",
+          "Type_IV_PL_equals_NA": "wíé 'maison' → wàà-rí (PL) → wa- (NA)"
+        }
+      },
+      "Clitic": {
+        "definition": "A prosodically dependent unit with syntactic freedom",
+        "types": {
+          "Proclitic": {
+            "definition": "A clitic that precedes the lexical unit",
+            "examples": ["ka (possessive particle with 3rd person pronouns)"]
+          },
+          "Enclitic": {
+            "definition": "A clitic that is phonologically joined at the end",
+            "examples": ["-de/-re (plural suffix-like clitics)"]
+          }
+        }
+      },
+      "Compound": {
+        "definition": "A linguistic unit composed of elements that function independently in other circumstances",
+        "structure": "First element in non-autonomous form; plural marked on second constituent",
+        "examples": {
+          "Noun+Noun": "sɔ̄-kālɩ̀ 'tree branch' → sɔ̄-kālɛ̀ɛ̀ (PL)",
+          "Noun+Adjective": "sʋ̄-yāgɩ̀ 'bad road' → sʋ̄-yɛ̄g-ɛ̀ɛ̀ (PL)",
+          "With -nʋ̄ʋ̀": "yêê-nʋ̄ʋ̀ 'one shea nut' → yêê-nãmà (PL)",
+          "With -sini/-saa": "gbā-sini 'ram', gbā-saa 'ewe'"
+        },
+        "ATR_harmony": "Compounds do not require ATR harmonization: yee-tee-naa 'shea nut collector'"
+      }
+    },
+    "Morphological_Operations": {
+      "Morphological_Means": {
+        "Substance_Means": {
+          "definition": "Segmentable units part of the word-form",
+          "subtypes": ["Morph", "Supramorph", "Megamorph"]
+        },
+        "Operation_Means": {
+          "definition": "Operations modifying the base",
+          "subtypes": ["Modification", "Reduplication", "Alternation", "Conversion"]
+        }
+      },
+      "Morphological_Rules": {
+        "rule-based_models": {
+          "Morpheme-based": "Rules combine listed morphemes",
+          "Word-based": "Rules derive word-forms from bases"
+        },
+        "types": ["Affixation", "Base modification", "Reduplication", "Conversion"]
+      },
+      "Inflection": {
+        "definition": "Morphological relationship between word-forms of a single lexeme",
+        "key_properties": [
+          "Produces word-forms",
+          "Syntactically obligatory",
+          "Regular and productive"
+        ],
+        "categories": ["Number", "Tense", "Aspect", "Mood", "Voice (causative)"]
+      },
+      "Derivation": {
+        "definition": "Morphological relationship between different lexemes",
+        "key_properties": [
+          "Produces new lexemes",
+          "Can change word class",
+          "Less regular and productive"
+        ],
+        "suffixes": {
+          "-ta": {
+            "function": "Agentive",
+            "examples": ["sɔ̄ŋ 'cultivate' → sɔ̄ŋ-ta 'cultivator'", "bàrì 'causerie' → bàrì-teta 'causeur'"]
+          },
+          "-pu": {
+            "function": "Abstract state",
+            "examples": ["sùŋ 'human' → sɔ̀-pɩ́ɩ́ 'humanism'", "jàà 'woman' → jàà-pɩ́ɩ́ 'femininity'", "bàgɩ 'deaf' → bàgɩ̀-pɩ́ɩ́ 'deafness'"]
+          },
+          "-le": {
+            "function": "Diminutive",
+            "examples": ["fūrō-lōō 'small field'", "kīrē-lēē 'small village'", "mògà-lēē 'small neck'"]
+          },
+          "-wa": {
+            "function": "Causative",
+            "examples": ["fɔnɔ 'pass' → fɔnaa 'make pass'", "wʊɔ 'cry' → wuaa 'make cry'", "men 'drink' → menaa 'make drink'"]
+          },
+          "-rāà": {
+            "function": "Agentive from verbal nouns",
+            "examples": ["dɔ̀ɔ̀-rāà 'teacher'", "bèŋ-rāà 'fighter'", "sɔ̄ŋ-rāà 'cultivator'"]
+          },
+          "-rɛ́ɛ̀/-rʋ́ʋ́": {
+            "function": "Locative",
+            "examples": ["kpīrē-róó 'parcel'", "sáá-rɛ́ɛ̀ 'exit'", "fágɩ́-rʋ́ʋ́ 'crack'"]
+          }
+        },
+        "verbal_prefixes": {
+          "ma-": {
+            "function": "Derivational prefix",
+            "examples": ["ma-kuro 'heal'", "ma-baa 'wound'", "ma-sige 'be solid'"]
+          },
+          "di-": {
+            "function": "Derivational prefix",
+            "examples": ["di-saa 'sweep inside'", "di-kpire 'cut up'", "di-saba 'select'"]
+          }
+        }
+      },
+      "Compounding": {
+        "definition": "Combination of two or more lexemes to form a new one",
+        "types": ["Endocentric", "Exocentric"],
+        "examples": {
+          "Noun+Noun": "sɔ-kālɩ̀ 'tree branch'",
+          "Noun+Adjective": "sʋ-yāgɩ̀ 'bad road'",
+          "Productive": "yee-tee-naa 'shea nut collector'"
+        },
+        "productive_morphemes": {
+          "-nʋ̄ʋ̀": "child, fruit, unit (yêê-nʋ̄ʋ̀ 'one shea nut')",
+          "-sini": "male (gbā-sini 'ram')",
+          "-saa": "female (gbā-saa 'ewe')",
+          "-diri": "lack of (warɩ-diri 'lack of money')",
+          "-te": "owner (wie-te 'homeowner')",
+          "-pu": "state of (sɔ̀-pɩ́ɩ́ 'humanism')"
+        }
+      },
+      "Word_Formation": {
+        "definition": "Cover term for derivation and compounding",
+        "examples": ["sɔ̄ŋ-ta 'cultivator' (derivation)", "sɔ-kālɩ̀ 'tree branch' (compounding)"]
+      },
+      "Actant_Derivation": {
+        "definition": "Processes changing argument structure",
+        "types": {
+          "Promoting": ["Causative", "Applicative"],
+          "Demoting": ["Decausative", "Reflexive", "Reciprocal"]
+        }
+      }
+    },
+    "The_Lexicon_and_Paradigms": {
+      "Lexicon": {
+        "definition": "The total store of words available to a speaker. Konabère lexicon contains approximately 7,500+ entries.",
+        "key_debate": ["Morpheme-based", "Word-based"],
+        "notes": "Konabère lexicon includes nouns, verbs, adjectives, adverbs, pronouns, postpositions, particles, numerals, and ideophones."
+      },
+      "Lexical_Item": {
+        "definition": "A unit of the vocabulary of a language. Konabère lexical items include roots, derived words, and compounds."
+      },
+      "Lexicalized_Concept": {
+        "definition": "Grammatical or semantic category expressed by a lexical item. Examples: terms for kinship (tɔŋ 'father', yuo 'mother'), agriculture (dugo 'millet', manɩ 'sorghum')."
+      },
+      "Inflectional_Paradigm": {
+        "definition": "The complete set of grammatical word-forms of a lexeme",
+        "key_concepts": [
+          "Syntagmatic Relations: combination of morphemes",
+          "Paradigmatic Relations: choice between forms"
+        ],
+        "Inflection_Class": "Group of lexemes sharing the same set of forms. Konabère has lexically determined plural classes (Types I-IV).",
+        "Syncretism": "Two or more functions expressed by the same form",
+        "Defectiveness": "A gap in a paradigm",
+        "Deponency": "Mismatched form-meaning relationship",
+        "Periphrasis": "Use of a separate word or phrase"
+      }
+    },
+    "Morphological_Meanings_and_Categories": {
+      "Grammatical_Meaning": {
+        "definition": "Meanings obligatorily expressed by the grammar",
+        "key_properties": ["Obligatoriness", "Systematicity", "Abstractness"],
+        "Grammatical_Category": "A set of mutually exclusive, obligatory meanings",
+        "Grammeme": "An individual value within a category"
+      },
+      "Key_Categories_for_Nouns": {
+        "Agreement_Class_Gender": {
+          "definition": "Konabère does not have grammatical gender. Noun classes are based on plural formation patterns (Types I-IV)."
+        },
+        "Case": {
+          "definition": "Marks syntactic and/or semantic role through postpositions",
+          "Core_Cases": ["Nominative (unmarked subject)", "Accusative (unmarked object)"],
+          "Peripheral_Cases": ["Dative (na, ta)", "Locative (di, ma)", "Instrumental (ke/ne)", "Genitive (ka)"]
+        },
+        "Number": {
+          "core_meanings": ["Singular", "Plural"],
+          "plural_strategies": ["Suffixation (7 types)", "Vowel alternation", "Suppletion"]
+        },
+        "Determination": {
+          "referential_usage": {
+            "Definite": "Marked by a (SG) or i (PL) before noun",
+            "Indefinite": "Unmarked; or bɔ 'a, certain'"
+          },
+          "non-referential_usage": {
+            "Generic": "Unmarked noun: dugó 'millet'"
+          }
+        }
+      },
+      "Key_Categories_for_Verbs": {
+        "Aspect": {
+          "definition": "Presents situation from internal temporal perspective",
+          "core_meanings": ["Perfective (unmarked)", "Imperfective (floating tones)"],
+          "subtypes": ["Habitual (tié + present)", "Progressive (ti nē + present)"]
+        },
+        "Tense": {
+          "definition": "Locates event relative to moment of speech",
+          "core_meanings": ["Present (unmarked)", "Past (ta + verb)", "Future (nà + verbal noun + nà)"]
+        },
+        "Mood": {
+          "definition": "Expresses attitude toward proposition",
+          "key_distinction": ["Indicative (default)", "Imperative (verb stem/kà + verb)", "Subjunctive (t'a/t'è/t'à + verb)", "Conditional (ja + perfective/ta + future)"]
+        },
+        "Voice": {
+          "subtypes": ["Active (default)", "Causative (-wa/-aa)"]
+        }
+      }
+    },
+    "Inflection_vs_Derivation_Criteria": [
+      "Relevance to syntax: Inflection is more relevant",
+      "Obligatoriness: Inflection is more obligatory",
+      "Regularity and productivity: Inflection is more regular",
+      "Meaning compositionality: Inflection is more compositional",
+      "Word class change: Derivation can change class",
+      "Position relative to base: Derivation is closer to root"
+    ],
+    "Morphology_and_Other_Components": {
+      "Morphophonology": {
+        "definition": "Interaction between morphology and phonology",
+        "processes": [
+          "ATR harmony in suffixes (plural, diminutive)",
+          "Nasal harmony in suffix selection",
+          "Liquid harmony in suffix selection",
+          "Tone changes in plural formation",
+          "Elision of final vowels in plural forms",
+          "Compensatory lengthening"
+        ]
+      },
+      "Syntax-Morphology_Interface": {
+        "lexical_integrity": "Syntactic rules cannot access internal morphological structure"
+      },
+      "Morphology_and_Valence": "How morphology affects argument structure: causative -wa adds an agent argument"
+    },
+    "Productivity_and_Frequency_Effects": {
+      "Productivity": {
+        "definition": "Ability to apply to new bases",
+        "restrictions": [
+          "Phonological: ATR harmony constraints",
+          "Semantic: Noun classes are lexically determined",
+          "Pragmatic: Some strategies are less productive",
+          "Morphological: Type of plural class",
+          "Borrowed Vocabulary: Loanwords take default -rèè plural"
+        ],
+        "blocking": "Existing word prevents formation of synonym"
+      },
+      "Frequency_Effects": {
+        "key_patterns": [
+          "Common values are shorter",
+          "Common values are more differentiated",
+          "High frequency forms are irregular"
+        ]
+      }
+    },
+    "Morphological_Typology": {
+      "Language_Types": ["Synthetic"],
+      "Degree_of_Synthesis": "Moderate morpheme-per-word ratio; complex plural formation"
+    },
+    "Part_Of_Speech_Property": {
+      "definition": "The property that identifies the grammatical class of a word",
+      "classes": {
+        "Noun": "Names of entities; take plural and possessive markers",
+        "Verb": "Actions and states; show TAM distinctions",
+        "Adjective": "Quality words; relatively small class; plural marked on adjective",
+        "Adverb": "Modify verbs; often derived from adjectives",
+        "Pronoun": "Replace nouns; simple, emphatic, and autonomous forms",
+        "Postposition": "Follow nouns; mark spatial, instrumental, and beneficiary relations",
+        "Particle": "Invariable grammatical items (negation, interrogation, discourse)",
+        "Conjunction": "Connect clauses and phrases",
+        "Numeral": "Cardinal and ordinal numbers",
+        "Ideophone": "Express sensory impressions; no inherent meaning"
+      }
+    },
+    "GOLD_Specific_Morphological_Classes": {
+      "Bound_Morpheme": {
+        "definition": "Cannot occur independently",
+        "examples": "Plural suffixes (-rèè, -nèè, -lì), derivational suffixes (-ta, -pu, -wa), verbal prefixes (ma-, di-)"
+      },
+      "Free_Morpheme": {
+        "definition": "Can occur independently",
+        "examples": "nū 'child', sūɔ 'horse', kīrì 'village'"
+      },
+      "Inflectional_Morpheme": {
+        "definition": "Express grammatical categories; do not change word class",
+        "examples": "Plural suffixes, causative -wa"
+      },
+      "Derivational_Morpheme": {
+        "definition": "Derive new lexical units; may change word class",
+        "examples": "-ta (agentive), -pu (abstract), -le (diminutive)"
+      },
+      "Prefix": {
+        "definition": "Attach to beginning of root",
+        "examples": "ma-, di- (verbal prefixes)"
+      },
+      "Suffix": {
+        "definition": "Attach to end of root",
+        "examples": "Plural suffixes, derivational suffixes"
+      },
+      "Category_Changer": {
+        "definition": "Derivational units that change the syntactic category of the root",
+        "examples": "-ta (verb→noun), -pu (noun→abstract noun)"
+      },
+      "Nominalizer": {
+        "definition": "Forms a noun from some other word class",
+        "examples": "-ta (agentive from verb), -pu (abstract from noun/adjective)"
+      },
+      "Verbalizer": {
+        "definition": "Changes nouns into verbs",
+        "examples": "ma- (ma-kuro from kuro 'soft')"
+      },
+      "Intransitivizer": {
+        "definition": "Derives an intransitive verb from a transitive verb",
+        "examples": "Vowel change in some verb pairs"
+      },
+      "Transitivizer": {
+        "definition": "Derives transitive verbs from intransitive verb stems",
+        "examples": "-wa (causative)"
+      },
+      "Copula": {
+        "definition": "Indicates a relationship of equivalency between subject and predicate",
+        "examples": "ba (copula for states), ti (locative copula)"
+      },
+      "Auxiliary": {
+        "definition": "Verbs used in coordination with another verb to express mood, tense or aspect",
+        "examples": "ti (progressive auxiliary), ka (possessive/auxiliary)"
+      },
+      "Modal": {
+        "definition": "Expresses necessity, possibility, attitude toward factuality",
+        "examples": "kpin 'can, be able', sebe 'can, be able'"
+      },
+      "Negation_Operator": {
+        "definition": "Negative-marking particle",
+        "examples": "ma...ko (negation), ka...ko (prohibition)"
+      },
+      "Pro_Form": {
+        "definition": "Substitutes for other constituents",
+        "examples": "yi (personal possessive), ɲwàn (relative pronoun)"
+      },
+      "Personal_Pronoun": {
+        "definition": "Refers to speaker, addressee, and others",
+        "examples": {"1SG": "á", "2SG": "í", "3SG": "a", "1PL": "ma", "2PL": "ɲɩɛn", "3PL": "i"}
+      },
+      "Demonstrative": {
+        "definition": "Used deictically to indicate spatial, temporal, or discourse location",
+        "examples": {"proximal": "àgì", "distal": "ɲmàn", "plural": "kɔrɔɔ/ʊgɔ"}
+      },
+      "Quantifier": {
+        "definition": "Expresses definite or indefinite number or amount",
+        "examples": ["pepe 'all'", "bɔ 'a, certain'", "kʊkʊnɩ 'many'"]
+      },
+      "Numeral": {
+        "definition": "Expresses number",
+        "examples": ["taalɩ '1'", "pula '2'", "saa '3'", "nian '4'", "kʊɔ '5'"]
+      }
+    },
+    "GOLD_Specific_Grammatical_Categories": {
+      "Number_Values": {
+        "Singular": "Default form in Konabère",
+        "Plural": "Marked by various suffixes or vowel changes"
+      },
+      "Person_Values": {
+        "First_Person": "á (SG), ma (PL)",
+        "Second_Person": "í (SG), ɲɩɛn (PL)",
+        "Third_Person": "a (SG), i (PL)"
+      },
+      "Tense_Values": {
+        "Present_Tense": "Unmarked; also ti nē + present form for actual present",
+        "Past_Tense": "ta + verb form",
+        "Future_Tense": "nà + verbal noun + nà",
+        "Immediate_Past": "den + verb stem"
+      },
+      "Aspect_Values": {
+        "Perfective": "Unmarked verb form",
+        "Imperfective": "Floating tones (M before, L after)",
+        "Habitual": "tié + present form",
+        "Progressive": "ti nē + present form"
+      },
+      "Voice_Values": {
+        "Active": "Default voice",
+        "Causative": "Marked by -wa/-aa suffix"
+      },
+      "Mood_Values": {
+        "Indicative": "Default",
+        "Imperative": "Verb stem (SG); kà + verb (PL)",
+        "Subjunctive": "t'a/t'è/t'à + verb; used for wishes and purpose",
+        "Conditional": "ja + perfective (real); ta + future (irreal)"
+      },
+      "Case_Property": {
+        "definition": "Grammatical encoding of a noun's relationship to other elements",
+        "examples": "Nominative (unmarked subject), Accusative (unmarked object), Dative/Locative (postpositions na, ta, di, ma), Genitive (ka with 3rd person)"
+      },
+      "Modality_Property": {
+        "definition": "Status of the proposition itself",
+        "examples": "Epistemic (kpin 'can'), Deontic (obligation markers)"
+      },
+      "Evidentiality_Property": {
+        "definition": "Basis for claiming event has occurred",
+        "examples": "Direct (unmarked), Indirect (hearsay with bàré)"
+      }
+    }
+  },
+
+  "Syntax": {
+    "Core_Foundations": {
+      "Generative_Grammar": {
+        "definition": "Grammar viewed as a cognitive faculty; language generated by a set of rules",
+        "historical_versions": ["Transformational Grammar", "Government and Binding Theory", "Principles and Parameters Approach"],
+        "key_assumptions": {
+          "I-Language": "Internal, psychological, cognitive system of grammatical knowledge",
+          "E-Language": "External, physical, social manifestation of language",
+          "Competence": "Idealized, unconscious knowledge of I-Language",
+          "Performance": "Actual use of language, subject to external factors"
+        }
+      },
+      "Basic_Word_Order": {
+        "definition": "SOV (Subject-Object-Verb) order is standard",
+        "example": "a junu a sivu kaa a dwu r (3SG AUX 3SG.POSS hand put DEF mouth in) 'She has put her hand into her mouth.'"
+      },
+      "Postpositions": {
+        "definition": "Function words that follow nouns to indicate case relations",
+        "examples": {
+          "di": "in, inside",
+          "ma": "on, at, to",
+          "na": "for, because of",
+          "ta": "at, to, chez",
+          "jīn": "in front of",
+          "bēlōmà": "behind, after",
+          "bēé": "beside",
+          "kuu": "under",
+          "taan": "above"
+        }
+      },
+      "Negation": {
+        "structure": "ma (after subject) ... ko (at end of phrase)",
+        "examples": ["a ma naa ko 'he didn't come'", "áá nyími kɩ 'I didn't dance'"],
+        "prohibition": "ka + verb + ko",
+        "future": "ma na ... na ko"
+      },
+      "Interrogation": {
+        "yes_no": "ke at end",
+        "wh": "nɔ at end with interrogative word",
+        "interrogatives": {
+          "kùɔ": "who",
+          "nwàn fā/nwàn dán": "what",
+          "wɔ": "where",
+          "wɔ sɛɛ": "when",
+          "wɔ yī (PL wɔ yīré)": "which",
+          "yɛɛ": "how many"
+        }
+      }
+    },
+    "Syntactic_Categories_and_Features": {
+      "Lexical_Categories": ["Noun (N)", "Verb (V)", "Adjective (Adj)", "Adverb (Adv)"],
+      "Functional_Categories": ["Determiner (D)", "Pronoun (Pron)", "Postposition (P)", "Particle"],
+      "Theta_Roles": {
+        "definition": "Bundle of thematic relations",
+        "common_roles": ["Agent", "Patient", "Goal", "Experiencer", "Instrument", "Location", "Beneficiary"],
+        "Theta_Criterion": "Each argument assigned one and only one theta role; each theta role assigned to one argument"
+      }
+    },
+    "Constituency_and_Phrase_Structure": {
+      "Constituents": {
+        "definition": "A group of words functioning as a single unit",
+        "tests": ["Replacement", "Movement", "Stand-alone", "Coordination"]
+      },
+      "Noun_Phrase": {
+        "structure": "[Det] [Poss] [Noun] [Adj] [Num] [Def]",
+        "determiners": {"a": "SG", "i": "PL"},
+        "possessives": "Pronoun + ka (3rd person) or pronoun alone (1st/2nd)",
+        "adjectives": "Follow the noun; plural marked on adjective",
+        "numbers": "Follow the noun; noun in plural form",
+        "demonstratives": {"proximal": "àgì", "distal": "ɲmàn", "plural": "kɔrɔɔ/ʊgɔ"},
+        "definite_article": "a (SG), i (PL) - precedes noun"
+      },
+      "Verb_Phrase": {
+        "structure": "[(Aux)] [Neg] [VP]",
+        "auxiliaries": ["ti (copula/auxiliary)", "ka (possessive/auxiliary)"]
+      },
+      "Clause_Structure": {
+        "order": "Subject precedes Object precedes Verb",
+        "example": "a junu a sivu kaa a dwu r"
+      }
+    },
+    "Clause_and_Sentence_Types": {
+      "Declarative": {
+        "structure": "[Subject] [Object] [Verb]",
+        "example": "a junu a sivu kaa a dwu r",
+        "negation": "a ma junu a sivu kaa a dwu r ko"
+      },
+      "Interrogative": {
+        "polar": "a naa ke? 'Did he come?'",
+        "content": "kùɔ nè nàā nó 'Who came?'",
+        "negative": "I naa naa me? 'Isn't it that you're coming?'"
+      },
+      "Imperative": {
+        "singular": "verb stem: nàā 'come!'",
+        "plural": "kà + verb: kà nàā 'come (PL)!'",
+        "prohibition": "kà + verb + kō 'don't...!'",
+        "continuative": "mē ē + verb (SG), kīē + verb (PL)"
+      },
+      "Subjunctive": {
+        "structure": "t'a/t'è/t'à + verb",
+        "use": "Wishes, purpose, finality",
+        "example": "Wúrō m'é yié sɔ̄ɔ̄ 'May God lead you!'"
+      },
+      "Relative_Clause": {
+        "marker": "ɲwàn",
+        "position": "ɲwàn + Noun at beginning of phrase",
+        "subject": "ɲwàn sūn nē fōnō yōō... 'the man who is passing...'",
+        "object": "ɲwàn sūn ē é jàà 'the man I saw'",
+        "negative": "ɲwàn sūn já mẽ bãrã tà 'the man who hasn't worked'"
+      },
+      "Conditional": {
+        "real": "ja + perfective; ja nē + present",
+        "irreal": "ta + future + wāà",
+        "example": "e ja yɔw Bɔbɔ, e kwia siɔ tee 'if you go to Bobo, buy a bike'"
+      },
+      "Causal": {
+        "marker": "bàré; yìrè nà",
+        "example": "à yōw à wē, à kā tōn sìrì dān yíré nà 'he went home because of his father's death'"
+      },
+      "Consecutive": {
+        "marker": "nye (same subject), nye nē (present)",
+        "example": "à gbâà tèè nye nè yòw n' áânè 'he bought a sheep and took it'"
+      }
+    },
+    "Communicative_Categories": {
+      "Focus": {
+        "subject": "à sēgē nē tùmū 'it's a goat that ran away'",
+        "object": "à nānē e n'é yàà 'it's a chicken you killed'",
+        "structure": "Fronting with a/e presentative"
+      },
+      "Topicalization": {
+        "definition": "ɲwàn + Noun at beginning",
+        "example": "ɲwàn sūn nē fōnō yōō, à pānè 'the man who passes there, he's a thief'"
+      },
+      "Theme_and_Rheme": {
+        "Theme": "Starting point, what sentence is about",
+        "Rheme": "New information, what is said about theme"
+      },
+      "Given_vs_New": {
+        "Given": "Information assumed known (marked by definiteness)",
+        "New": "Information newly introduced (indefinite)"
+      }
+    },
+    "Syntactic_Relations": {
+      "Agreement": {
+        "definition": "Not overt in Konabère; no subject-verb agreement in person or number"
+      },
+      "Government": {
+        "definition": "Postpositions determine case marking of noun phrases",
+        "examples": [
+          "di 'in' (locative)",
+          "ma 'on, at' (locative)",
+          "na 'for, to' (benefactive)",
+          "ta 'at, to' (dative/locative)"
+        ]
+      },
+      "Adjunct": {
+        "definition": "A phrase modifying a head but not an actant",
+        "examples": ["Temporal adverbs", "Locative phrases"]
+      }
+    },
+    "Syntactic_Unit": {
+      "definition": "A functional component of a larger construction: constituent, phrase, clause."
+    },
+    "Syntactic_Construction": {
+      "definition": "Grammar units with syntactic structure: phrase, clause, sentence."
+    },
+    "Syntactic_Word": {
+      "definition": "Lowest position in syntactic construction; largest unit resistant to insertion."
+    },
+    "Phrase": {
+      "definition": "Constructions consisting of one or more syntactic words, lacking subject-predicate organization."
+    },
+    "Noun_Phrase": {
+      "definition": "Construction with noun as head: [Det] [Poss] [Noun] [Adj] [Num] [Def]."
+    },
+    "Verb_Phrase": {
+      "definition": "Construction with verb as head: [(Aux)] [Neg] [VP]."
+    },
+    "Adjective_Phrase": {
+      "definition": "Construction with adjective as head: Adj + (complement)."
+    }
+  },
+
+  "Semantics": {
+    "Core_Theoretical_Foundations": {
+      "Semantics": {
+        "definition": "The branch of linguistics studying meaning in Konabère.",
+        "narrow_vs_wide": {
+          "Narrow_Semantics": "Focuses on conventional, language-internal meaning",
+          "Wide_Semantics": "Encompasses context-dependent sense and pragmatics"
+        }
+      },
+      "Meaning_vs_Sense": {
+        "Meaning_Value": "Abstract, conventional, stable content",
+        "Sense": "Concrete, context-dependent, variable information"
+      },
+      "Truth-Conditional_Semantics": {
+        "definition": "To know meaning is to know truth-conditions."
+      },
+      "Compositionality": {
+        "definition": "Meaning of complex expression determined by meanings of parts and combination rules.",
+        "origin": "Gottlob Frege (Frege's Principle)"
+      }
+    },
+    "Lexical_Semantics": {
+      "Lexical_Meaning": {
+        "definition": "Meaning of a word as a unit of the lexicon",
+        "components": {
+          "Denotative_Component": "Relation between word and referent",
+          "Significative_Component": "Concept or manner of representation",
+          "Pragmatic_Component": "Conditions of use and speaker's attitude",
+          "Syntactic_Component": "Combinatorial properties"
+        }
+      },
+      "Lexical_Relations": {
+        "Paradigmatic_Relations": {
+          "Synonymy": ["bakun, bele, gbeme = 'beaucoup'"],
+          "Antonymy": ["fɔɔ 'bon' vs yāgɩ 'mauvais'", "kire 'long' vs tigoli 'court'"],
+          "Hyperonymy/Hyponymy": ["kakaa 'viande, animal' → sāgɩ 'chèvre', nānɩ 'poule', nān 'bœuf'"],
+          "Meronymy": ["ŋun 'tête' → ɲɩnɩ 'œil', turu 'oreille', jugu 'pied'"]
+        },
+        "Syntagmatic_Relations": ["Semantic relations", "Collocation"]
+      },
+      "Semantic_Fields": {
+        "Kinship": ["tɔŋ 'father'", "yuo 'mother'", "nāvu 'sibling'", "nam 'marriage'"],
+        "Body": ["ŋun 'head'", "turu 'ear'", "ɲɩnɩ 'eye'", "jugu 'foot'", "sūrū 'hand'"],
+        "Agriculture": ["dugo 'millet'", "manɩ 'sorghum'", "fien 'fonio'", "foli 'sesame'"],
+        "Animals": ["sāgɩ 'goat'", "nān 'cow'", "wūrū 'dog'", "kpīrí 'tortue'"]
+      },
+      "Polysemy": {
+        "definition": "Single word with multiple related meanings",
+        "mechanisms": ["Metaphor", "Metonymy", "Synecdoche"],
+        "example": "kakaa 'viande, animal (any animal as meat)'"
+      }
+    },
+    "Grammatical_Semantics": {
+      "Grammatical_Meaning": {
+        "definition": "Abstract, obligatory, systematic meaning expressed by grammatical markers",
+        "key_categories": [
+          "Number (plural markers)",
+          "Tense (future na...na, anterior ta)",
+          "Aspect (perfective vs. imperfective via tone)",
+          "Mood (imperative, subjunctive)",
+          "Voice (causative -wa)",
+          "Definiteness (a/i articles)",
+          "Possession (ka particle)"
+        ]
+      }
+    },
+    "Semantics_of_the_Sentence": {
+      "Propositional_Component": {
+        "definition": "Describes a state of affairs",
+        "Proposition": "Set of possible worlds or truth-value",
+        "Predicate": "Denotes a property or relation",
+        "Argument_Structure": "List of participants with semantic roles"
+      },
+      "Communicative_Component": {
+        "definition": "Packaging of propositional content",
+        "Theme_Rheme": "Topic and comment",
+        "Topic_Focus": "Grammaticalized theme and salient part",
+        "Given_New": "Information assumed known vs. newly introduced"
+      },
+      "Pragmatic_Component": {
+        "definition": "Information about speaker's intention and use",
+        "Speech_Act": "Utterance with illocutionary force",
+        "Illocutionary_Force": "Type of act (assertion, question, command, wish)",
+        "Presupposition": "Background information assumed true"
+      }
+    },
+    "Reference_and_Quantification": {
+      "Reference": {
+        "Referential_Status": {
+          "Definite": "Marked by a (SG) or i (PL) before noun: a sùŋ 'the man'",
+          "Indefinite": "Unmarked noun; or bɔ 'a, certain': sùŋ bɔ 'a man'",
+          "Generic": "Unmarked: dugó 'millet'"
+        }
+      },
+      "Quantification": {
+        "Numerals": ["taalɩ '1'", "pula '2'", "saa '3'", "nian '4'", "kʊɔ '5'", "hum '10'"],
+        "Quantifiers": ["pepe 'all'", "bɔ 'a, certain'", "kʊkʊnɩ 'many'", "jogu 'a little'"]
+      }
+    }
+  },
+
+  "Interfaces_and_Integration": {
+    "Phonetics-Phonology_Interface": {
+      "definition": "The interaction between the substance of speech (phonetics) and its functional organization in the linguistic system (phonology).",
+      "key_areas": [
+        "Allophonic variation: [k]~[c] before front vowels, [n] as allophone of /l/ before nasal vowels",
+        "Phonological rules: ATR harmony, nasal harmony, liquid harmony",
+        "Phonetic transcription: Mapping from phonemes to phonetic realization"
+      ]
+    },
+    "Phonology-Morphology_Interface": {
+      "definition": "The interaction between sound structure and word structure.",
+      "key_areas": [
+        "ATR harmony in suffixes (plural, diminutive)",
+        "Nasal harmony in suffix selection",
+        "Liquid harmony in suffix selection",
+        "Tone changes in plural formation",
+        "Elision of final vowels in plural forms",
+        "Compensatory lengthening"
+      ]
+    },
+    "Morphology-Syntax_Interface": {
+      "definition": "The interaction between word structure and sentence structure.",
+      "key_areas": [
+        "Lexical Integrity: Syntactic rules cannot access internal morphological structure",
+        "Agreement: Konabère lacks overt agreement",
+        "Case assignment: Postpositions assign case to noun phrases",
+        "Valence changing operations: Causative -wa adds an agent argument"
+      ]
+    },
+    "Syntax-Semantics_Interface": {
+      "definition": "The interaction between sentence structure and meaning.",
+      "key_areas": [
+        "Compositionality: Meaning derived from parts and their combination",
+        "TAM marking: Tense, aspect, mood express temporal and modal meaning",
+        "Focus construction: Fronting for emphasis",
+        "Relativization: ɲwàn marks relative clauses",
+        "Conditional constructions: ja for real, ta for irreal conditions"
+      ]
+    },
+    "Semantics-Pragmatics_Interface": {
+      "definition": "The interaction between literal meaning and context-dependent interpretation.",
+      "key_areas": [
+        "Speech acts: Declaratives, interrogatives, imperatives, wishes",
+        "Presupposition: Background information in relative clauses",
+        "Definiteness and reference: Marked by a/i articles",
+        "Focus and topicalization: Fronting for information structure"
+      ]
+    }
+  },
+
+  "Relations_and_Properties": {
+    "Object_Properties": {
+      "subject": {
+        "definition": "Agent of transitive verb or single argument of intransitive verb",
+        "example": "a sùŋ 'the man' in 'a sùŋ yōw sàyā'"
+      },
+      "object": {
+        "definition": "Patient of transitive verb",
+        "example": "dugó 'millet' in 'a dugó tùgò'"
+      },
+      "agent": {
+        "definition": "Semantic role of the doer of the action",
+        "example": "sùŋ 'man' in 'sùŋ yàà nānē'"
+      },
+      "patient": {
+        "definition": "Semantic role of the undergoer of the action",
+        "example": "nānē 'chicken' in 'sùŋ yàà nānē'"
+      },
+      "precedes": {
+        "definition": "Linear order relation",
+        "examples": ["Subject precedes Object", "Object precedes Verb", "Noun precedes Adjective"]
+      },
+      "follows": {
+        "definition": "Inverse of precedes",
+        "examples": ["Verb follows Object", "Adjective follows Noun"]
+      },
+      "allomorph": {
+        "definition": "Relation between a morpheme and its allomorphs",
+        "examples": [
+          "PLURAL-MORPHEME allomorph -rèè",
+          "PLURAL-MORPHEME allomorph -nèè",
+          "PLURAL-MORPHEME allomorph -lì"
+        ]
+      },
+      "allophone": {
+        "definition": "Relation between a phoneme and its phones",
+        "examples": [
+          "/l/ allophone [n] (before nasal vowels)",
+          "/y/ allophone [ɲ] (before nasal vowels)",
+          "/w/ allophone [ŋm] (before nasal vowels)",
+          "/k/ allophone [c] (before front vowels)"
+        ]
+      },
+      "complement": {
+        "definition": "Syntactic argument of a verb",
+        "examples": ["Noun complement precedes verb", "Pronoun complement precedes verb"]
+      },
+      "hasMorphologicalConstituent": {
+        "definition": "Part-whole relation in morphology",
+        "examples": ["Noun hasMorphologicalConstituent Root", "Noun hasMorphologicalConstituent Suffix"]
+      },
+      "hasSyntacticConstituent": {
+        "definition": "Part-whole relation in syntax",
+        "examples": ["Clause hasSyntacticConstituent Subject", "Clause hasSyntacticConstituent Predicate", "NP hasSyntacticConstituent Noun"]
+      },
+      "realization": {
+        "definition": "Relation between a linguistic unit and its physical form",
+        "examples": ["/lʊʊ/ realized as [lʊʊ] (poverty)", "/lʊ̰̄ ʊ̰̀/ realized as [nʊ̰̄ ʊ̰̀] (child)"]
+      },
+      "semanticRole": {
+        "definition": "Relation between a participant and a predicate",
+        "examples": ["Subject semanticRole Agent", "Object semanticRole Patient"]
+      },
+      "synonym": {
+        "definition": "Words with similar meaning",
+        "examples": ["bakun, bele, gbeme = 'beaucoup'"]
+      },
+      "antonym": {
+        "definition": "Words with opposite meaning",
+        "examples": ["fɔɔ 'bon' vs yāgɩ 'mauvais'", "kire 'long' vs tigoli 'court'"]
+      },
+      "entails": {
+        "definition": "Entailment relation between propositions"
+      },
+      "argument": {
+        "definition": "The syntactic entity about which something is predicated",
+        "examples": ["Subject argument", "Object argument"]
+      },
+      "head": {
+        "definition": "The head of a phrase",
+        "examples": ["Noun is head of NP", "Verb is head of VP"]
+      },
+      "inLanguage": {
+        "definition": "Relation between a linguistic sign and Konabère"
+      }
+    },
+    "Datatype_Properties": {
+      "phoneticRep": {
+        "definition": "Phonetic representation of a linguistic unit",
+        "example": "[nʊ̰̄ ʊ̰̀] for 'child'"
+      },
+      "phonemicRep": {
+        "definition": "Phonemic representation of a linguistic unit",
+        "example": "/lʊ̰̄ ʊ̰̀/ for 'child'"
+      },
+      "orthographicRep": {
+        "definition": "Orthographic representation of a linguistic unit",
+        "example": "<nū> for 'child'"
+      },
+      "gloss": {
+        "definition": "Gloss or translation of a linguistic unit",
+        "example": "'child' for nū"
+      },
+      "toneMelody": {
+        "definition": "Tonal melody of a noun or verb",
+        "example": "HH for kúú 'reason'"
+      },
+      "pluralClass": {
+        "definition": "Plural class of a noun (Type I-IV)",
+        "example": "Type III for sūɔ 'tree'"
+      },
+      "hasExample": {
+        "definition": "Example usage of a linguistic unit"
+      },
+      "stringRep": {
+        "definition": "String representation of a linguistic unit"
+      }
+    }
+  },
+
+  "Lexicon_Overview": {
+    "definition": "The lexicon of Konabère includes approximately 7,500+ words and expressions (Coulibaly et al. 2023).",
+    "word_structure": "Most words are disyllabic (53%); CV and CVV syllable structures most common.",
+    "loanwords": "Primarily from French and Bambara; adapt to ATR harmony and phonotactic constraints.",
+    "noun_classes": "Lexically determined plural classes (Types I-IV); not semantically motivated.",
+    "nominal_compounds": "Highly productive; plural marked on second constituent.",
+    "sample_entries": [
+      {"form": "sùŋ", "gloss": "man", "class": "N", "plural": "sɔ̀ŋ", "NA": "sɔ-", "tone": "L"},
+      {"form": "nàà", "gloss": "woman", "class": "N", "plural": "nàà-nì", "NA": "na-", "tone": "L"},
+      {"form": "kīrì", "gloss": "village", "class": "N", "plural": "kīrè", "NA": "kire-", "tone": "MH"},
+      {"form": "wíé", "gloss": "house", "class": "N", "plural": "wàà-rí", "NA": "wa-", "tone": "HH"},
+      {"form": "dùgó", "gloss": "millet", "class": "N (mass)", "plural": "dùgó", "NA": "dugo-", "tone": "LL"},
+      {"form": "nānì", "gloss": "chicken", "class": "N", "plural": "nēn-èè", "NA": "naa-", "tone": "MM"},
+      {"form": "sāgɩ", "gloss": "goat", "class": "N", "plural": "sàgɩ", "NA": "sagɩ-", "tone": "MM"},
+      {"form": "júū", "gloss": "water", "class": "N (mass)", "plural": "júō", "NA": "jo-", "tone": "HL"},
+      {"form": "túrú", "gloss": "ear", "class": "N", "plural": "tárá", "NA": "tara-", "tone": "HH"},
+      {"form": "fúrú", "gloss": "field", "class": "N", "plural": "fúró", "NA": "furo-", "tone": "HH"},
+      {"form": "sūɔ", "gloss": "horse", "class": "N", "plural": "sūɔ-ròò", "NA": "sō-lɔ-", "tone": "MM"},
+      {"form": "kimi", "gloss": "steal", "class": "V", "type": "MM", "tone": "MM"},
+      {"form": "nyimi", "gloss": "dance", "class": "V", "type": "BM", "tone": "BM"},
+      {"form": "tügö", "gloss": "sow", "class": "V", "type": "MB", "tone": "MB"},
+      {"form": "tùgò", "gloss": "pound", "class": "V", "type": "BB", "tone": "BB"},
+      {"form": "fɔɔ", "gloss": "good", "class": "Adj", "plural": "fɔ-rɔ", "tone": "M"},
+      {"form": "yāgɩ", "gloss": "bad", "class": "Adj", "plural": "yɛ̄g-ɛ̀ɛ̀", "tone": "M"},
+      {"form": "kire", "gloss": "long", "class": "Adj", "plural": "kī-réè", "tone": "M"},
+      {"form": "tigoli", "gloss": "short", "class": "Adj", "plural": "tigòl-òò", "tone": "M"},
+      {"form": "taalɩ", "gloss": "one", "class": "Num"},
+      {"form": "pula", "gloss": "two", "class": "Num"},
+      {"form": "saa", "gloss": "three", "class": "Num"},
+      {"form": "nian", "gloss": "four", "class": "Num"},
+      {"form": "kʊɔ", "gloss": "five", "class": "Num"}
+    ]
+  }
+}

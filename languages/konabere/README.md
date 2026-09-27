@@ -1,1 +1,1 @@
-Тимур Меняльщиков: здесь я буду хранить мои промпты и материалы по языку конабере
+Timur M.: This is a place where I will keep all my data related to the Konabere language.

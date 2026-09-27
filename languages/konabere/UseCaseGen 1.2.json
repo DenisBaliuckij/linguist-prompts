@@ -14,7 +14,7 @@
         "types": [
           {
             "type": "annotated sentence",
-            "description": "A complete sentence in UD-format with all of its tokens annotated. Not just a single annotated token in the sentence — every token must carry annotation.",
+            "description": "A complete sentence in UD-format with all of its tokens annotated. Not just a single annotated token in the sentence — every token must carry annotation. A sentence with token/morpheme-level interlinear glossing (Leipzig-style) also qualifies as an annotated sentence.",
             "preferred": true
           },
           {
@@ -25,7 +25,7 @@
           }
         ],
         "rule": "Use-cases must be pre-annotated. The system never annotates them itself.",
-        "non_triviality_rule": "Use-cases must be non-trivial: the wordform must differ from its lemma. A use-case whose wordform equals its lemma is rejected."
+        "non_triviality_rule": "Use-cases must be non-trivial: the wordform must differ from its lemma. A use-case whose wordform equals its lemma is rejected. Strict for bare wordforms. For sentences: accept if the sentence contains at least one non-trivial token; flag sentences made only of lemma-equal tokens."
       },
 
       "relevant_annotation": {
@@ -34,7 +34,8 @@
           "lexical (lemma, citation form, word-level identity)",
           "semantic (sense, gloss, meaning)",
           "morphological (POS, grammatical tags, inflectional features)",
-          "syntactic (dependency or constituency structure)"
+          "syntactic (dependency or constituency structure)",
+          "interlinear morphemic glossing (Leipzig-style): token/morpheme-by-morpheme gloss with source line and free translation. Counts as lexical/morphological/semantic annotation."
         ],
         "excluded": [
           "phonological",
@@ -73,7 +74,9 @@
       "Always check the bibliography or reference list at the end of every source and follow up on the sources it points to.",
       "If language L has multiple names, all known names and spellings must be used in searching.",
       "Classification of a source as good or bad must be definitive. Hedging is not permitted.",
-      "Use-cases must be non-trivial: the wordform must differ from its lemma."
+      "Use-cases must be non-trivial: the wordform must differ from its lemma.",
+      "Translation-only examples are not annotation. A glossed example qualifies only if individual tokens/morphemes carry glosses.",
+      "Every use-case must cite a source location (file + section/page). Use-cases without a verifiable source location are invalid."
     ]
   },
 
@@ -186,20 +189,30 @@
         "name": "Extract use-cases",
         "action": "Extract use-cases from the source, in this order:",
         "order": [
-          "First, extract annotated sentences. An annotated sentence means a complete sentence in UD-format with all of its tokens annotated — not just a single annotated token in the sentence.",
+          "First, extract annotated sentences. An annotated sentence means a complete sentence in UD-format with all of its tokens annotated — not just a single annotated token in the sentence. A sentence with token/morpheme-level interlinear glossing (Leipzig-style) also qualifies.",
           "Then, if no annotated sentences are available, extract bare wordforms."
         ],
-        "rule": "Reject any use-case where the wordform is identical to its lemma."
+        "rule": "Reject any use-case where the wordform is identical to its lemma. Strict for bare wordforms. For sentences: accept if the sentence contains at least one non-trivial token; flag sentences made only of lemma-equal tokens."
       },
       {
         "step": 5,
-        "name": "Save use-cases with annotation and meta",
-        "action": "Save use-cases with annotation and meta."
+        "name": "Verify against source / avoid hallucinations",
+        "action": "For every extracted use-case, re-open the source and confirm the form, gloss, and lemma appear verbatim.",
+        "rule": "Avoid hallucinations. Quote only what is literally in the source. Never reconstruct, paraphrase, or guess forms, glosses, or lemmas. Drop any use-case whose form, gloss, or lemma cannot be located verbatim in the source. Keep a record of dropped items."
       },
       {
         "step": 6,
         "name": "Final check",
-        "action": "Before finishing, make sure annotated sentences (the preferred use-case type) were not overlooked. Only fall back to bare wordforms if no annotated sentences exist."
+        "action": "Before saving, make sure annotated sentences (the preferred use-case type) were not overlooked. Only fall back to bare wordforms if no annotated sentences exist."
+      },
+      {
+        "step": 7,
+        "name": "Save use-cases with annotation and meta",
+        "action": "Save use-cases with annotation and meta.",
+        "output_format": {
+          "file_type": ".txt",
+          "content": "A list of use-cases, each with its annotation (true answers) — everything needed to evaluate how the lemmatizer works."
+        }
       }
     ]
   }
