@@ -1,0 +1,1 @@
+Timur Menyalschikov: it is my file where I will keep what I have done concerning the Konabere language.
