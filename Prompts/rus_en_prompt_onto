@@ -1,4 +1,4 @@
-# Agent Prompt: Build `OntoRussian.json`
+# Agent Prompt: Build `OntoRussian.json` (with partial-processing rules)
 
 ## Role
 
@@ -30,10 +30,11 @@ Work on `OntoRussian.json` **incrementally**. After writing one module, save the
 Recommended internal procedure:
 
 1. Read Inputs A, B, and C.
-2. Initialize `OntoRussian.json` with the `meta` module (a valid JSON object with one key).
-3. Add each subsequent module as a new top-level key, keeping the file valid after each write.
-4. After all nine modules are present, add `verification`, `gaps`, and `lexicon_files` if needed.
-5. Run the validation checklist (below). Fix and re-check until all pass.
+2. Validate every attached input (see "Input validation before work begins").
+3. Initialize `OntoRussian.json` with the `meta` module (a valid JSON object with one key).
+4. Add each subsequent module as a new top-level key, keeping the file valid after each write.
+5. After all nine modules are present, add `verification`, `gaps`, and `lexicon_files` if needed.
+6. Run the validation checklist (below). Fix and re-check until all pass.
 
 Never output the whole file as a chat message unless explicitly asked. The file on disk is the deliverable.
 
@@ -45,7 +46,7 @@ Never output the whole file as a chat message unless explicitly asked. The file 
   - **Volume 2:** «Синтаксис»
 - **Input C (optional):** the annotation guidelines of the gold corpus to be used for evaluation (for example, the README of the chosen treebank). Use it only for lemma conventions, never as a source of test items.
 
-Work only with these sources. Do not add facts from memory. Do not invent rules, examples, or references. Every factual claim must be traceable to a source, and every non-trivial example and attestation list must carry a `source` field.
+Work only with these sources. Do not add facts from memory. Do not invent rules, examples, or references. Every factual claim must be traceable to a source, and every non-trivial example and attestation list must carry a `source` field with the paragraph (§) number from the grammar.
 
 ## Input validation before work begins
 
@@ -54,7 +55,7 @@ Work only with these sources. Do not add facts from memory. Do not invent rules,
 1. **`GOLD OntoLing.json`** — must be valid JSON. Parse it. If it does not parse, stop and report the parse error.
 2. **Grammar PDFs** — verify that each file opens and is readable. Verify that the PDF has an extractable text layer (not a pure scan). If a PDF is a scan without a text layer, record this in `meta.notes` and either (a) request an OCR'd version, or (b) process it as far as the text layer allows and record the limitation.
 3. **Dictionary / word-list files** — verify format (CSV, TSV, JSON, XML). Verify encoding (UTF-8). Verify that expected columns are present (`form`, `lemma`, `pos`, etc.). Record the column mapping in `meta.notes`.
-4. **`tajik_lexdata.py`-style modules** (if any for Russian) — verify that the file imports cleanly and that the dictionaries are accessible.
+4. **Auxiliary Python modules** (if any) — verify that the file imports cleanly and that the dictionaries are accessible.
 
 If any input fails validation, **stop and report the error** before continuing. Do not attempt a partial parse that silently drops sections.
 
@@ -62,13 +63,52 @@ If any input fails validation, **stop and report the error** before continuing. 
 
 The two volumes of «Грамматика-80» are large (about 1500 pages in total). Do not attempt to read a full volume in one pass.
 
-1. **Split** each volume into chapters or sections based on its table of contents.
+1. **Split** each volume into chapters or sections based on its table of contents. Record the section map in `meta.notes`.
 2. **Process one section at a time.** After each section, write the relevant facts into the corresponding module of `OntoRussian.json` and save the file (still valid JSON).
 3. **Merge** facts from all sections into the correct modules. Do not lose any section.
-4. **Record** in `meta.notes` the list of sections processed, the order, and any section that could not be processed (with the reason).
-5. **Maximum extraction.** Extract as much as the grammar allows: all attested categories, all paradigm tables, all example sentences that carry a lemma or a form-to-base statement, all irregular stems, all homonymies, all buffer-vowel facts. Do not summarize away data that is present in the source.
+4. **Maximum extraction.** Extract as much as the grammar allows: all attested categories, all paradigm tables, all example sentences that carry a lemma or a form-to-base statement, all irregular stems, all homonymies, all buffer-vowel facts. Do not summarize away data that is present in the source.
+5. If a section is too large to process in one turn, split it further and continue in the next turn. The file must remain valid after every write.
+6. Every extracted fact must carry a `source` field with the paragraph number (e.g. `"source": "АГ-80 § 1168"`).
 
-If a section is too large to process in one turn, split it further and continue in the next turn. The file must remain valid after every write.
+## Partial processing: what to do when a volume is not fully read
+
+The two volumes of «Грамматика-80» cannot be read in one pass. At any point in the build, the file may contain facts only from the sections that have been read so far. This is expected. The following rules apply.
+
+### Two kinds of gaps must be distinguished
+
+A `gaps` entry must NOT mix two different situations. Use two different statuses:
+
+- **`missing`** — the source does **not** contain the fact. The section was read and the fact is absent, or the source describes only the standard language and the fact belongs to a non-standard variety.
+  Example: dialect groups (the grammar names "local dialects" but does not list them), speaker population (not in the read preface).
+
+- **`not_yet_processed`** — the source **does** contain the fact, but the relevant section has not been read yet. The fact is expected to be added in a later pass.
+  Example: aspect, mood, voice, participles, gerunds, analytic future, `бы`, irregular verbs beyond the four already captured, prefix inventory, prepositions as a system, relative clauses, negation beyond § 1168 and § 137.
+
+`not_yet_processed` entries belong in `meta.notes` as a record of pending work, NOT in `gaps`. `gaps` is reserved for facts the source does not contain. Mixing them makes the file misleading: a reader cannot tell whether a fact is absent from Russian or merely not yet written down.
+
+### How to continue
+
+When you resume work, do the following:
+
+1. Pick the next unprocessed section (for example, aspect, § 1386 onward).
+2. Read the section from the PDF.
+3. Extract all attested values, forms, and examples, each with its paragraph number in a `source` field.
+4. Add them to the correct module of `OntoRussian.json`.
+5. Remove the corresponding `not_yet_processed` record from `meta.notes`.
+6. Save the file (still valid JSON).
+7. Update `meta.notes` with the new list of processed sections.
+
+Do not replace an unread section with rules from memory. If a fact is not on a page you have read, it does not go into the module.
+
+### How to report the state of the file
+
+At the end of each session, state in `meta.notes`:
+
+- the sections processed so far, in order,
+- the sections not yet processed (with their paragraph numbers if known),
+- the sections that were searched and found not to contain a given fact (this becomes a `gaps` entry with status `missing`).
+
+This lets the next session pick up exactly where the previous one stopped.
 
 ## What this file must and must not contain
 
@@ -97,7 +137,7 @@ This file is a **declarative** description of the language, not a procedure. It 
 
 If a fact is procedural, it belongs in the lemmatizer prompt, not here.
 
-If a fact cannot be verified from the attached sources, **remove it from the module** and record it under the top-level `verification` or `gaps` block.
+If a fact cannot be verified from the attached sources, **remove it from the module** and record it under the top-level `verification` or `gaps` block, or, if the section has not been read yet, under `meta.notes.not_yet_processed`.
 
 ## Module contents
 
@@ -111,14 +151,18 @@ If a fact cannot be verified from the attached sources, **remove it from the mod
 - `iso_code`: `"rus"`
 - `iso_639_1`: `"ru"`
 - `classification`: `"Indo-European, Balto-Slavic, Slavic, East Slavic, Russian"`
-- `speaker_population`: from the sources. **Important:** the figure must come from the attached sources, not from memory. If the sources give different figures, record the range and cite each source. If no figure is given, do not invent one — leave it out and record a gap.
+- `speaker_population`: from the sources. The figure must come from the attached sources, not from memory. If the sources give different figures, record the range and cite each source. If no figure is given, do not invent one — leave it out and record a gap.
 - `location`: from the sources.
-- `dialects`: main groups with brief notes. Include **only** groups attested in Input B. If the attached grammars describe only the standard / literary language and do not describe dialects, **do not invent dialect names from memory**. Instead, set `dialects` to an empty list and record a `gaps` entry: `"fact": "Dialect groups of Russian", "reason": "Not described in the attached grammar (the attached sources describe the standard literary language)", "where_searched": [list of sources], "status": "missing"`.
+- `dialects`: main groups with brief notes. Include **only** groups attested in Input B. If the attached grammars describe only the standard / literary language and do not describe dialects, do not invent dialect names from memory. Set `dialects` to an empty list and record a `gaps` entry with status `missing`.
 - `standard_dialect`: from the sources.
 - `gold_base_uri`: `"http://purl.org/linguistics/gold/"`
 - `date`: the date the ontology was built, ISO 8601.
 - `scope`: one sentence describing what the ontology covers (Standard Russian, literary, Moscow norm, Cyrillic script).
-- `notes`: a short record of the processing (sections processed, sections not processed and why, input-validation results, any limitation).
+- `notes`: a structured record of the processing state. Must contain three lists:
+  - `processed`: sections processed so far, in order, with their paragraph numbers.
+  - `not_yet_processed`: sections that are known to contain relevant facts but have not been read yet, with their paragraph numbers if known.
+  - `input_validation`: the result of validating each attached input.
+  - `limitations`: any other limitation (e.g. a scanned PDF without a text layer).
 
 ### `Core_Foundations`
 
@@ -230,6 +274,9 @@ For each pattern record: token order, POS of each part, resulting lemma, at leas
 
 ### `verification` / `gaps` (top level, only if needed)
 
+- `verification` records facts that the sources contain but that you could not confirm from a second independent source.
+- `gaps` records facts that are expected to exist in the language (or are required by the prompt) but that **the read sections of the sources do not cover**. A `gaps` entry means: "I read the relevant section and the fact is not there." It does **not** mean: "I have not read the relevant section yet." Unread sections go to `meta.notes.not_yet_processed`, not to `gaps`.
+
 See the "Additional requirements" section below for the exact format.
 
 ### `lexicon_files` (top level, only if applicable)
@@ -248,14 +295,17 @@ Before declaring the file done, verify:
 2. Every module with data is present, in the required order, as a key of one single root object.
 3. No `GOLD_` node sits at the top level. GOLD URIs are used only inside `definition` strings.
 4. Every listed source was actually used.
-5. Every example is attested in a source (not invented).
+5. Every example is attested in a source (not invented), and every non-trivial example carries a `source` field with a paragraph number.
 6. Every homonymy fact (ending, prefix) is recorded with at least two attested readings.
 7. Every buffer-vowel fact is recorded with at least three **different** examples.
 8. Every irregular verb has both stems.
 9. Every lexicalized word is in the whitelist.
 10. No procedural rule, no pseudo-code, no Python name, and **no meta-instruction to the reader** appears in the file.
+11. **`gaps` contains only `status: "missing"` entries.** Any section that has not been read yet appears in `meta.notes.not_yet_processed`, not in `gaps`.
+12. `meta.notes.processed` and `meta.notes.not_yet_processed` together account for all the sections of the grammar that the table of contents lists: every section is either processed or explicitly pending.
+13. `meta.notes.input_validation` records the result of validating every attached input.
 
-If a fact cannot be verified from a source, remove it and add a record to `verification` or `gaps`. Fix and re-check until all pass.
+If a fact cannot be verified from a source, remove it and add a record to `verification` or `gaps`. If a section has not been read, add it to `meta.notes.not_yet_processed`. Fix and re-check until all pass.
 
 ## Additional requirements
 
@@ -273,7 +323,11 @@ If a fact cannot be verified from a source, remove it and add a record to `verif
   - `annotation_type` (if applicable)
 - `meta` must include a `date` field with the date the ontology was built, in ISO 8601 format.
 - `meta` must include a `scope` field: one sentence describing what the ontology covers (Standard Russian, literary, Moscow norm, Cyrillic script).
-- `meta` must include a `notes` field recording: (a) the list of sections processed and in which order, (b) any section not processed and why, (c) the result of input validation, (d) any other limitation.
+- `meta` must include a `notes` field recording:
+  - `processed`: list of sections processed so far, in order, with paragraph numbers,
+  - `not_yet_processed`: list of sections that are known to contain relevant facts but have not been read yet, with paragraph numbers if known,
+  - `input_validation`: the result of validating every attached input,
+  - `limitations`: any other limitation (e.g. a scanned PDF without a text layer).
 
 ### Synchrony vs diachrony
 
@@ -307,3 +361,12 @@ Example:
     "status": "missing"
   }
 ]
+```
+
+Rules:
+
+- `verification` records facts that the sources contain but that you could not confirm from a second independent source.
+- `gaps` records facts that are expected to exist in the language (or are required by the prompt) but that **the read sections of the sources do not cover**. A `gaps` entry means: "I read the relevant section and the fact is not there." It does **not** mean: "I have not read the relevant section yet."
+- Unread sections go to `meta.notes.not_yet_processed`, not to `gaps`.
+- Do not invent facts to fill either list. An empty list is acceptable.
+- Every entry in `verification` must have `status: "unverified"`. Every entry in `gaps` must have `status: "missing"`.
