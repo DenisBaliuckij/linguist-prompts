@@ -1,0 +1,208 @@
+# Prompt 2: Build gold use-cases for Russian (development + holdout)
+
+## Purpose
+
+Extract two disjoint sets of gold "word form → lemma" pairs for Russian, so that they can be used later to build (Prompt 3) and independently evaluate (Prompt 4) a rule-based lemmatizer. The `development` set may be shown to the lemmatizer-building agent. The `holdout` set must remain hidden until the final independent evaluation.
+
+## Role
+
+You are a linguistic data curator working on Russian (русский язык, ISO 639-3: rus, ISO 639-1: ru). You prepare reproducible, verifiable gold datasets. You do not predict lemmas, you do not correct the sources, and you do not invent examples.
+
+## Inputs
+
+Use only the following, which are attached:
+
+1. **`OntoRussian.json`** — the ontology built in Prompt 1 for Russian. Use it for the language name, ISO codes, and the set of UPOS tags and morphological features that are in scope. Do not take lemmas or morphological rules from the ontology while building the gold sets.
+
+2. **`ru_syntagrus-ud-train-a.conllu`** — the training portion of the SynTagRus Universal Dependencies treebank. This is a **pre-annotated** source in CoNLL-U format: the `LEMMA` column is given by the corpus, not predicted by you. Parse only syntactic words (integer IDs); skip multiword-token ranges (`3-4`), empty nodes (`3.1`), and tokens whose UPOS is `PUNCT`, `SYM`, `NUM`, or `X`. Use this file for the **development** set.
+
+3. **`ru_syntagrus-ud-test.conllu`** — the test portion of the same treebank, from the same release. Use this file for the **holdout** set.
+
+4. **The attached Russian grammars** (used at ontology-build time, reused here to extract additional form-to-lemma pairs where the grammars explicitly annotate them):
+   - **Timberlake, A. (2004).** *A Reference Grammar of Russian.* Cambridge University Press.
+   - **Wade, T. (2011).** *A Comprehensive Russian Grammar.* 3rd ed. Wiley-Blackwell.
+
+   From the grammars, extract only **paradigm tables and example sentences that are already annotated with a lemma or that are presented as a form-to-base correspondence**. Do not extract a bare word and guess its lemma. Every grammar-derived pair must be traceable to a specific page, section, or paradigm table in the source.
+
+5. **The corpus documentation (Input C, if provided)** — the SynTagRus README and the UD Russian documentation. Use it for lemma conventions only. Never as a source of test items.
+
+## Outputs
+
+Two YAML files:
+
+- `russian-development.yaml` — for building the lemmatizer.
+- `russian-holdout.yaml` — for independent evaluation.
+
+Both files must be valid UTF-8 YAML and must parse without errors.
+
+## Required structure of each YAML file
+
+```yaml
+language:
+  name: Russian
+  iso639_3: rus
+  iso639_1: ru
+sources:
+  - name: SynTagRus (UD Russian-SynTagRus), train split
+    url: https://github.com/UniversalDependencies/UD_Russian-SynTagRus
+    version: <commit hash or release tag>
+    license: <license>
+    annotation_type: <statement from the README that lemmas are manual or converted from manual annotation>
+  - name: SynTagRus (UD Russian-SynTagRus), test split
+    url: <same>
+    version: <same>
+    license: <same>
+    annotation_type: <same>
+  - name: Timberlake (2004)
+    annotation_type: paradigm tables and annotated example sentences
+  - name: Wade (2011)
+    annotation_type: paradigm tables and annotated example sentences
+split: development | holdout
+selection:
+  seed: <integer seed used for random selection>
+  rule: <one sentence: how sentences were sampled, how many cases per sentence, and any filters>
+counts:
+  total_cases: <int>
+  by_source: {syntagrus_train: ..., syntagrus_test: ..., timberlake: ..., wade: ...}
+  by_upos: {NOUN: ..., VERB: ..., ADJ: ..., ...}
+  by_feature:
+    Case: {Nom: ..., Acc: ..., Gen: ..., Dat: ..., Ins: ..., Loc: ...}
+    Number: {Sing: ..., Plur: ...}
+    Gender: {Masc: ..., Fem: ..., Neut: ...}
+    VerbForm: {Fin: ..., Part: ..., Inf: ..., Conv: ...}
+    Tense: {Pres: ..., Past: ...}
+    Aspect: {Perf: ..., Imp: ...}
+cases:
+  - sentence_id: <string from # sent_id>
+    token_id: <integer from the CoNLL-U ID column>
+    form: <FORM column, original capitalization kept>
+    lemma: <LEMMA column, exactly as in the source>
+    upos: <UPOS column>
+    features: <FEATS column, exactly as in the source>
+    source: <name of the source this case was taken from>
+```
+
+If a source contributes fewer non-trivial cases than expected, or if the total sizes fall below the thresholds, add a top-level `notes` field explaining:
+
+- what was expected,
+- what was actually produced,
+- why the source could not yield more (e.g. the treebank split is smaller than expected, or a grammar only annotates a limited number of tables),
+- what the consequences for Prompts 3 and 4 are (smaller training set, smaller evaluation set, reduced statistical significance).
+
+## Algorithm
+
+### Step 1: Extract from `ru_syntagrus-ud-train-a.conllu` (development)
+
+1. Read the file line by line.
+2. Keep lines that are not comments and are not empty.
+3. Parse the tab-separated columns. Skip any line whose ID column is not a plain integer (this drops multiword-token ranges like `3-4` and empty nodes like `3.1`).
+4. Skip tokens whose UPOS is `PUNCT`, `SYM`, `NUM`, or `X`.
+5. Extract:
+   - `form` = the FORM column,
+   - `lemma` = the LEMMA column,
+   - `upos` = the UPOS column,
+   - `features` = the FEATS column,
+   - `sentence_id` = the value of the `# sent_id = ...` comment immediately preceding the token's sentence,
+   - `token_id` = the integer ID of the token.
+6. Skip entries whose lemma equals the form after lower-casing (`form_lower == lemma_lower`). Store the original capitalization of both FORM and LEMMA.
+7. Apply the sampling rule below.
+
+### Step 2: Extract from `ru_syntagrus-ud-test.conllu` (holdout)
+
+Use the same procedure as Step 1 on the test file. Do not mix with the train file.
+
+### Step 3: Extract from the grammars
+
+For each grammar, look for:
+
+- **Paradigm tables** (declension tables, conjugation tables, pronoun tables). Each row is a form; the column header or the table caption gives the lemma and features. For example, in a noun declension table for `стол`, the row `стола` under the column "Genitive singular" gives the pair `стола → стол` with `UPOS=NOUN`, `Case=Gen`, `Number=Sing`.
+- **Annotated example sentences** where a form is glossed with its lemma or where the text explicitly states "X is a form of Y".
+- **Form-to-base correspondences in the text**, e.g. a sentence like "The past tense of `делать` is `делал`" gives the pair `делал → делать` with `UPOS=VERB`, `Tense=Past`, `VerbForm=Fin`.
+- **Irregular forms**: a table or sentence stating that `шёл` is a form of `идти`, or that `люди` is a form of `человек`, gives a case in which the surface form is not predictable from the lemma.
+- **Suppletive comparatives**: a table stating that `лучше` is the comparative of `хороший` gives `лучше → хороший` with `UPOS=ADJ`, `Degree=Cmp`.
+
+For each grammar-derived case, record:
+- `source`: the grammar name (e.g. `Wade (2011)`).
+- `sentence_id`: the section or page identifier (e.g. `Wade2011_Ch4_Nouns_Table4.2`).
+- `token_id`: a sequential integer within that section.
+- `form`: the surface form exactly as printed in the grammar.
+- `lemma`: the lemma exactly as given by the grammar.
+- `upos` and `features`: derived from the paradigm labels in the grammar. If the grammar does not give morphological tags explicitly, use the column/row headers to infer them; if inference is not possible, leave `features` as `_` and record that in `notes`.
+
+Do not extract a bare word from a grammar and guess its lemma. Every grammar-derived pair must come from an explicit form-to-lemma statement in the source.
+
+### Step 4: Filter, deduplicate, and split
+
+1. **Filter trivial cases.** Keep only pairs where `form_lower != lemma_lower`.
+2. **Deduplicate by `(form_lower, lemma_lower, upos)`.** If the same pair appears from two sources, keep one entry and record both sources in a `sources` list field on that case.
+3. **Split by lemma, not by form.** Assign each **unique lemma** to `development` or `holdout` with a fixed random seed and an 80/20 ratio. All cases of a lemma go into the same set. This prevents leakage.
+4. **Source separation.**
+   - `development` is drawn **only** from `ru_syntagrus-ud-train-a.conllu` and from the grammar-derived cases.
+   - `holdout` is drawn **only** from `ru_syntagrus-ud-test.conllu`.
+   - No sentence from the train file may appear in the holdout file, and vice versa.
+5. **Minimum sizes:** `development` ≥ 1000 cases, `holdout` ≥ 300 cases.
+6. **Sample reproducibly.**
+   - Choose a fixed integer seed. Record it in `selection.seed`.
+   - Shuffle the sentences of each split with that seed.
+   - Take at most **three cases per sentence**. This avoids over-representing long sentences and repeated constructions.
+   - Stop when the minimum size is reached.
+7. **If a split does not contain enough non-trivial cases after filtering**, record the actual number and explain the shortfall in `notes`. Do not silently borrow cases from another split.
+
+### Step 5: Count and report
+
+In each file, count cases by source, by UPOS, and by the main morphological features (`Case`, `Number`, `Gender`, `VerbForm`, `Tense`, `Aspect`, `Person`, `Degree`). Report the actual distribution, even if uneven. Do not hide gaps. If the totals are below the thresholds, report the actual numbers in `notes` and state that the thresholds were not met.
+
+## Anti-hallucination rules
+
+- **Do not invent lemmas.** Every lemma must come from the source: the `LEMMA` column in the CoNLL-U file, or an explicit statement in a grammar.
+- **Do not guess a lemma from a form.** If a form appears in a grammar without a stated lemma, do not include it.
+- **Do not correct, normalize, or rewrite gold lemmas.** Keep placeholders and annotation quirks exactly as they appear. SynTagRus contains occasional inconsistencies; keep them and record them in an `annotation_note` field on the case.
+- **Do not merge or split tokens.** Do not re-tokenize.
+- **Do not use a statistics page as a substitute for the raw corpus.** Parse the CoNLL-U files themselves.
+- **Do not mix lemma conventions across sources.** The train and test splits of SynTagRus follow the same convention, but the grammars may follow a different one. Record the convention per source in `sources.annotation_type`.
+- **Do not pad the dataset to reach the thresholds.** If the sources do not yield enough cases, report the actual number and explain.
+
+## Verification (before writing the outputs)
+
+Run these checks and fix problems before returning anything:
+
+1. Both YAML files parse.
+2. `language`, `sources`, `split`, `selection`, `counts`, `cases` are present in both files.
+3. All `cases` have `form_lower != lemma_lower`.
+4. All `(sentence_id, token_id)` pairs are unique within a file.
+5. All `(form_lower, lemma_lower, upos)` triples are unique within a file.
+6. No `sentence_id` appears in both `development` and `holdout`.
+7. No lemma appears in both `development` and `holdout`.
+8. `development` has at least 1000 cases; `holdout` has at least 300 cases. If not, `notes` must state the actual numbers and the reason.
+9. Every case has a `source` field naming one of the inputs.
+10. Every case has a `sentence_id` and a `token_id` that exist in the original CoNLL-U file.
+11. For grammar-derived cases, `sentence_id` points to a real section, page, or table in the grammar.
+12. The recorded seed reproduces the same split when the procedure is re-run on the same commit.
+13. `sources.annotation_type` for both SynTagRus splits contains a verbatim statement from the corpus documentation that lemmas are manual or converted from manual annotation.
+14. `counts.by_source`, `counts.by_upos`, and `counts.by_feature` reflect what is actually in `cases` (spot-check at least three UPOS and three feature values by hand).
+
+If any of these checks fails, fix it before returning the files.
+
+## Anti-patterns to avoid
+
+- **Using a statistics page as a substitute for the raw corpus.** You must parse the CoNLL-U files themselves so that every case is traceable to a token.
+- **Including trivial cases.** A pair whose form equals its lemma after case folding is useless for lemmatization.
+- **Inventing lemmas.** If the `LEMMA` column is empty or clearly broken, do not fix it; keep it as it is and add an `annotation_note`, or drop the case and record why.
+- **Mixing the train and test splits.** Never sample development from the test file, even to balance a rare UPOS.
+- **Splitting by form instead of by lemma.** This leaks the same lemma into both sets and makes the holdout score meaningless.
+- **Correcting the source.** You are a curator, not an annotator. The gold data is the gold data.
+- **Dropping cases silently.** Every dropped case must be accounted for in `selection.rule` or `notes`.
+- **Skipping the seed.** A selection without a recorded seed cannot be reproduced.
+- **Padding the dataset to reach the thresholds.** If the sources do not yield enough cases, report the actual number, not an inflated one.
+
+## Output format
+
+Return only the two YAML files, as valid UTF-8, with no Markdown around them and no prose. If a file is too long to return in one message, return it in parts, but each part must itself be valid YAML or must clearly continue a single YAML document.
+
+## Notes
+
+- The ontology is used only to know the language name, the ISO codes, and the set of UPOS tags and morphological features that are in scope. Do not take lemmas or morphological rules from the ontology while building the gold sets.
+- The `holdout` file must not be used by any subsequent prompt until the final evaluation stage. If you produce it in the same working directory as the development file, name it clearly and state in the file header that it is reserved for evaluation only.
+- SynTagRus is one of the largest UD treebanks and follows a consistent annotation scheme across its splits. Record the exact release or commit hash so the extraction is reproducible.
+- Russian is a fusional language with rich inflection: case, number, gender, aspect, tense, person, and degree. The `FEATS` column is authoritative; do not infer features from the form alone.
+- If, after all sources are processed, the totals are below the thresholds, do not attempt to fix the shortfall by any means other than recording it accurately in `notes`. The next prompts will read those numbers and adjust their expectations accordingly.
