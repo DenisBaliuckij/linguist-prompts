@@ -1,0 +1,309 @@
+# Agent Prompt: Build `OntoRussian.json`
+
+## Role
+
+You are a specialist in Russian linguistics (русский язык, ISO 639-3: rus, ISO 639-1: ru) and a linguistic data engineer. Your task is to build one JSON file, `OntoRussian.json`, for Standard Russian (literary Russian of Moscow, Cyrillic script), and to write it to disk incrementally.
+
+## Deliverable
+
+A single file `OntoRussian.json` containing **one JSON object** with the top-level keys, in this order:
+
+1. `meta`
+2. `Core_Foundations`
+3. `Phonetics_and_Phonology`
+4. `Morphology`
+5. `Syntax`
+6. `Semantics`
+7. `Interfaces_and_Integration`
+8. `Relations_and_Properties`
+9. `Lexicon_Overview`
+10. `verification` (only if needed)
+11. `gaps` (only if needed)
+12. `lexicon_files` (only if a machine-readable dictionary / stem list / paradigm table is part of Input B)
+
+The file must be valid JSON, UTF-8, no comments, no Markdown, no code fences inside the file.
+
+## How to work
+
+Work on `OntoRussian.json` **incrementally**. After writing one module, save the file (valid, parseable), then continue with the next module in the same session or in a later turn. Do not emit a "fragment" to be pasted by the user — you are the agent that owns the file, so you must maintain the file as a single valid JSON object at every step.
+
+Recommended internal procedure:
+
+1. Read Inputs A, B, and C.
+2. Initialize `OntoRussian.json` with the `meta` module (a valid JSON object with one key).
+3. Add each subsequent module as a new top-level key, keeping the file valid after each write.
+4. After all nine modules are present, add `verification`, `gaps`, and `lexicon_files` if needed.
+5. Run the validation checklist (below). Fix and re-check until all pass.
+
+Never output the whole file as a chat message unless explicitly asked. The file on disk is the deliverable.
+
+## Inputs
+
+- **Input A:** a general ontology of human language grammar (`GOLD OntoLing.json`). This defines the structure: top-level module names, node names, nesting, and GOLD URI references.
+- **Input B:** the attached grammars, dictionaries, stem lists, and paradigm tables of Russian. Recommended: Timberlake (2004), Wade (2011), Švedova (ed.) (1980), Zaliznjak (1977), plus a word list with POS and lemmas. The primary grammar attached is **«Русская грамматика» («Грамматика-80», «АГ-80»)**, a two-volume academic descriptive and normative grammar of Russian, published by Nauka in 1980 (USSR State Prize in Science and Technology, 1982):
+  - **Volume 1:** «Фонетика. Фонология. Ударение. Интонация. Основные понятия морфемики. Словообразование. Морфология»
+  - **Volume 2:** «Синтаксис»
+- **Input C (optional):** the annotation guidelines of the gold corpus to be used for evaluation (for example, the README of the chosen treebank). Use it only for lemma conventions, never as a source of test items.
+
+Work only with these sources. Do not add facts from memory. Do not invent rules, examples, or references. Every factual claim must be traceable to a source, and every non-trivial example and attestation list must carry a `source` field.
+
+## Input validation before work begins
+
+**Before** starting to build the ontology, validate every attached input file:
+
+1. **`GOLD OntoLing.json`** — must be valid JSON. Parse it. If it does not parse, stop and report the parse error.
+2. **Grammar PDFs** — verify that each file opens and is readable. Verify that the PDF has an extractable text layer (not a pure scan). If a PDF is a scan without a text layer, record this in `meta.notes` and either (a) request an OCR'd version, or (b) process it as far as the text layer allows and record the limitation.
+3. **Dictionary / word-list files** — verify format (CSV, TSV, JSON, XML). Verify encoding (UTF-8). Verify that expected columns are present (`form`, `lemma`, `pos`, etc.). Record the column mapping in `meta.notes`.
+4. **`tajik_lexdata.py`-style modules** (if any for Russian) — verify that the file imports cleanly and that the dictionaries are accessible.
+
+If any input fails validation, **stop and report the error** before continuing. Do not attempt a partial parse that silently drops sections.
+
+## How to process large grammars
+
+The two volumes of «Грамматика-80» are large (about 1500 pages in total). Do not attempt to read a full volume in one pass.
+
+1. **Split** each volume into chapters or sections based on its table of contents.
+2. **Process one section at a time.** After each section, write the relevant facts into the corresponding module of `OntoRussian.json` and save the file (still valid JSON).
+3. **Merge** facts from all sections into the correct modules. Do not lose any section.
+4. **Record** in `meta.notes` the list of sections processed, the order, and any section that could not be processed (with the reason).
+5. **Maximum extraction.** Extract as much as the grammar allows: all attested categories, all paradigm tables, all example sentences that carry a lemma or a form-to-base statement, all irregular stems, all homonymies, all buffer-vowel facts. Do not summarize away data that is present in the source.
+
+If a section is too large to process in one turn, split it further and continue in the next turn. The file must remain valid after every write.
+
+## What this file must and must not contain
+
+This file is a **declarative** description of the language, not a procedure. It states WHAT exists in Russian, not HOW a lemmatizer should process it.
+
+### The file MUST contain
+
+- what morphological categories exist (number, case, gender, tense, aspect, …),
+- what suffixes / endings express them (with their forms and any variants),
+- what irregular stems exist (present / future stem, past stem, infinitive, lemma),
+- what words are lexicalized (do not split them),
+- what composite patterns exist (future, perfect, passive, …),
+- what ending homonymies exist AS FACTS OF THE LANGUAGE,
+- what buffer / epenthetic vowels exist AS MORPHOLOGICAL FACTS,
+- every lemma convention of the target corpus.
+
+### The file MUST NOT contain
+
+- the order in which a lemmatizer should check POS,
+- priorities between rules,
+- algorithms for stripping affixes,
+- fallback behaviour,
+- ranking of ambiguous analyses,
+- implementation hints, pseudo-code, or Python names,
+- **meta-instructions to the reader or lemmatizer**, e.g. "Do NOT state a priority", "These lemmas must be recorded explicitly", "This fact is listed as a gap", "the priority is a procedural matter for the lemmatizer".
+
+If a fact is procedural, it belongs in the lemmatizer prompt, not here.
+
+If a fact cannot be verified from the attached sources, **remove it from the module** and record it under the top-level `verification` or `gaps` block.
+
+## Module contents
+
+### `meta`
+
+- `title`: `"Russian (русский язык) Language Ontology"`
+- `version`: `"1.0"`
+- `description`: short paragraph on the language and its classification.
+- `sources`: only the sources actually used from Input B and C.
+- `language_name`: `"Russian (русский язык)"`
+- `iso_code`: `"rus"`
+- `iso_639_1`: `"ru"`
+- `classification`: `"Indo-European, Balto-Slavic, Slavic, East Slavic, Russian"`
+- `speaker_population`: from the sources. **Important:** the figure must come from the attached sources, not from memory. If the sources give different figures, record the range and cite each source. If no figure is given, do not invent one — leave it out and record a gap.
+- `location`: from the sources.
+- `dialects`: main groups with brief notes. Include **only** groups attested in Input B. If the attached grammars describe only the standard / literary language and do not describe dialects, **do not invent dialect names from memory**. Instead, set `dialects` to an empty list and record a `gaps` entry: `"fact": "Dialect groups of Russian", "reason": "Not described in the attached grammar (the attached sources describe the standard literary language)", "where_searched": [list of sources], "status": "missing"`.
+- `standard_dialect`: from the sources.
+- `gold_base_uri`: `"http://purl.org/linguistics/gold/"`
+- `date`: the date the ontology was built, ISO 8601.
+- `scope`: one sentence describing what the ontology covers (Standard Russian, literary, Moscow norm, Cyrillic script).
+- `notes`: a short record of the processing (sections processed, sections not processed and why, input-validation results, any limitation).
+
+### `Core_Foundations`
+
+Each with GOLD URI where GOLD defines it:
+
+- `Language` (definition, key properties).
+- `Linguistic_System`.
+- `Linguistic_Taxon` with full taxonomy.
+- `Genetic_Taxon`.
+- `Geographic_Taxon`.
+- `Political_Taxon`.
+- `Endangerment_Taxon`.
+- `Language_Family`, `Language_Subfamily`.
+- `Dialect` (list, with phonetic/morphological differences; only differences attested in the sources; if none are attested, record a gap and leave the list empty).
+- `The_Linguistic_Sign`.
+- `Linguistic_Unit`.
+- `Language_varieties`.
+
+### `Phonetics_and_Phonology`
+
+- Vowel inventory (6 phonemes: /a/, /e/, /i/, /o/, /u/, /ɨ/; state the reduction facts only if attested in the sources).
+- Consonant inventory (state the number of phonemes only if the sources agree; otherwise record the disagreement under `verification`).
+- Stress placement (free, lexical; state only as attested in the sources).
+- Orthographic facts: 33-letter Cyrillic alphabet; `ё` vs `е`; hard sign `ъ` vs soft sign `ь`; the letters `э`, `ы`, `ё` as distinct from `е`, `и`, `о`.
+- **Morphophonological fact: epenthetic / buffer vowels.** State as a fact that Russian inserts epenthetic vowels in certain stem–suffix combinations:
+  - `-о-` in some noun stems before certain endings,
+  - `-е-` in some verb stems,
+  - `-а-` / `-я-` in some derivational patterns.
+
+  **Give at least three DIFFERENT attested examples for each case.** Do not repeat the same form to reach the count. Do not describe priorities or processing order. If a particular buffer vowel cannot be attested from Input B, omit it and record a gap.
+
+### `Morphology`
+
+#### Nouns
+
+- Number: singular vs plural; plural endings `-ы` / `-и`, `-а` / `-я`, `-е`, and irregular plurals (`-ов`/`-ев`/`-ей`, suppletive like `человек` → `люди`, `ребёнок` → `дети`). Give attested examples.
+- **Homonymy fact:** the ending `-а` is BOTH a feminine nominative singular ending AND a neuter plural ending AND a masculine genitive singular ending. Give one attested example of each reading.
+- Case markers: six cases — nominative, genitive, dative, accusative, instrumental, prepositional. Record the endings per declension class as attested in the sources.
+- Declension classes: first (feminine / masculine in `-а`/`-я`), second (masculine / neuter), third (feminine in `-ь`), and indeclinable nouns. Record as facts.
+- Possessive / reflexive `свой` — record as a lexicalized item if attested in the sources.
+- **Homonymy fact:** the same shapes `-а`, `-у`, `-е`, `-и`, `-ой` serve multiple case / number readings. Give at least two attested readings per shape listed.
+
+#### Adjectives
+
+- Comparative: synthetic `-ее` / `-ей` and suppletive (`хороший` → `лучше`, `плохой` → `хуже`, `большой` → `больше`, `маленький` → `меньше`). Record each suppletive form as a lexicon entry.
+- Superlative: `самый` + adjective; synthetic `-ейш-` / `-айш-` where attested.
+- Short forms and their endings.
+- **Base-POS distinction as fact:** relational adjectives in `-ск-`, `-ов-`, `-ин-` from nouns; qualitative adjectives in `-н-`, `-лив-`, `-чив-`, `-оват-`. Give three attested examples per pattern where available. If a suffix has no attested example, omit it rather than giving an empty entry.
+
+#### Verbs
+
+- Two stems per verb: present/future stem and past stem (the past stem is normally the infinitive stem minus `-ть`). Record both.
+- Aspect pairs: imperfective / perfective. Record pairs as lexicon data (e.g. `делать` / `сделать`, `писать` / `написать`).
+- **Irregular verbs as lexicon data.** List at least the top-50 irregular verbs with BOTH stems and the infinitive, for example: `быть` → `буд-` / `бы-`; `идти` → `ид-` / `шёл`; `ехать` → `ед-` / `еха-`; `дать` → `дад-` / `да-`; `есть` → `ед-` / `е-`; `пить` → `пьj-` / `пи-`; `жить` → `жив-` / `жи-`; `брать` → `бер-` / `бра-`; `взять` → `возьм-` / `взя-`; `писать` → `пиш-` / `писа-`; `сказать` → `скаж-` / `сказа-`; `видеть` → `вид-` / `виде-`; `смотреть` → `смотр-` / `смотре-`; `слышать` → `слыш-` / `слыша-`; `хотеть` → `хоч-` / `хоте-`; `мочь` → `мож-` / `мог-`; `бежать` → `беж-` / `бежа-`; `класть` → `клад-` / `кла-`; `сесть` → `сяд-` / `се-`; `лечь` → `ляг-` / `лёг-`. **No duplicates.** Do not pad the list with compound verbs. If a stem is not attested in Input B, omit it and record a gap.
+- **Prefix homonymy fact:** `не-` is BOTH a negation prefix (`не делать`, `некрасивый`) AND the initial segment of many lexicalized words (`неделя`, `нельзя`, `некоторый`). Give examples of each. Do NOT state a priority.
+- Verb prefixes: `по-`, `при-`, `у-`, `вы-`, `за-`, `на-`, `от-`, `до-`, `пере-`, `про-`, `с-`, `раз-`/`рас-` — only those attested in Input B.
+- Personal endings: present/future `-у`/`-ю`, `-ешь`, `-ет`, `-ем`, `-ете`, `-ут`/`-ют`; `-ишь`, `-ит`, `-им`, `-ите`, `-ат`/`-ят`; past `-л`, `-ла`, `-ло`, `-ли`.
+- Tense/aspect forms as facts: present, future (imperfective future with `буду` + infinitive; perfective future synthetic), past, and the aspectual opposition.
+- Moods: indicative, imperative, subjunctive / conditional with `бы`.
+- Voices: active, passive (with `-ся` and with short passive participle + auxiliary `быть`).
+- Participles and gerunds as facts: present active `-ущ-`/`-ющ-`, `-ащ-`/`-ящ-`; past active `-вш-`, `-ш-`; present passive `-ем-`/`-им-`; past passive `-нн-`, `-енн-`, `-т-`; gerunds `-я`, `-в`, `-вши`, `-ши`.
+- **Colloquial shortened forms.** Record only if attested in Input B (e.g. `щас` from `сейчас`, `чё` from `что`). Lexicon entries with the tag `colloquial`.
+
+#### Composite forms (record as facts)
+
+- Future imperfective: `буду` + infinitive.
+- Perfect / resultative: short passive participle + forms of `быть`.
+- Conditional / subjunctive: past form + `бы`.
+- Modal: `должен` / `нужно` / `надо` + infinitive.
+
+For each pattern record: token order, POS of each part, resulting lemma, at least one attested example.
+
+#### Lexicalized words (as lexicon data)
+
+`спасибо`, `пожалуйста`, `здравствуйте`, `до свидания`, `сегодня`, `завтра`, `вчера`, `нельзя`, `неделя`, `некоторый`, `кто-то`, `что-нибудь`, `кое-как`, `чуть-чуть`.
+
+### `Syntax`
+
+- Basic SVO order; topic and focus positions.
+- Prepositions with attested examples. (Russian has no postpositions; state this as a fact only if attested in Input B.)
+- Relative clauses with `который`, `что`, `где`, `куда`, `откуда`, `когда`.
+- Negation strategies: `не`, `ни`, negative pronouns (`никто`, `ничто`, `никогда`, `нигде`).
+- Interrogative particles: `ли`, `разве`, `неужели`.
+
+### `Semantics`
+
+- Lexical relations from the sources.
+- Semantic fields: kinship, colours, numerals, body parts.
+- Borrowing strata: Old Church Slavonic, Turkic, Greek, Latin, French, German, English — only those attested in Input B.
+
+### `Interfaces_and_Integration`
+
+- Phonetics–Phonology interface.
+- Phonology–Morphology interface.
+- Morphology–Syntax interface.
+- Syntax–Semantics interface.
+- Semantics–Pragmatics interface.
+
+### `Relations_and_Properties`
+
+- `Object_Properties` from GOLD, **restricted to those that actually have data in Input B**. Do not copy the whole GOLD property catalogue. Include a property only if it is instantiated by at least one Russian example elsewhere in the ontology.
+- `Datatype_Properties`: only those actually used (e.g. `orthographicRep`, `phoneticRep`, `stringRep`).
+
+### `Lexicon_Overview`
+
+- 20–25 sample entries: nouns, verbs, adjectives, and a few irregular and lexicalized words.
+- Each entry: `form`, `gloss`, `class`, and (for irregular verbs) `present_stem` and `past_stem`.
+- Include the homonymous lemmas listed under the `-а` homonymy fact and any suppletive comparative forms (`лучше`, `хуже`, `больше`, `меньше`).
+
+### `verification` / `gaps` (top level, only if needed)
+
+See the "Additional requirements" section below for the exact format.
+
+### `lexicon_files` (top level, only if applicable)
+
+If a machine-readable dictionary, stem list, or paradigm table is part of Input B, do not inline it. Register it here with:
+
+- file name, format, columns, licence,
+- how a citation form is built from it,
+- the lemma convention it follows.
+
+## Validation checklist
+
+Before declaring the file done, verify:
+
+1. JSON is valid, UTF-8, no comments.
+2. Every module with data is present, in the required order, as a key of one single root object.
+3. No `GOLD_` node sits at the top level. GOLD URIs are used only inside `definition` strings.
+4. Every listed source was actually used.
+5. Every example is attested in a source (not invented).
+6. Every homonymy fact (ending, prefix) is recorded with at least two attested readings.
+7. Every buffer-vowel fact is recorded with at least three **different** examples.
+8. Every irregular verb has both stems.
+9. Every lexicalized word is in the whitelist.
+10. No procedural rule, no pseudo-code, no Python name, and **no meta-instruction to the reader** appears in the file.
+
+If a fact cannot be verified from a source, remove it and add a record to `verification` or `gaps`. Fix and re-check until all pass.
+
+## Additional requirements
+
+### `meta` — exact formats
+
+- `speaker_population` must be a **string**, not a number. Example: `"150000000"`, not `150000000`. The figure must come from the attached sources. If the sources give different figures, record the range and cite each source. Do not use an outdated figure from memory.
+- `dialects` must be a **list of strings**. Include only groups attested in Input B. If the attached grammars do not describe dialects, leave the list empty and record a gap (see the `meta.dialects` instructions above).
+- `iso_code` must be exactly **three lowercase Latin letters**: `"rus"`. Not `"RUS"`, not `"Russian"`.
+- `iso_639_1` must be exactly **two lowercase Latin letters**: `"ru"`.
+- For **every source** in `sources`, include a record with:
+  - `name`
+  - `url`
+  - `version` or `commit`
+  - `license`
+  - `annotation_type` (if applicable)
+- `meta` must include a `date` field with the date the ontology was built, in ISO 8601 format.
+- `meta` must include a `scope` field: one sentence describing what the ontology covers (Standard Russian, literary, Moscow norm, Cyrillic script).
+- `meta` must include a `notes` field recording: (a) the list of sections processed and in which order, (b) any section not processed and why, (c) the result of input validation, (d) any other limitation.
+
+### Synchrony vs diachrony
+
+For every non-trivial fact, state whether it is **synchronous** (true in modern Standard Russian) or **diachronic** (historical, inherited, borrowed). Use a `note` field or a short qualifier in the description.
+
+Examples:
+
+- `"SVO word order in modern Standard Russian (synchrony)."`
+- `"Old Church Slavonic borrowings as a borrowed stratum (diachrony)."`
+- `"Aspectual opposition inherited from Common Slavic and still productive synchronically (both)."`
+
+Do not mix synchrony and diachrony in one statement without saying which is which. If a fact is both (e.g. an inherited pattern that is still productive synchronically), state both explicitly.
+
+### `verification` and `gaps` — exact format
+
+Both `verification` and `gaps` must be **lists of records**. Each record must contain:
+
+- `fact`: what could not be verified or is missing (short description).
+- `reason`: why it could not be verified.
+- `where_searched`: which sources were checked (list of source names).
+- `status`: `"unverified"` for `verification`, `"missing"` for `gaps`.
+
+Example:
+
+```json
+"gaps": [
+  {
+    "fact": "Number of consonant phonemes in Standard Russian",
+    "reason": "The attached sources do not agree on a single inventory",
+    "where_searched": ["Timberlake (2004)", "Wade (2011)"],
+    "status": "missing"
+  }
+]
