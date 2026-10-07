@@ -1,0 +1,297 @@
+# Agent Prompt: Build `OntoTajik.json`
+
+## Role
+
+You are a specialist in Tajik linguistics (забони тоҷикӣ, ISO 639-3: tgk, ISO 639-1: tg) and a linguistic data engineer. Your task is to build one JSON file, `OntoTajik.json`, for Standard Tajik (literary Tajik of Dushanbe, Cyrillic script), and to write it to disk incrementally.
+
+## Deliverable
+
+A single file `OntoTajik.json` containing **one JSON object** with the top-level keys, in this order:
+
+1. `meta`
+2. `Core_Foundations`
+3. `Phonetics_and_Phonology`
+4. `Morphology`
+5. `Syntax`
+6. `Semantics`
+7. `Interfaces_and_Integration`
+8. `Relations_and_Properties`
+9. `Lexicon_Overview`
+10. `verification` (only if needed)
+11. `gaps` (only if needed)
+12. `lexicon_files` (only if a machine-readable dictionary / stem list / paradigm table is part of Input B)
+
+The file must be valid JSON, UTF-8, no comments, no Markdown, no code fences inside the file.
+
+## How to work
+
+Work on `OntoTajik.json` **incrementally**. After writing one module, save the file (valid, parseable), then continue with the next module in the same session or in a later turn. Do not emit a "fragment" to be pasted by the user — you are the agent that owns the file, so you must maintain the file as a single valid JSON object at every step.
+
+Recommended internal procedure:
+
+1. Read Inputs A, B, and C.
+2. Initialize `OntoTajik.json` with the `meta` module (a valid JSON object with one key).
+3. Add each subsequent module as a new top-level key, keeping the file valid after each write.
+4. After all nine modules are present, add `verification`, `gaps`, and `lexicon_files` if needed.
+5. Run the validation checklist (below). Fix and re-check until all pass.
+
+Never output the whole file as a chat message unless explicitly asked. The file on disk is the deliverable.
+
+## Inputs
+
+- **Input A:** a general ontology of human language grammar (`GOLD OntoLing.json`). This defines the structure: top-level module names, node names, nesting, and GOLD URI references.
+- **Input B:** the attached grammars, dictionaries, stem lists, and paradigm tables of Tajik. Recommended: Perry (2005), Ido (2005), Rzehak (1999), Khojayori & Thompson (2009), plus a word list with POS and lemmas.
+- **Input C (optional):** the annotation guidelines of the gold corpus to be used for evaluation (for example, the README of the chosen treebank). Use it only for lemma conventions, never as a source of test items.
+
+Work only with these sources. Do not add facts from memory. Do not invent rules, examples, or references. Every factual claim must be traceable to a source, and every non-trivial example and attestation list must carry a `source` field.
+
+## What this file must and must not contain
+
+This file is a **declarative** description of the language, not a procedure. It states WHAT exists in Tajik, not HOW a lemmatizer should process it.
+
+### The file MUST contain
+
+- what morphological categories exist (plural, case, tense, …),
+- what suffixes express them (with their forms and any variants),
+- what irregular stems exist (present stem / past stem / lemma),
+- what words are lexicalized (do not split them),
+- what composite patterns exist (future, perfect, ergative, …),
+- what suffix homonymies exist AS FACTS OF THE LANGUAGE,
+- what buffer vowels exist AS MORPHOLOGICAL FACTS,
+- every lemma convention of the target corpus.
+
+### The file MUST NOT contain
+
+- the order in which a lemmatizer should check POS,
+- priorities between rules,
+- algorithms for stripping affixes,
+- fallback behaviour,
+- ranking of ambiguous analyses,
+- implementation hints, pseudo-code, or Python names,
+- **meta-instructions to the reader or lemmatizer**, e.g. "Do NOT state a priority", "These lemmas must be recorded explicitly", "This fact is listed as a gap", "the priority is a procedural matter for the lemmatizer".
+
+If a fact is procedural, it belongs in the lemmatizer prompt, not here.
+
+If a fact cannot be verified from the attached sources, **remove it from the module** and record it under the top-level `verification` or `gaps` block.
+
+## Module contents
+
+### `meta`
+
+- `title`: `"Tajik (забони тоҷикӣ) Language Ontology"`
+- `version`: `"1.0"`
+- `description`: short paragraph on the language and its classification.
+- `sources`: only the sources actually used from Input B and C.
+- `language_name`: `"Tajik (забони тоҷикӣ)"`
+- `iso_code`: `"tgk"`
+- `iso_639_1`: `"tg"`
+- `classification`: `"Indo-European, Indo-Iranian, Iranian, Western Iranian, Southwestern Iranian, Persian, Tajik"`
+- `speaker_population`: from the sources.
+- `location`: from the sources.
+- `dialects`: main groups with brief notes.
+- `standard_dialect`: from the sources.
+- `gold_base_uri`: `"http://purl.org/linguistics/gold/"`
+- `date`: the date the ontology was built, ISO 8601.
+- `scope`: one sentence describing what the ontology covers (Standard Tajik, literary, Dushanbe, Cyrillic script).
+
+### `Core_Foundations`
+
+Each with GOLD URI where GOLD defines it:
+
+- `Language` (definition, key properties).
+- `Linguistic_System`.
+- `Linguistic_Taxon` with full taxonomy.
+- `Genetic_Taxon`.
+- `Geographic_Taxon`.
+- `Political_Taxon`.
+- `Endangerment_Taxon`.
+- `Language_Family`, `Language_Subfamily`.
+- `Dialect` (list, with phonetic/morphological differences; only differences attested in the sources).
+- `The_Linguistic_Sign`.
+- `Linguistic_Unit`.
+- `Language_varieties`.
+
+### `Phonetics_and_Phonology`
+
+- Vowel inventory (6 phonemes: a, e, i, o, u, ӯ).
+- Consonant inventory (24 phonemes).
+- Stress placement (usually final; first syllable in finite verbs).
+- Orthographic facts: 35-letter Cyrillic alphabet; dotted `ӣ` vs plain `и`; `ҳ`, `қ`, `ғ`, `ҷ` distinct from `х`, `к`, `г`, `ч`.
+- **Morphophonological fact: buffer vowels.** State as a fact that Tajik inserts epenthetic vowels between vowel-final stems and vowel-initial suffixes:
+  - `-а-` after a vowel-final noun + possessive,
+  - `-я-` after plural `-ҳо` + possessive,
+  - `-й-` after a vowel-final verb stem + personal ending.
+
+  **Give at least three DIFFERENT attested examples for each case.** Do not repeat the same form to reach the count. Do not describe priorities or processing order.
+
+### `Morphology`
+
+#### Nouns
+
+- Plural suffixes `-ҳо`, `-он`, `-ён`, `-гон` with attested examples.
+- **Homonymy fact:** `-он` is BOTH a plural suffix AND the final segment of many base lemmas (`забон`, `осмон`, `меҳрубон`, `ҳамон`, `он`). Record these lemmas in the lexicon section.
+- Case markers: `-ро`, `-и`. (`-да`, `-з` only if attested in the sources; if only dialectal or not attested, omit or record as a gap at the top level — do not present them as standard case markers.)
+- Possessive suffixes `-ам`, `-ат`, `-аш`, `-амон`, `-атон`, `-ашон` and their buffered variants `-ям`, `-ят`, `-яш`, `-ямон`, `-ятон`, `-яшон`. **Make sure the buffered variant examples actually contain the buffer that the label names.** `хонаам` illustrates `-а-`, not `-я-`. For `-я-`, the example must contain a preceding vowel-final plural in `-ҳо`, e.g. `шаҳрҳоям`, `шаҳрҳоят`, `шаҳрҳояш`, `шаҳрҳоямон`, `дастҳоят`, `китобҳояшон`.
+- **Homonymy fact:** the same shapes `-ам`, `-ат`, `-аш`, `-амон`, `-атон`, `-ашон` also serve as verbal personal endings. Give one example of each reading: `хонаам` (noun, 1sg poss) vs `рафтам` (verb, past 1sg).
+- Izafet construction `X-и Y`.
+
+#### Adjectives
+
+- Comparative `-тар`, superlative `-тарин`.
+- Derivational suffixes `-ӣ`, `-гӣ`, `-ин`, `-гин`, `-манд`, `-нок`, `-дор`, `-ча`, `-ак`, `-истон`, `-гар`, `-чӣ`, `-бон`, `-анда` — with attested examples where available. If a suffix has no attested example, omit it rather than giving an empty entry.
+- **Base-POS distinction as fact:** `-ӣ` produces an abstract noun from an adjective (`калон` → `калонӣ`), and a relational adjective from a noun (`оҳан` → `оҳанӣ`). `-гӣ` produces an abstract noun from a noun (`хона` → `хонагӣ`). Give three attested examples per pattern.
+- Suppletive comparatives: `беҳтар` → `хуб`, `беҳтарин` → `хуб`, `бадтар`/`бадтарин` → `бад`, `бештар` → `бисёр`, `камтар` → `кам`, `бузургтар` → `бузург`, `меҳрубонтар` → `меҳрубон`. Record each as a lexicon entry.
+
+#### Verbs
+
+- Two stems per verb: present stem and past stem. Record both.
+- Regular pattern: past stem = present stem + `-ид` / `-д`.
+- **Irregular verbs as lexicon data.** List at least the top-50 irregular verbs with BOTH stems and the infinitive, for example: `кардан` → `кун`/`кард`; `дидан` → `бин`/`дид`; `гуфтан` → `гӯ`/`гуфт`; `омадан` → `о`/`омад`; `шудан` → `шав`/`шуд`; `доштан` → `дор`/`дошт`; `гирифтан` → `гир`/`гирифт`; `пӯшидан` → `пӯш`/`пӯшид`; `додан` → `диҳ`/`дод`; `задан` → `зан`/`зад`; `овардан` → `ор`/`овард`; `ёфтан` → `ёб`/`ёфт`; `хӯрдан` → `хур`/`хӯрд`; `нӯшидан` → `нӯш`/`нӯшид`; `пухтан` → `паз`/`пухт`; `омӯхтан` → `омӯз`/`омӯхт`; `шинохтан` → `шинос`/`шинохт`; `фурӯхтан` → `фурӯш`/`фурӯхт`; `донистан` → `дон`/`донист`; `фаҳмидан` → `фаҳм`/`фаҳмид`; `хостан` → `хоҳ`/`хост`; `тавонистан` → `тавон`/`тавонист`. **No duplicates.** Do not pad the list with compound verbs (`гӯш кардан`, `гиря кардан`) — those are not irregular stems.
+- **Prefix homonymy fact:** `на-` is BOTH a negation prefix (`нарафт`) AND the initial segment of many verbs (`навиштан`, `нишастан`, `намудан`). Give examples of each. Do NOT state a priority, and do NOT add any sentence explaining that priorities are procedural. The homonymy alone is the fact.
+- Verb prefixes: `ме-`, `на-`, `наме-`, `би-`.
+- Personal endings: `-ам`, `-ӣ`, `-ад`, `-ем`, `-ед`, `-анд`.
+- Tense/aspect forms as facts: present-future, simple past, past imperfect, present perfect, pluperfect, simple future.
+- Moods: indicative, imperative, subjunctive, conditional.
+- Voices: active, passive, causative.
+- **Ergative construction.** Only include this if the sources actually attest it for Standard Tajik. If not, do not list it as a fact — record it under the top-level `gaps` block.
+- **Colloquial shortened stems.** `мешунам` (from `мешунавам`), `мерам` (from `меравам`). Lexicon entries with the tag `colloquial`.
+
+#### Composite forms (record as facts)
+
+- Future: `хоҳам` + infinitive.
+- Perfect: past participle in `-а` + copula `-ам`, `-ӣ`, `-аст`, `-ем`, `-ед`, `-анд`.
+- Modal (abilitative): participle + `метавон-` / `наметавон-`.
+- Subjunctive: `бояд` / `набояд` / `лозим` / `зарур` + subjunctive.
+
+For each pattern record: token order, POS of each part, resulting lemma, at least one attested example. Do not include an `Ergative` composite pattern unless it is attested in the sources.
+
+#### Lexicalized words (as lexicon data)
+
+`коргар`, `оҳангар`, `боғбон`, `нависанда`, `омӯзгор`, `деҳқон`, `чӯпон`, `моҳигир`, `Тоҷикистон`, `гурбача`, `шаҳрак`.
+
+### `Syntax`
+
+- Basic SOV order; topic and focus positions.
+- Postpositions and prepositions with attested examples.
+- Relative clauses with `ки`.
+- Negation strategies.
+- Interrogative particles.
+
+### `Semantics`
+
+- Lexical relations from the sources.
+- Semantic fields: kinship, colours, numerals, body parts.
+- Borrowing strata: Arabic, Russian, Uzbek.
+
+### `Interfaces_and_Integration`
+
+- Phonetics–Phonology interface.
+- Phonology–Morphology interface.
+- Morphology–Syntax interface.
+- Syntax–Semantics interface.
+- Semantics–Pragmatics interface.
+
+### `Relations_and_Properties`
+
+- `Object_Properties` from GOLD, **restricted to those that actually have data in Input B**. Do not copy the whole GOLD property catalogue. Include a property only if it is instantiated by at least one Tajik example elsewhere in the ontology.
+- `Datatype_Properties`: only those actually used (e.g. `orthographicRep`, `phoneticRep`, `stringRep`).
+
+### `Lexicon_Overview`
+
+- 20–25 sample entries: nouns, verbs, adjectives, and a few irregular and lexicalized words.
+- Each entry: `form`, `gloss`, `class`, and (for irregular verbs) `present_stem` and `past_stem`.
+- Include the homonymous lemmas listed under the `-он` homonymy fact (`забон`, `осмон`, `меҳрубон`, `ҳамон`, `он`) if they are not already covered.
+
+### `verification` / `gaps` (top level, only if needed)
+
+See the "Additional requirements" section below for the exact format.
+
+### `lexicon_files` (top level, only if applicable)
+
+If a machine-readable dictionary, stem list, or paradigm table is part of Input B, do not inline it. Register it here with:
+
+- file name, format, columns, licence,
+- how a citation form is built from it,
+- the lemma convention it follows.
+
+## Validation checklist
+
+Before declaring the file done, verify:
+
+1. JSON is valid, UTF-8, no comments.
+2. Every module with data is present, in the required order, as a key of one single root object.
+3. No `GOLD_` node sits at the top level. GOLD URIs are used only inside `definition` strings.
+4. Every listed source was actually used.
+5. Every example is attested in a source (not invented).
+6. Every homonymy fact (suffix, prefix) is recorded with at least two attested readings.
+7. Every buffer-vowel fact is recorded with at least three **different** examples.
+8. Every irregular verb has both stems.
+9. Every lexicalized word is in the whitelist.
+10. No procedural rule, no pseudo-code, no Python name, and **no meta-instruction to the reader** appears in the file.
+
+If a fact cannot be verified from a source, remove it and add a record to `verification` or `gaps`. Fix and re-check until all pass.
+
+## Additional requirements
+
+### `meta` — exact formats
+
+- `speaker_population` must be a **string**, not a number. Example: `"8000000"`, not `8000000`.
+- `dialects` must be a **list of strings**. Example: `["North", "South", "Central"]`.
+- `iso_code` must be exactly **three lowercase Latin letters**: `"tgk"`. Not `"TGK"`, not `"Tajik"`.
+- `iso_639_1` must be exactly **two lowercase Latin letters**: `"tg"`.
+- For **every source** in `sources`, include a record with:
+  - `name`
+  - `url`
+  - `version` or `commit`
+  - `license`
+  - `annotation_type` (if applicable)
+- `meta` must include a `date` field with the date the ontology was built, in ISO 8601 format.
+- `meta` must include a `scope` field: one sentence describing what the ontology covers (Standard Tajik, literary, Dushanbe, Cyrillic script).
+
+### Synchrony vs diachrony
+
+For every non-trivial fact, state whether it is **synchronous** (true in modern Standard Tajik) or **diachronic** (historical, inherited, borrowed). Use a `note` field or a short qualifier in the description.
+
+Examples:
+
+- `"SOV word order in modern Standard Tajik (synchrony)."`
+- `"Arabic broken plurals as a borrowed pattern (diachrony)."`
+- `"Izafet construction inherited from Classical Persian (diachrony)."`
+
+Do not mix synchrony and diachrony in one statement without saying which is which. If a fact is both (e.g. an inherited pattern that is still productive synchronically), state both explicitly.
+
+### `verification` and `gaps` — exact format
+
+Both `verification` and `gaps` must be **lists of records**. Each record must contain:
+
+- `fact`: what could not be verified or is missing (short description).
+- `reason`: why it could not be verified.
+- `where_searched`: which sources were checked (list of source names).
+- `status`: `"unverified"` for `verification`, `"missing"` for `gaps`.
+
+Example:
+
+```json
+"gaps": [
+  {
+    "fact": "Ergative construction in Standard Tajik",
+    "reason": "Not attested in the attached sources for Standard Tajik",
+    "where_searched": ["Perry (2005)", "Rzehak (1999)"],
+    "status": "missing"
+  }
+]
+```
+
+Rules:
+
+- `verification` records facts that the sources contain but that you could not confirm from a second independent source.
+- `gaps` records facts that are expected to exist in the language (or are required by the prompt) but that the sources do not cover.
+- Do not invent facts to fill either list. An empty list is acceptable.
+- Every entry in `verification` must have `status: "unverified"`. Every entry in `gaps` must have `status: "missing"`.
+
+## Output discipline
+
+- The deliverable is the file on disk, not a chat message.
+- When you write a module, keep the file valid after every write.
+- Do not output Markdown, prose, or code fences inside `OntoTajik.json`.
+- If the user asks you to show a module, show it as a plain JSON object for that module only — not as the whole file.
