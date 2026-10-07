@@ -1,0 +1,520 @@
+# Prompt 3: Build the Russian lemmatizer (lingua-rules + Python)
+
+## Role
+
+You are a Python engineer, a specialist in Russian morphology (русский язык, ISO 639-3: rus, ISO 639-1: ru), and a contributor to the `lingua-rules` repository.
+
+## Model requirements
+
+Context window ≥ 128k, ability to run code, ability to produce long structured outputs. Models with a smaller context will truncate the rule files. If the output is too long for a single message, you are allowed (and required) to split the deliverable into parts, but each part must be a complete artifact (a full file or a full report section) — never a truncated or "demonstration" version.
+
+## Task
+
+Build **two artifacts** for Russian, derived from the same ontology:
+
+- **Artifact A — `lingua-rules` ASP rules** for Russian inflection, in the Clingo/ASP format used by the `lingua-rules` repository. These files contain **generation rules only** (lemma → form). They are tested by `lingua-rules lint` and golden-file tests.
+- **Artifact B — a Python lemmatizer** that reads the ontology directly and implements analysis (form → lemma) in Python. It does **not** read the `.lp` files and does **not** query Clingo for analysis.
+
+You must run both artifacts, test them, and iterate on errors before answering.
+
+## How the two artifacts relate
+
+The `.lp` files and the Python lemmatizer are **two separate systems that both derive from the ontology**:
+
+| Artifact | What it does | Rules come from | Tested by |
+|---|---|---|---|
+| A — `.lp` files | Generation (lemma → form) | Ontology | `lingua-rules lint` + golden-file tests (Step 3) |
+| B — Python lemmatizer | Analysis (form → lemma) | Ontology + development set | Cross-validation (Step 4) |
+
+They must **agree on**:
+
+- the same suffix inventory,
+- the same irregular verb list,
+- the same word classes (`noun_class`, `verb_class`, `adj_class`),
+- the same feature keys (canonical order).
+
+Discrepancies between `.lp` and the Python lemmatizer are **bugs**. In Step 5, if a `.lp` rule and a Python rule disagree, classify the error as `lemma-convention mismatch` or `rule mismatch`.
+
+The Python lemmatizer **does not read the `.lp` files** and **does not query Clingo**. It reads the ontology directly. The `.lp` files are used only for:
+
+- `lingua-rules lint` (Step 2),
+- golden-file tests (Step 3),
+- verification that the rules in `.lp` match the rules declared in the ontology.
+
+If `.lp` and the ontology disagree, **the ontology is the source of truth for analysis**.
+
+## Inputs
+
+Use only:
+
+- `OntoRussian.json` — the ontology built in Prompt 1.
+- `russian-development.yaml` — the development set built in Prompt 2.
+- Files listed in the ontology's `lexicon_files` — dictionaries, stem lists, paradigm tables.
+- The `lingua-rules` repository, including:
+  - the README of `lingua-rules`,
+  - the guide `lingua-rules-and-ontologies-guide-ru.pdf`,
+  - the example `.lp` files: `rules/en/nouns.lp`, `rules/en/features.yaml`, `rules/en/lang.yaml`, and any other language examples present in the repo.
+
+**Never read `russian-holdout.yaml`** — it is reserved for Prompt 4.
+
+## Environment
+
+- Python 3.11+.
+- `clingo` ≥ 5.6 (the version required by `lingua-rules`).
+- `PyYAML` ≥ 6.0.
+- `lingua-rules` installed in editable mode (`pip install -e ".[dev]"`).
+
+Before writing any code, verify:
+
+```bash
+python -c "import clingo, yaml; print(clingo.__version__, yaml.__version__)"
+```
+
+If any import fails, stop and report the exact error. Do not work around missing dependencies.
+
+## Failure handling (do this before anything else)
+
+The following preconditions must be checked and reported. If any fails, stop and report; do not write placeholder code.
+
+1. `OntoRussian.json` exists, is valid JSON, and has a `lexicon_files` key (may be empty).
+2. `russian-development.yaml` exists, is valid YAML, and has a non-empty top-level `cases:` list.
+3. The directory `rules/ru/` exists and is writable.
+4. The `lingua-rules` CLI is importable (`python -m lingua_rules.cli.main --help` succeeds).
+5. `clingo` is importable from Python.
+
+If the ontology is missing, print `OntoRussian.json not found` and stop.
+If the development set is empty, print `russian-development.yaml has no cases` and stop.
+If `rules/ru/` is missing, create it.
+If `lingua-rules` cannot be imported, print the traceback and stop.
+
+## Outputs
+
+### Artifact A — `lingua-rules`
+
+```
+rules/ru/
+  lang.yaml
+  features.yaml
+  nouns.lp
+  verbs.lp
+  adjectives.lp
+  pronouns.lp
+  numerals.lp
+  participles.lp
+  gerunds.lp
+  ...
+```
+
+**`lang.yaml` must declare all categories you actually write.** At minimum:
+
+```yaml
+name: Russian
+iso639_3: rus
+categories:
+  - nouns
+  - verbs
+  - adjectives
+  - pronouns
+  - numerals
+  - participles
+  - gerunds
+```
+
+Do not produce only `nouns.lp`. If you cannot fully cover a category, still write the file with the rules you can support, and note in the report what is missing. A missing category file is a failure of the deliverable, not an acceptable shortcut.
+
+**`features.yaml` must declare every dimension and every value used in any `.lp` file.** `lingua-rules lint` will fail on any undeclared dimension or value. At minimum, Russian requires:
+
+```yaml
+dimensions:
+  case:      [nom, gen, dat, acc, ins, loc]
+  number:    [sing, plur]
+  gender:    [masc, fem, neut]
+  animacy:   [anim, inan]
+  aspect:    [imp, perf]
+  tense:     [pres, past, fut]
+  mood:      [ind, imp, sub]
+  person:    [1, 2, 3]
+  verbform:  [fin, inf, part, conv]
+  voice:     [act, pass]
+  degree:    [pos, cmp, sup]
+  variant:   [short, long]
+```
+
+Add any additional dimension you use. Do not use a dimension or value that is not in this file.
+
+**Format of `.lp` files.** Each file contains **generation rules only**, in the `lingua-rules` formalism:
+
+```prolog
+% Generation: lemma + features -> form
+form(Lemma, "number=plural", @suffix(Lemma, "s")) :-
+    input_lemma(Lemma),
+    not irregular(Lemma).
+
+% Exceptions
+irregular("child").
+form("child", "number=plural", "children").
+```
+
+Key requirements of `lingua-rules`:
+
+- **Canonical order of feature keys**: `number=plural;tense=past` (sort by dimension name).
+- `irregular("x")` disables all rules with `not irregular(Lemma)` — for such lemmas, list every form explicitly.
+- Available helpers: `@suffix`, `@prefix`, `@strip_suffix_add`.
+- Word classes: `noun_class`, `verb_class`, `adj_class` where needed.
+- `lingua-rules lint ru` must pass without errors.
+
+**The `.lp` files contain generation rules only. They are not used by the Python lemmatizer for analysis.** Do not add reverse rules, `form_is/1`, `candidate_lemma/3`, or any analysis predicates to the `.lp` files. Analysis is implemented in Python (Artifact B) from the ontology.
+
+### Artifact B — Python lemmatizer
+
+File: `russian_lemmatizer.py`.
+
+API:
+
+```python
+class RussianLemmatizer:
+    def __init__(self,
+                 ontology_path: str = "OntoRussian.json",
+                 dev_path: str = "russian-development.yaml",
+                 rules_dir: str = "rules/ru") -> None: ...
+
+    def lemmatize(self, form: str, upos: str, features: str = "_") -> dict[str, str]: ...
+
+    def lemmatize_sentence(self, tokens: list[dict]) -> list[dict]: ...
+
+    def evaluate(self, cases_path: str) -> dict: ...
+```
+
+**`__init__` failure modes.** If `rules_dir` is empty or contains no `.lp` files, raise `FileNotFoundError` with a clear message. Do not silently create an empty lemmatizer. If the ontology fails to load, raise. If the development set fails to load, raise.
+
+**How it works:**
+
+1. Load the ontology, the development set, and the files listed in `lexicon_files`.
+2. Build a lexicon keyed by `(normalized_form, upos) → lemma`.
+3. Implement analysis in Python: given a form, a `upos`, and UD features, find the lemma using (in order) the lexicon, the paradigm tables, the ending rules declared in the ontology, the `rule`-status rules, then `default_replacement`.
+4. Rank multiple candidates.
+5. Fallback: `default_replacement` → `confidence="default"`, otherwise `ambiguous`.
+
+**The Python lemmatizer reads the ontology, not the `.lp` files, and does not query Clingo.** `russian-development.yaml` is the primary source of lemma knowledge for analysis: when a form is in the development set, its lemma is taken from there; when it is not, analysis falls back to the ontology rules. Because of this, accuracy on the development set measures **coverage**, not the quality of the rules. The quality of the rules is measured on the holdout set (Prompt 4), which the lemmatizer never sees.
+
+**`features` parsing.** UD FEATS are pipe-separated (`Case=Nom|Number=Sing`). Parse as follows:
+
+- If `features == "_"` or `features == ""` — treat as no features.
+- Split on `"|"`, not on `","`.
+- For each part, split on `"="` (exactly once). If a part has no `"="`, skip it.
+- Store as a `dict[str, str]`.
+- Do not raise on unknown feature names; record them and continue.
+
+**Building the lexicon.** Build the lexicon from all three sources, in this order of trust:
+
+1. `lexicon_files` declared in the ontology — read each file, parse it, register `(normalized_form, upos) → lemma`. If a `lexicon_files` entry declares a file that is missing, log a warning and continue; do not silently skip it.
+2. Lexical entries inside the ontology itself (irregular verbs, lexicalized words, suppletive comparatives, pronouns, numerals).
+3. `russian-development.yaml`.
+
+If `lexicon_files` is empty, log a warning: `"ontology declares no lexicon_files; lexicon built from ontology entries and development set only"`. Do not skip the step.
+
+**Result format.** Every result of `lemmatize` has **exactly four fields**:
+
+```python
+{"lemma": "...", "rule": "...", "confidence": "...", "reason": "..."}
+```
+
+**`reason` must never be empty.** Fill it as follows:
+
+- `confidence="exact"` → `"exact match in development set"`
+- `confidence="lexicon"` → `"lexicon analysis: <source>, other candidates: <list or 'none'>"`
+- `confidence="rule"` → `"rule <id>: <short description>"`
+- `confidence="default"` → `"default replacement: <rule id>, counts: <n>/<m>"`
+- `confidence="ambiguous"` → `"no lexicon analysis and no unambiguous rule"`
+
+Empty `reason` is a bug. The downstream Prompt 4 report cannot diagnose errors without it.
+
+**`lemmatize_sentence`.** Each input token is a dict with `form`, `upos`, optional `features`, `sentence_id`, `token_id`. **Do not mutate the input token dicts.** Build a new dict for each output token that copies the input keys and adds `lemma`, `rule`, `confidence`, `reason`. Return the list in the same order.
+
+**Composite forms.** Composite patterns are recognised in `lemmatize_sentence` before individual tokens are lemmatized:
+
+- Future imperfective: `буду` / `будешь` / `будет` / `будем` / `будете` / `будут` + infinitive (next token with `VerbForm=Inf`).
+- Perfect / resultative: short passive participle (`Variant=Short`, `VerbForm=Part`) followed by a form of `быть`.
+- Conditional / subjunctive: a past-tense form followed by the particle `бы`.
+- Modal: `должен` / `должна` / `должно` / `должны` / `нужно` / `надо` followed by an infinitive.
+
+For each composite, set the `rule` field of the participating tokens to the composite rule id (e.g. `"composite_future"`) and set the lemma of the main verb to its infinitive. Record the full pattern in `reason` of the auxiliary token.
+
+**UPOS coverage.** Support at least `NOUN`, `PROPN`, `VERB`, `AUX`, `PRON`, `DET`, `ADJ`, and the indeclinable classes (`ADV`, `ADP`, `CCONJ`, `SCONJ`) through the dictionary. Do not silently drop unknown UPOS — record them with `confidence="ambiguous"` and a `reason`.
+
+## Application order
+
+1. Exact entries of the development set.
+2. Analysis with the morphological dictionary (stem + ending + class → citation form).
+3. Exact entries of the paradigm tables.
+4. Ending rules confirmed by a known lemma.
+5. Rules with status `rule`.
+6. `default_replacement`.
+
+## Normalization
+
+Before lookup:
+
+- Unicode NFC.
+- Language-specific normalizations from the ontology (diacritics, case, script variants, joiners, spaces inside words).
+- Do **not** apply normalizations the ontology does not declare.
+
+Lemma output:
+
+- If in the development set — in the corpus spelling.
+- Otherwise — in the lexicon spelling.
+- `PROPN` — with initial capital.
+- Other lexicon lemmas — as in the lexicon.
+- Rule outputs — lower case.
+
+## Lemma conventions
+
+From the ontology:
+
+- Non-finite forms under the verb, if the corpus does so.
+- Deponents and passives under the convention's lemma.
+- `AUX` — only with the lemmas the convention allows.
+- Pronominal clitics — under the lemma the convention prescribes.
+- If paradigm tables give forms as separate lemmas and the corpus does not, skip those entries.
+
+## Evaluation
+
+`evaluate(cases_path)`:
+
+- Exact-match accuracy.
+- Breakdown by UPOS.
+- CSV with columns `form`, `expected`, `actual`, `UPOS`, `status`, `reason`.
+- **CSV path:** write to `russian-evaluation-results.csv` in the current working directory. If the file already exists, overwrite it. Return the absolute path under the key `csv_path` in the result dict.
+- `cases_path` is a YAML file in the `russian-development.yaml` format (top-level `cases:`).
+- Use `sentence_id` + `token_id` to reconstruct sentences.
+- Report **token-level accuracy** and **sentence-level accuracy** (a sentence is correct only if all its tokens are correct).
+- **`by_confidence`** — a dict mapping each confidence value (`exact`, `lexicon`, `rule`, `default`, `ambiguous`) to `{accuracy, total, correct}`.
+- Return a dict with at least: `accuracy`, `accuracy_case_insensitive`, `sentence_accuracy`, `by_upos`, `by_confidence`, `errors`, `csv_path`.
+
+## Execution and testing (CRITICAL)
+
+The agent must run the following **before answering**:
+
+### Step 1: Write artifacts to disk
+
+- `rules/ru/*.lp`, `lang.yaml`, `features.yaml`.
+- `russian_lemmatizer.py`.
+
+### Step 2: Lint
+
+```bash
+python -m lingua_rules.cli.main lint ru
+```
+
+If errors — fix the `.lp` files, re-run. Do not proceed until lint passes.
+
+### Step 3: Golden-file tests
+
+**This step tests GENERATION (lemma → form). It does NOT test the lemmatizer.** The lemmatizer is tested separately, in Step 4. Do not skip Step 4 because the golden-file tests passed — they test a different direction.
+
+Convert part of the development set into the `lingua-rules` format:
+
+```yaml
+# tests/ru/nouns.paradigm.yaml
+lemma: стол
+category: nouns
+cases:
+  - features: {case: genitive, number: singular}
+    expected: стола
+```
+
+Run:
+
+```bash
+python -m lingua_rules.cli.main test ru
+```
+
+If a test fails — fix the `.lp`. Only general rules; do not add individual test words.
+
+### Step 4: 5-fold cross-validation of the LEMMATIZER
+
+**This step tests ANALYSIS (form → lemma).** It is the only step that measures whether the lemmatizer actually works.
+
+- Split by `sentence_id` (all tokens of a sentence go into one fold).
+- For each fold: build the lexicon and the conventions without the fold; score the fold.
+- Report: accuracy per fold, mean accuracy, errors by category.
+
+Do not report a number from Step 3 as if it were the lemmatizer's accuracy. They are different tasks.
+
+### Step 5: Iterations (up to 3)
+
+- Classify errors:
+  - missing lexicon entry
+  - wrong stem
+  - wrong homograph analysis
+  - buffer-vowel handling
+  - composite pattern
+  - lemma-convention mismatch
+  - ranking error
+  - **rule mismatch** — a `.lp` rule and a Python rule (from the ontology) disagree
+  - other
+- For each category — a hypothesis about the cause.
+- Fix general rules (in `.lp`, in the ontology, in the ranking).
+- **When fixing `rule mismatch`, fix the ontology first, then regenerate `.lp` and re-run Python analysis. Do not fix `.lp` and Python independently — they must stay consistent with the ontology.**
+- Re-run lint → test → CV.
+- Repeat up to 3 iterations or until convergence.
+
+### Step 6: Report
+
+The final report must contain, with numbers, not adjectives:
+
+- Which files were written (list with byte sizes).
+- Lint result: the exact command, the exact output.
+- Golden-file test result: the exact command, number of tests passed / failed, names of failed tests.
+- CV result: mean accuracy, per-fold accuracies, error counts by category.
+- What changed between iterations (before/after numbers).
+- Known limitations (the same list that appears in the module docstring).
+
+Do not write "everything passed successfully" without numbers. Do not omit failed tests. If a step could not be run, report the exact error and set the corresponding number to `not computed`.
+
+## Anti-patterns
+
+- Do not read `russian-holdout.yaml` — reserved for Prompt 4.
+- Do not write an independent list of rules in the Python code. Generation rules live in `.lp`; analysis rules are derived from the ontology. The Python lemmatizer reads the ontology, not hardcoded rules, and not the `.lp` files.
+- Do not add test words to the code — fix general rules only.
+- Do not tune to the development set — CV must be split by `sentence_id`.
+- Do not invent a lemma — if nothing decides, return the form + `ambiguous`.
+- Do not return files without running them — lint + test + CV are mandatory.
+- Do not claim full lemmatization — list the limitations in the docstring.
+- Do not violate the canonical order of feature keys — `number=plural;tense=past`.
+- Do not forget the all-or-nothing rule for `irregular(...)` — list every form explicitly.
+- Do not query Clingo for `lemma/3` — that predicate does not exist. The `.lp` files contain generation rules only. Analysis is implemented in Python from the ontology.
+- Do not truncate the `.lp` files. If the output is too long for one message, split into parts and continue; each part must be a complete file.
+- Do not wrap code in Markdown — return only file contents.
+
+## Known limitations
+
+In the module docstring:
+
+- Which sources are covered (which dictionaries, how many lemmas).
+- Which categories are handled, which are not.
+- Behaviour under `ambiguous`.
+- Behaviour under composite detection.
+- Which ontology rules are declared but not implemented.
+- Explicitly mention that the development file's sources are noted as unused, corrupted, or heuristic.
+- Do not claim full lemmatization.
+
+## Output format
+
+Return:
+
+- Contents of the `.lp` files.
+- Contents of `lang.yaml`, `features.yaml`.
+- Contents of the Python file.
+- A report on the runs (lint, test, CV, iterations).
+
+No Markdown around the code. Only file contents plus the report. If the deliverable is too long for one message, split it into consecutive parts and continue in the next message; never compress or truncate.
+
+## Connection to Prompts 4 and 5
+
+- Prompt 4 (evaluation): reads `russian_lemmatizer.py` + `russian-holdout.yaml`, runs `evaluate`, writes CSV + MD report. SHA-256 hashes before/after.
+- Prompt 5 (iterations): reads the Prompt 4 report, classifies errors, fixes `.lp` + ontology, re-runs Prompt 3, re-evaluates. Until convergence.
+
+## Russian-specific block
+
+### Homonymy facts
+
+- The ending `-а` is **both** a feminine nominative singular ending, a neuter plural ending, and a masculine genitive singular ending. Record one attested example of each reading in the ontology and reflect each as a rule in `nouns.lp`.
+- The ending `-у` is **both** an accusative feminine singular ending and a dative masculine/neuter singular ending.
+- The ending `-и` is **both** a genitive singular feminine ending, a nominative plural ending for many nouns, and an imperative 2sg ending for many verbs.
+- The prefix `не-` is **both** a negation prefix (`не делать`, `некрасивый`) and the initial segment of many lexicalized words (`неделя`, `нельзя`, `некоторый`). Record both readings; do not state a priority in the `.lp` — let the lexicon decide.
+
+### Buffer / epenthetic vowels
+
+State as facts and reflect as separate rules where the ontology declares them:
+
+- `-о-` inserted in some noun stems before certain endings (e.g. `сон` → `сна`, `лоб` → `лба`).
+- `-е-` inserted in some verb stems.
+- `-а-` / `-я-` in some derivational patterns.
+
+Give at least three different attested examples per case in the ontology; in `nouns.lp` / `verbs.lp`, encode each attested pattern as a rule, not as a procedural check.
+
+### Irregular verbs
+
+The ontology lists the top-50 irregular verbs with **both stems** and the infinitive. Load them from the ontology into `irregular(...)` facts in the corresponding `.lp` file and list every form explicitly. Do not leave any irregular verb only under `not irregular(Lemma)`.
+
+Example patterns to encode:
+
+- `быть` → `буд-` / `бы-`
+- `идти` → `ид-` / `шёл`
+- `ехать` → `ед-` / `еха-`
+- `дать` → `дад-` / `да-`
+- `есть` → `ед-` / `е-`
+- `пить` → `пьj-` / `пи-`
+- `жить` → `жив-` / `жи-`
+- `брать` → `бер-` / `бра-`
+- `взять` → `возьм-` / `взя-`
+- `писать` → `пиш-` / `писа-`
+- `сказать` → `скаж-` / `сказа-`
+- `видеть` → `вид-` / `виде-`
+- `смотреть` → `смотр-` / `смотре-`
+- `слышать` → `слыш-` / `слыша-`
+- `хотеть` → `хоч-` / `хоте-`
+- `мочь` → `мож-` / `мог-`
+- `бежать` → `беж-` / `бежа-`
+- `класть` → `клад-` / `кла-`
+- `сесть` → `сяд-` / `се-`
+- `лечь` → `ляг-` / `лёг-`
+
+### Suppletive comparatives
+
+Record as lexicon entries, not as `-ее` rules:
+
+- `хороший` → `лучше`
+- `плохой` → `хуже`
+- `большой` → `больше`
+- `маленький` → `меньше`
+
+In `adjectives.lp` they go under `irregular(...)` with explicit `form/3` facts.
+
+### Aspectual pairs
+
+Record as lexicon data, not as a rule:
+
+- `делать` / `сделать`
+- `писать` / `написать`
+- … (all pairs attested in the ontology)
+
+In `verbs.lp`, encode aspect pairs as `aspect_pair(Imp, Perf).` facts and use them only for analysis-side lemma selection, not for generation.
+
+### Participles and gerunds
+
+Encode as categories in `features.yaml` and as rules in `verbs.lp`:
+
+- present active `-ущ-` / `-ющ-`, `-ащ-` / `-ящ-`
+- past active `-вш-`, `-ш-`
+- present passive `-ем-` / `-им-`
+- past passive `-нн-`, `-енн-`, `-т-`
+- gerunds `-я`, `-в`, `-вши`, `-ши`
+
+Follow the lemma conventions from the ontology: whether participles and gerunds are lemmatized under the verb or as separate lemmas.
+
+### Composite forms
+
+Encode as composite patterns in the Python lemmatizer, using the ontology's declarations:
+
+- Future imperfective: `буду` + infinitive.
+- Perfect / resultative: short passive participle + forms of `быть`.
+- Conditional / subjunctive: past form + `бы`.
+- Modal: `должен` / `нужно` / `надо` + infinitive.
+
+For each pattern record in the ontology: token order, POS of each part, resulting lemma, at least one attested example. In the Python lemmatizer, `lemmatize_sentence` must recognise these patterns and route each token accordingly.
+
+### Canonical feature key order
+
+When emitting feature keys in `.lp`, always sort dimensions alphabetically by name and join with `;`:
+
+- `case=gen;number=sing`
+- `case=nom;gender=fem;number=sing`
+- `aspect=perf;mood=ind;number=sing;person=1;tense=pres;verbform=fin`
+
+The `features.yaml` for Russian must declare all dimensions and their values used by the rules. `lint` will fail on any dimension or value not declared there.
+
+## Final instruction
+
+Produce the full contents of every `.lp` file, of `lang.yaml` and `features.yaml`, of `russian_lemmatizer.py`, and a report on the runs (lint, test, CV, iterations). Without Markdown around the code. Only file contents plus the report. If the deliverable is too long for one message, split it into consecutive parts and continue in the next message; never truncate.
