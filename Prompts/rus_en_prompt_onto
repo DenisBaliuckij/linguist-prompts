@@ -1,4 +1,4 @@
-# Agent Prompt: Build `OntoRussian.json` (with partial-processing rules)
+# Agent Prompt: Build `OntoRussian.json`
 
 ## Role
 
@@ -17,24 +17,215 @@ A single file `OntoRussian.json` containing **one JSON object** with the top-lev
 7. `Interfaces_and_Integration`
 8. `Relations_and_Properties`
 9. `Lexicon_Overview`
-10. `verification` (only if needed)
-11. `gaps` (only if needed)
-12. `lexicon_files` (only if a machine-readable dictionary / stem list / paradigm table is part of Input B)
+
+No other top-level key is permitted. `verification`, `gaps`, and `lexicon_files` live inside `meta.notes` (see the "Repository compatibility" section).
 
 The file must be valid JSON, UTF-8, no comments, no Markdown, no code fences inside the file.
 
+## Repository compatibility — READ THIS FIRST
+
+This ontology will be submitted to the `ontologies` repository (see `lingua-rules-and-ontologies-guide-ru.pdf`). That repository validates every file against a JSON Schema. If the file does not match the schema, CI fails and the file is rejected. The schema is **stricter than a plain JSON well-formedness check**. The following rules are mandatory.
+
+### Two different schemas
+
+The `ontologies` repository uses two schemas:
+
+- `base-ontology.schema.json` — for `OntoLing.json` (the general ontology).
+- `language-ontology.schema.json` — for every language-specific ontology (e.g. `OntoRussian.json`, `OntoKon.json`, `OntoTajik.json`).
+
+The language schema is **stricter**:
+
+- `unevaluatedProperties: false` — no extra top-level keys are allowed. The only permitted top-level keys are the seven GOLD modules (`Core_Foundations`, `Phonetics_and_Phonology`, `Morphology`, `Syntax`, `Semantics`, `Interfaces_and_Integration`, `Relations_and_Properties`), plus `meta`, `Lexicon_Overview`. Nothing else.
+- `meta.sources` is a **list of strings**, not a list of objects.
+- Leaves in the concept tree cannot be numbers, booleans, `null`, or empty objects/arrays.
+
+`OntoRussian.json` must match `language-ontology.schema.json`, not the base schema.
+
+### Required fields for a language ontology
+
+The schema `language-ontology.schema.json` requires the following fields. **If any is missing, the file is not recognized as a language ontology, and every other top-level key is reported as an "unexpected property".** This is the most common cause of the CI failure `<root>: Unevaluated properties are not allowed ('Core_Foundations', 'Interfaces_and_Integration', ... were unexpected)`.
+
+In `meta`:
+
+- `title` (string, non-empty)
+- `version` (string, non-empty)
+- `description` (string, non-empty)
+- `sources` (non-empty list of strings)
+- `gold_base_uri` (string)
+- `language_name` (string, non-empty)
+- `iso_code` (exactly three lowercase Latin letters, e.g. `"rus"`)
+- `classification` (string, non-empty)
+- `location` (string, non-empty)
+
+At the top level:
+
+- `Lexicon_Overview` (object, non-empty)
+
+**Before saving, verify that all of these are present and non-empty.** Any missing field makes the whole file fail CI.
+
+### `meta.sources` — list of strings, NOT list of objects
+
+`sources` must be a **list of strings**. Each string is a full bibliographic reference, for example:
+
+```json
+"sources": [
+  "Русская грамматика. Ред. Н. Ю. Шведова. Т. I–II. М.: Наука, 1980",
+  "Timberlake, A. (2004). A Reference Grammar of Russian. Cambridge University Press.",
+  "Wade, T. (2011). A Comprehensive Russian Grammar. 3rd ed. Wiley-Blackwell."
+]
+```
+
+**Do NOT** use objects with `name`, `url`, `version`, `license`, `annotation_type`. The schema of the `ontologies` repository requires plain strings. If you need to record the URL, version, or license of a source, put it in the same string or in `meta.notes`.
+
+### Leaf values in the concept tree — STRICT
+
+In the `ontologies` repository, the schema forbids several value types **anywhere below the top-level modules**. The following are NOT allowed and will fail CI:
+
+- bare numbers: `6`, `5`, `1`, `0`
+- booleans: `true`, `false`
+- null: `null`
+- empty objects: `{}`
+- empty arrays: `[]`
+
+Convert every such value to a **string**:
+
+- `"count": 6` → `"count": "6"`
+- `"type": 1` → `"type": "1"`
+- `"has_aspect": true` → `"has_aspect": "true"`
+- `"semantic_fields": {}` → either remove the key, or write `"semantic_fields": "not attested in the read sections"` and record a gap.
+
+If a value must be a number for readability, use a string. The validator treats non-string leaves as a schema violation.
+
+### Every value in the concept tree must be non-empty
+
+Do not write `{}` or `[]` for a module you have not filled yet. If a module has no attested content, either omit the key entirely, or write a short string like `"not attested in the read sections"` and record a gap.
+
+### Valid vs invalid fragment
+
+**Valid** (passes CI):
+
+```json
+{
+  "stressed_vowel_positions": {
+    "count": "6",
+    "positions": ["абсолютное начало не перед мягким", "..."],
+    "source": "АГ-80 § 24"
+  },
+  "semantic_fields": "kinship, colours, numerals, body parts (attested in § 900–920)"
+}
+```
+
+**Invalid** (fails CI):
+
+```json
+{
+  "stressed_vowel_positions": {
+    "count": 6,
+    "positions": ["..."],
+    "source": "АГ-80 § 24"
+  },
+  "semantic_fields": {}
+}
+```
+
+### `verification`, `gaps`, `lexicon_files` live inside `meta`
+
+The `language-ontology.schema.json` sets `unevaluatedProperties: false` at the top level. It permits **only** these top-level keys:
+
+1. `meta`
+2. `Core_Foundations`
+3. `Phonetics_and_Phonology`
+4. `Morphology`
+5. `Syntax`
+6. `Semantics`
+7. `Interfaces_and_Integration`
+8. `Relations_and_Properties`
+9. `Lexicon_Overview`
+
+Nothing else. In particular, `verification`, `gaps`, and `lexicon_files` **must not** appear at the top level.
+
+The schema for `meta` (both `Meta` in the base schema and `LanguageMeta` in the language schema) sets `additionalProperties: true`. So `meta` may carry any extra fields. Put the following inside `meta.notes`:
+
+- `processed` — sections already processed, with paragraph numbers;
+- `not_yet_processed` — sections known to contain relevant facts but not read yet, with paragraph numbers if known;
+- `input_validation` — the result of validating every attached input;
+- `limitations` — any other limitation;
+- `gaps` — a list of records with `status: "missing"`;
+- `verification` — a list of records with `status: "unverified"`;
+- `lexicon_files` — if a machine-readable dictionary is part of Input B, register it here.
+
+Every `gaps` record must contain `fact`, `reason`, `where_searched`, `status`. Every `verification` record must contain the same four fields, with `status: "unverified"`.
+
+**Do not** create a top-level `gaps`, `verification`, or `lexicon_files` key. The validator will reject the file with:
+
+```
+<root>: Unevaluated properties are not allowed ('gaps', 'verification' were unexpected)
+```
+
+### Run the repository validator before every save
+
+Before writing any module, install the validator from the `ontologies` repository:
+
+```bash
+python scripts/validate.py
+```
+
+It will report every schema violation with the exact path, for example:
+
+```
+meta/sources/0: {...} is not of type 'string'
+Semantics/semantic_fields: {} is not valid
+Morphology/Verbs: {...} is not valid under any of the given schemas
+```
+
+Fix and re-run until the file is `OK`. Do not push a file that fails local validation. Running `validate.py` after every module write is a hard requirement, not a suggestion.
+
+## Working with the schemas
+
+Two schema files are attached:
+
+- `base-ontology.schema.json` — defines the shared envelope:
+  - required top-level keys: `meta` + seven GOLD modules (`Core_Foundations`, `Phonetics_and_Phonology`, `Morphology`, `Syntax`, `Semantics`, `Interfaces_and_Integration`, `Relations_and_Properties`);
+  - `meta` requires `title`, `version`, `description`, `sources`, `gold_base_uri`;
+  - `sources` is an array of non-empty strings, `minItems: 1`;
+  - a recursive concept tree: every value is either a string, an array of strings/objects, or a nested object; **no bare numbers, no booleans, no `null`, no empty objects `{}`, no empty arrays `[]`**.
+
+- `language-ontology.schema.json` — extends the base schema for a single language:
+  - adds `Lexicon_Overview` to the required top-level keys;
+  - replaces `meta` with `LanguageMeta`, which additionally requires `language_name`, `iso_code` (pattern `^[a-z]{3}$`), `classification`, `location`;
+  - sets `unevaluatedProperties: false` at the top level, which means **no top-level key beyond the permitted set is allowed**.
+
+Read both schemas before writing anything. When in doubt about whether a top-level key is allowed, check the schema; when in doubt about a leaf value, check `OntologyValue` in the base schema.
+
+Run `python scripts/validate.py` after **every write** to the file. The script selects the correct schema per file: a file with `iso_code` in `meta` or with a top-level `Lexicon_Overview` is validated against `language-ontology.schema.json`; otherwise against the base schema. Since `OntoRussian.json` will have both `iso_code` and `Lexicon_Overview`, it is validated against the language schema.
+
+The script reports errors with the exact JSON path, for example:
+
+```
+meta/sources/0: {...} is not of type 'string'
+Semantics/semantic_fields: {} is not valid
+<root>: Unevaluated properties are not allowed ('gaps', 'verification' were unexpected)
+```
+
+Fix and re-run until the file is `OK`. Do not declare a module done while `validate.py` reports an error.
+
 ## How to work
 
-Work on `OntoRussian.json` **incrementally**. After writing one module, save the file (valid, parseable), then continue with the next module in the same session or in a later turn. Do not emit a "fragment" to be pasted by the user — you are the agent that owns the file, so you must maintain the file as a single valid JSON object at every step.
+Work on `OntoRussian.json` **incrementally**. After writing one module, run `validate.py`, save the file (valid, parseable), then continue with the next module in the same session or in a later turn. Do not emit a "fragment" to be pasted by the user — you are the agent that owns the file, so you must maintain the file as a single valid JSON object at every step.
 
 Recommended internal procedure:
 
-1. Read Inputs A, B, and C.
-2. Validate every attached input (see "Input validation before work begins").
-3. Initialize `OntoRussian.json` with the `meta` module (a valid JSON object with one key).
-4. Add each subsequent module as a new top-level key, keeping the file valid after each write.
-5. After all nine modules are present, add `verification`, `gaps`, and `lexicon_files` if needed.
-6. Run the validation checklist (below). Fix and re-check until all pass.
+1. Read Inputs A, B, C, and D (the two schema files).
+2. Run `python scripts/validate.py` once on the current state of the file (if it exists) to see the baseline error report.
+3. Validate every attached input (see "Input validation before work begins").
+4. Compare the required structure with `language-ontology.schema.json`:
+   - the top-level key set must be exactly the nine keys listed in "Deliverable";
+   - `meta` must contain all nine required fields;
+   - `Lexicon_Overview` must be present and non-empty.
+5. Initialize `OntoRussian.json` with the `meta` module (a valid JSON object with one key), ensuring all required `meta` fields are present and `sources` is a list of strings.
+6. Add each subsequent module as a new top-level key. **After every write**, run `python scripts/validate.py` and fix any error before continuing. Do not move to the next module until the file is `OK`.
+7. After all nine modules are present, fill `meta.notes` with `processed`, `not_yet_processed`, `input_validation`, `limitations`, and, if needed, `gaps`, `verification`, `lexicon_files`.
+8. Run the validation checklist (below). Fix and re-check until all pass and `validate.py` returns `OK` for `OntoRussian.json`.
 
 Never output the whole file as a chat message unless explicitly asked. The file on disk is the deliverable.
 
@@ -45,6 +236,14 @@ Never output the whole file as a chat message unless explicitly asked. The file 
   - **Volume 1:** «Фонетика. Фонология. Ударение. Интонация. Основные понятия морфемики. Словообразование. Морфология»
   - **Volume 2:** «Синтаксис»
 - **Input C (optional):** the annotation guidelines of the gold corpus to be used for evaluation (for example, the README of the chosen treebank). Use it only for lemma conventions, never as a source of test items.
+- **Input D — schema files.** Two JSON Schema documents are attached and must be read before writing any module:
+  - `base-ontology.schema.json` — the structural contract for all ontology documents (meta + seven GOLD modules + recursive concept tree).
+  - `language-ontology.schema.json` — the stricter schema for a single-language instance. It extends the base schema and adds:
+    - language-identifying fields required in `meta` (`language_name`, `iso_code`, `classification`, `location`);
+    - a required top-level `Lexicon_Overview`;
+    - `unevaluatedProperties: false` at the top level, which means **no top-level key outside the permitted set is allowed**.
+- **Input E — validator script.** The file `scripts/validate.py` from the `ontologies` repository is attached. It is the exact script CI runs. You must run it after every write (see below).
+- **Note on the top-level key set.** The permitted top-level keys are exactly: `meta`, `Core_Foundations`, `Phonetics_and_Phonology`, `Morphology`, `Syntax`, `Semantics`, `Interfaces_and_Integration`, `Relations_and_Properties`, `Lexicon_Overview`. **No other top-level key is allowed.** `verification`, `gaps`, `lexicon_files`, and any other key you might otherwise add belong inside `meta` (which has `additionalProperties: true`), not at the top level.
 
 Work only with these sources. Do not add facts from memory. Do not invent rules, examples, or references. Every factual claim must be traceable to a source, and every non-trivial example and attestation list must carry a `source` field with the paragraph (§) number from the grammar.
 
@@ -58,6 +257,22 @@ Work only with these sources. Do not add facts from memory. Do not invent rules,
 4. **Auxiliary Python modules** (if any) — verify that the file imports cleanly and that the dictionaries are accessible.
 
 If any input fails validation, **stop and report the error** before continuing. Do not attempt a partial parse that silently drops sections.
+
+Additionally, **before writing any module**, run the repository validator locally:
+
+```bash
+python scripts/validate.py
+```
+
+It will report every schema violation with the exact path. Fix and re-run until the file is `OK`. Do not push a file that fails local validation.
+
+Additionally, verify that the two attached schemas parse as valid JSON and that `validate.py` runs:
+
+```bash
+python scripts/validate.py --help
+```
+
+If `validate.py` fails to run, stop and report the exact error. Do not attempt to validate by hand — the schema has `unevaluatedProperties: false` at the top level, and only the script will catch a stray top-level key.
 
 ## How to process large grammars
 
@@ -95,7 +310,7 @@ When you resume work, do the following:
 3. Extract all attested values, forms, and examples, each with its paragraph number in a `source` field.
 4. Add them to the correct module of `OntoRussian.json`.
 5. Remove the corresponding `not_yet_processed` record from `meta.notes`.
-6. Save the file (still valid JSON).
+6. Save the file (still valid JSON), run `validate.py`, fix and re-run until `OK`.
 7. Update `meta.notes` with the new list of processed sections.
 
 Do not replace an unread section with rules from memory. If a fact is not on a page you have read, it does not go into the module.
@@ -133,11 +348,14 @@ This file is a **declarative** description of the language, not a procedure. It 
 - fallback behaviour,
 - ranking of ambiguous analyses,
 - implementation hints, pseudo-code, or Python names,
-- **meta-instructions to the reader or lemmatizer**, e.g. "Do NOT state a priority", "These lemmas must be recorded explicitly", "This fact is listed as a gap", "the priority is a procedural matter for the lemmatizer".
+- **meta-instructions to the reader or lemmatizer**, e.g. "Do NOT state a priority", "These lemmas must be recorded explicitly", "This fact is listed as a gap", "the priority is a procedural matter for the lemmatizer",
+- bare numbers, booleans, `null`, empty objects `{}`, or empty arrays `[]` in the concept tree,
+- objects in `meta.sources` — only strings,
+- extra top-level keys outside the nine permitted ones.
 
 If a fact is procedural, it belongs in the lemmatizer prompt, not here.
 
-If a fact cannot be verified from the attached sources, **remove it from the module** and record it under the top-level `verification` or `gaps` block, or, if the section has not been read yet, under `meta.notes.not_yet_processed`.
+If a fact cannot be verified from the attached sources, **remove it from the module** and record it under `meta.notes.gaps` or `meta.notes.verification`, or, if the section has not been read yet, under `meta.notes.not_yet_processed`.
 
 ## Module contents
 
@@ -146,23 +364,26 @@ If a fact cannot be verified from the attached sources, **remove it from the mod
 - `title`: `"Russian (русский язык) Language Ontology"`
 - `version`: `"1.0"`
 - `description`: short paragraph on the language and its classification.
-- `sources`: only the sources actually used from Input B and C.
+- `sources`: **a list of strings**. Each string is a full bibliographic reference. Do not use objects. Include only sources actually used.
 - `language_name`: `"Russian (русский язык)"`
-- `iso_code`: `"rus"`
-- `iso_639_1`: `"ru"`
+- `iso_code`: `"rus"` (exactly three lowercase Latin letters)
+- `iso_639_1`: `"ru"` (exactly two lowercase Latin letters)
 - `classification`: `"Indo-European, Balto-Slavic, Slavic, East Slavic, Russian"`
-- `speaker_population`: from the sources. The figure must come from the attached sources, not from memory. If the sources give different figures, record the range and cite each source. If no figure is given, do not invent one — leave it out and record a gap.
+- `speaker_population`: **a string**, from the sources. Example: `"255000000"`, not `255000000`. The figure must come from the attached sources. If the sources give different figures, record the range and cite each source. If no figure is given, omit the key and record a gap. Do not use a figure from memory.
 - `location`: from the sources.
-- `dialects`: main groups with brief notes. Include **only** groups attested in Input B. If the attached grammars describe only the standard / literary language and do not describe dialects, do not invent dialect names from memory. Set `dialects` to an empty list and record a `gaps` entry with status `missing`.
+- `dialects`: main groups with brief notes. Include **only** groups attested in Input B. If the attached grammars describe only the standard / literary language and do not describe dialects, do not invent dialect names from memory. Omit the key or set it to a list of the strings that the grammar actually provides, and record a `gaps` entry with status `missing` inside `meta.notes`.
 - `standard_dialect`: from the sources.
 - `gold_base_uri`: `"http://purl.org/linguistics/gold/"`
 - `date`: the date the ontology was built, ISO 8601.
 - `scope`: one sentence describing what the ontology covers (Standard Russian, literary, Moscow norm, Cyrillic script).
-- `notes`: a structured record of the processing state. Must contain three lists:
-  - `processed`: sections processed so far, in order, with their paragraph numbers.
-  - `not_yet_processed`: sections that are known to contain relevant facts but have not been read yet, with their paragraph numbers if known.
+- `notes`: a structured record of the processing state. Must contain:
+  - `processed`: list of sections processed so far, in order, with their paragraph numbers.
+  - `not_yet_processed`: list of sections that are known to contain relevant facts but have not been read yet, with paragraph numbers if known.
   - `input_validation`: the result of validating each attached input.
   - `limitations`: any other limitation (e.g. a scanned PDF without a text layer).
+  - `gaps` (optional): list of records with `status: "missing"`.
+  - `verification` (optional): list of records with `status: "unverified"`.
+  - `lexicon_files` (optional): if a machine-readable dictionary is part of Input B, register it here.
 
 ### `Core_Foundations`
 
@@ -176,7 +397,7 @@ Each with GOLD URI where GOLD defines it:
 - `Political_Taxon`.
 - `Endangerment_Taxon`.
 - `Language_Family`, `Language_Subfamily`.
-- `Dialect` (list, with phonetic/morphological differences; only differences attested in the sources; if none are attested, record a gap and leave the list empty).
+- `Dialect` (list, with phonetic/morphological differences; only differences attested in the sources; if none are attested, record a gap and omit the key).
 - `The_Linguistic_Sign`.
 - `Linguistic_Unit`.
 - `Language_varieties`.
@@ -184,7 +405,7 @@ Each with GOLD URI where GOLD defines it:
 ### `Phonetics_and_Phonology`
 
 - Vowel inventory (6 phonemes: /a/, /e/, /i/, /o/, /u/, /ɨ/; state the reduction facts only if attested in the sources).
-- Consonant inventory (state the number of phonemes only if the sources agree; otherwise record the disagreement under `verification`).
+- Consonant inventory (state the number of phonemes only if the sources agree; otherwise record the disagreement under `meta.notes.verification`). Represent any count as a **string**.
 - Stress placement (free, lexical; state only as attested in the sources).
 - Orthographic facts: 33-letter Cyrillic alphabet; `ё` vs `е`; hard sign `ъ` vs soft sign `ь`; the letters `э`, `ы`, `ё` as distinct from `е`, `и`, `о`.
 - **Morphophonological fact: epenthetic / buffer vowels.** State as a fact that Russian inserts epenthetic vowels in certain stem–suffix combinations:
@@ -250,7 +471,7 @@ For each pattern record: token order, POS of each part, resulting lemma, at leas
 ### `Semantics`
 
 - Lexical relations from the sources.
-- Semantic fields: kinship, colours, numerals, body parts.
+- Semantic fields: kinship, colours, numerals, body parts. **Every field must have attested content. Do not write `{}` or an empty list. If a field cannot be attested from Input B, omit it and record a gap.**
 - Borrowing strata: Old Church Slavonic, Turkic, Greek, Latin, French, German, English — only those attested in Input B.
 
 ### `Interfaces_and_Integration`
@@ -268,24 +489,10 @@ For each pattern record: token order, POS of each part, resulting lemma, at leas
 
 ### `Lexicon_Overview`
 
+- **This key is required by the schema. It must be present at the top level and non-empty.**
 - 20–25 sample entries: nouns, verbs, adjectives, and a few irregular and lexicalized words.
 - Each entry: `form`, `gloss`, `class`, and (for irregular verbs) `present_stem` and `past_stem`.
 - Include the homonymous lemmas listed under the `-а` homonymy fact and any suppletive comparative forms (`лучше`, `хуже`, `больше`, `меньше`).
-
-### `verification` / `gaps` (top level, only if needed)
-
-- `verification` records facts that the sources contain but that you could not confirm from a second independent source.
-- `gaps` records facts that are expected to exist in the language (or are required by the prompt) but that **the read sections of the sources do not cover**. A `gaps` entry means: "I read the relevant section and the fact is not there." It does **not** mean: "I have not read the relevant section yet." Unread sections go to `meta.notes.not_yet_processed`, not to `gaps`.
-
-See the "Additional requirements" section below for the exact format.
-
-### `lexicon_files` (top level, only if applicable)
-
-If a machine-readable dictionary, stem list, or paradigm table is part of Input B, do not inline it. Register it here with:
-
-- file name, format, columns, licence,
-- how a citation form is built from it,
-- the lemma convention it follows.
 
 ## Validation checklist
 
@@ -301,33 +508,42 @@ Before declaring the file done, verify:
 8. Every irregular verb has both stems.
 9. Every lexicalized word is in the whitelist.
 10. No procedural rule, no pseudo-code, no Python name, and **no meta-instruction to the reader** appears in the file.
-11. **`gaps` contains only `status: "missing"` entries.** Any section that has not been read yet appears in `meta.notes.not_yet_processed`, not in `gaps`.
+11. **`meta.notes.gaps` contains only `status: "missing"` entries.** Any section that has not been read yet appears in `meta.notes.not_yet_processed`, not in `meta.notes.gaps`.
 12. `meta.notes.processed` and `meta.notes.not_yet_processed` together account for all the sections of the grammar that the table of contents lists: every section is either processed or explicitly pending.
 13. `meta.notes.input_validation` records the result of validating every attached input.
+14. **`meta.sources` is a list of strings, not a list of objects.**
+15. **No leaf value in the concept tree is a bare number, boolean, `null`, empty object `{}`, or empty array `[]`.**
+16. **Every required field for a language ontology is present in `meta`:** `title`, `version`, `description`, `sources`, `gold_base_uri`, `language_name`, `iso_code` (three lowercase letters), `classification`, `location`.
+17. **`Lexicon_Overview` is present at the top level and is non-empty.**
+18. **Every required field in `meta` is non-empty.**
+19. **`python scripts/validate.py` passes with `OK` for `OntoRussian.json`.** Do not declare the file done until the repository validator says `OK`.
+20. **The top-level key set is exactly the nine permitted keys.** No `gaps`, `verification`, `lexicon_files`, `Processing_Notes`, `typology`, or any other top-level key appears. Everything that is not one of the nine keys lives inside `meta`.
+21. **The two schema files were read before writing**, and the structure of the file matches `language-ontology.schema.json`, not just `base-ontology.schema.json`. In particular:
+    - `meta` has `language_name`, `iso_code` (three lowercase letters), `classification`, `location`;
+    - `Lexicon_Overview` is present at the top level and non-empty;
+    - no extra top-level key exists.
 
-If a fact cannot be verified from a source, remove it and add a record to `verification` or `gaps`. If a section has not been read, add it to `meta.notes.not_yet_processed`. Fix and re-check until all pass.
+If a fact cannot be verified from a source, remove it and add a record to `meta.notes.verification` or `meta.notes.gaps`. If a section has not been read, add it to `meta.notes.not_yet_processed`. Fix and re-check until all pass.
 
 ## Additional requirements
 
 ### `meta` — exact formats
 
-- `speaker_population` must be a **string**, not a number. Example: `"150000000"`, not `150000000`. The figure must come from the attached sources. If the sources give different figures, record the range and cite each source. Do not use an outdated figure from memory.
-- `dialects` must be a **list of strings**. Include only groups attested in Input B. If the attached grammars do not describe dialects, leave the list empty and record a gap (see the `meta.dialects` instructions above).
+- `speaker_population` must be a **string**. Example: `"255000000"`, not `255000000`. The figure must come from the attached sources. If the sources give different figures, record the range and cite each source. Do not use a figure from memory. If no figure is given in the sources, omit the key and record a gap.
+- `dialects` must be a **list of strings** if present. Include only groups attested in Input B. If the attached grammars do not describe dialects, omit the key and record a gap.
 - `iso_code` must be exactly **three lowercase Latin letters**: `"rus"`. Not `"RUS"`, not `"Russian"`.
 - `iso_639_1` must be exactly **two lowercase Latin letters**: `"ru"`.
-- For **every source** in `sources`, include a record with:
-  - `name`
-  - `url`
-  - `version` or `commit`
-  - `license`
-  - `annotation_type` (if applicable)
+- `meta.sources` must be a **list of strings**, not a list of objects. Do not use `name`, `url`, `version`, `license`, `annotation_type` keys. If you need to record URL, version, or license, put it inside the same string or in `meta.notes`.
 - `meta` must include a `date` field with the date the ontology was built, in ISO 8601 format.
 - `meta` must include a `scope` field: one sentence describing what the ontology covers (Standard Russian, literary, Moscow norm, Cyrillic script).
 - `meta` must include a `notes` field recording:
   - `processed`: list of sections processed so far, in order, with paragraph numbers,
   - `not_yet_processed`: list of sections that are known to contain relevant facts but have not been read yet, with paragraph numbers if known,
   - `input_validation`: the result of validating every attached input,
-  - `limitations`: any other limitation (e.g. a scanned PDF without a text layer).
+  - `limitations`: any other limitation (e.g. a scanned PDF without a text layer),
+  - `gaps` (optional): list of records with `status: "missing"`,
+  - `verification` (optional): list of records with `status: "unverified"`,
+  - `lexicon_files` (optional): if a machine-readable dictionary is part of Input B, register it here.
 
 ### Synchrony vs diachrony
 
@@ -341,32 +557,36 @@ Examples:
 
 Do not mix synchrony and diachrony in one statement without saying which is which. If a fact is both (e.g. an inherited pattern that is still productive synchronically), state both explicitly.
 
-### `verification` and `gaps` — exact format
+### `meta.notes.gaps` and `meta.notes.verification` — exact format
 
-Both `verification` and `gaps` must be **lists of records**. Each record must contain:
+Both `meta.notes.gaps` and `meta.notes.verification` must be **lists of records**. Each record must contain:
 
 - `fact`: what could not be verified or is missing (short description).
 - `reason`: why it could not be verified.
 - `where_searched`: which sources were checked (list of source names).
-- `status`: `"unverified"` for `verification`, `"missing"` for `gaps`.
+- `status`: `"unverified"` for `meta.notes.verification`, `"missing"` for `meta.notes.gaps`.
 
 Example:
 
 ```json
-"gaps": [
-  {
-    "fact": "Number of consonant phonemes in Standard Russian",
-    "reason": "The attached sources do not agree on a single inventory",
-    "where_searched": ["Timberlake (2004)", "Wade (2011)"],
-    "status": "missing"
-  }
-]
+"notes": {
+  "...": "...",
+  "gaps": [
+    {
+      "fact": "Number of consonant phonemes in Standard Russian",
+      "reason": "The attached sources do not agree on a single inventory",
+      "where_searched": ["Timberlake (2004)", "Wade (2011)"],
+      "status": "missing"
+    }
+  ]
+}
 ```
 
 Rules:
 
-- `verification` records facts that the sources contain but that you could not confirm from a second independent source.
-- `gaps` records facts that are expected to exist in the language (or are required by the prompt) but that **the read sections of the sources do not cover**. A `gaps` entry means: "I read the relevant section and the fact is not there." It does **not** mean: "I have not read the relevant section yet."
-- Unread sections go to `meta.notes.not_yet_processed`, not to `gaps`.
+- `meta.notes.verification` records facts that the sources contain but that you could not confirm from a second independent source.
+- `meta.notes.gaps` records facts that are expected to exist in the language (or are required by the prompt) but that **the read sections of the sources do not cover**. A `gaps` entry means: "I read the relevant section and the fact is not there." It does **not** mean: "I have not read the relevant section yet."
+- Unread sections go to `meta.notes.not_yet_processed`, not to `meta.notes.gaps`.
 - Do not invent facts to fill either list. An empty list is acceptable.
-- Every entry in `verification` must have `status: "unverified"`. Every entry in `gaps` must have `status: "missing"`.
+- Every entry in `meta.notes.verification` must have `status: "unverified"`. Every entry in `meta.notes.gaps` must have `status: "missing"`.
+- Do **not** create a top-level `gaps`, `verification`, or `lexicon_files` key. The validator will reject the file.
