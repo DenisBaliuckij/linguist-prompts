@@ -22,6 +22,14 @@ Input C (optional): the annotation guidelines of the gold corpus that will be
 used for evaluation (for example, the UD Tongan documentation and the README
 of the chosen treebank). Use it only for lemma conventions, never as a source
 of test items.
+If Input C is not attached, there is no target corpus: read every mention of
+"the target corpus" below as "the attached dictionary", use Universal
+Dependencies feature names, and take lemma conventions from the dictionary
+headwords. Record them in `lemma_conventions` with `source: dictionary` and
+`status: provisional`, and add a record to `gaps` saying that corpus
+conventions were not available. Where the sources allow two reasonable lemma
+choices (for example a derived verb or its base), record both and mark the
+rule `lexicon_required`.
 
 Task: keep the sections of Input A that are compatible with Tongan, but fill
 them only with facts from Input B and Input C. Do not produce a reduced
