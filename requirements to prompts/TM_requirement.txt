@@ -1,0 +1,5 @@
+What I would look at while evaluating how good a prompt is?
+- Generality. Even if are deling with a particular language, it is good when we avoid language-specific terms and names. Maximal generality will help to test this prompt on other languages and to merge/mix/combine it with other prompts.
+- Output. In fact, it is not important what we will find inside a prompt. The most impotant thing is the result of its work: ontology, list of use-cases, etc. So, to evaluate a prompt, it would be good to see how it works and what it brings as a result.
+- Structure. It concerns use-case generation. I mean that if we already have a big instruction of how to find use-cases (UseCaseGen.json), we do not need to rewrite this guide in the prompt itself. There should be something new, e.g. target language or what the AI model should focus on.
+- Economy. In my opinion, the less words we use, the more effective the prompt is and the easier it is to evaluate it.
