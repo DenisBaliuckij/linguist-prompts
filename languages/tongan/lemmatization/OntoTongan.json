@@ -1,0 +1,2550 @@
+{
+ "meta": {
+  "title": "OntoTongan: Tongan morphology ontology for rule-based lemmatization",
+  "version": "0.1",
+  "description": "Tongan (ton) morphology ontology for a rule-based lemmatizer, following the GOLD OntoLing structure; filled only from the attached sources. Morphology module for lemmatization (orthography, particles, pronouns, possessives, determiners, derivation, reduplication, register). Syntax and Semantics of GOLD not populated.",
+  "sources": [
+   "S1. Churchward, C. Maxwell. Tongan Grammar. First published 1953; Vavaʻu Press paperback 1985 (file: tongan-grammar_compress.pdf); scanned image PDF, text obtained by OCR (tesseract); 160 page images; covers chapters 1-36 (ch.36 ends at p.305); OCR noise present, so only clearly legible items are used",
+   "S2. Kaikki.org Tongan dictionary extract (Wiktionary data) (file: kaikki_org-dictionary-Tongan.jsonl)",
+   "S3. Unified Ontology of General and Theoretical Linguistics (GOLD OntoLing), v1.0 (file: GOLD_OntoLing.json); Input A: structure only"
+  ],
+  "gold_base_uri": "http://purl.org/linguistics/gold/",
+  "language_name": "Tongan (Lea faka-Tonga)",
+  "iso_code": "ton",
+  "iso_639_1": "to",
+  "classification": "Polynesian (the dictionary etymologies trace Tongan words to Proto-Polynesian); full genetic path not stated in the processed sources",
+  "location": "Tonga (subject of S1, Churchward, Tongan Grammar)",
+  "date": "2026-10-21",
+  "input_c": "not attached: no target corpus; Universal Dependencies feature names used; lemma conventions taken from dictionary headwords"
+ },
+ "Core_Foundations": {
+  "Language": {
+   "name": "Tongan",
+   "iso_639_3": "ton",
+   "iso_639_1": "to",
+   "source": "S1; S2"
+  },
+  "writing_system": "Latin script with glottal stop (ʻ) and macrons; see Morphology.orthography rules ORTH-001..006",
+  "gold_sections_kept": [
+   "Phonetics_and_Phonology (orthography only)",
+   "Morphology"
+  ],
+  "gold_sections_not_populated": [
+   "Syntax",
+   "Semantics",
+   "Interfaces_and_Integration",
+   "Relations_and_Properties"
+  ],
+  "dialects": "no regional dialect differences described in the processed sources (see gaps)"
+ },
+ "Phonetics_and_Phonology": {
+  "scope": "only the orthographic facts needed for form matching are populated; rules ORTH-001 (glottal stop), ORTH-002 (long vowels), ORTH-003 (stress accent) are stored in Morphology.rules",
+  "glottal_stop": "written ʻ (U+02BB) in the dictionary, inverted apostrophe in the grammar (S1 Introduction 5-6)",
+  "long_vowels": "ā ē ī ō ū (S1 ch.2 par.4)",
+  "stress": "acute accent marks stressed final vowel in the grammar; absent in the dictionary (S1 ch.2)"
+ },
+ "Morphology": {
+  "parts_of_speech": {
+   "grammar_ten": [
+    "noun",
+    "verb",
+    "sign of number",
+    "sign of tense",
+    "adjective",
+    "adverb",
+    "preposition",
+    "conjunction",
+    "pronoun",
+    "interjection"
+   ],
+   "citation_form": "dictionary headword (S2); nouns, verbs, adjectives, adverbs interchange functions with no change of form (S1 ch.3 par.7-23)",
+   "dictionary_pos": {
+    "character": "3",
+    "name": "32",
+    "particle": "4",
+    "noun": "280",
+    "prep": "8",
+    "verb": "47",
+    "article": "1",
+    "pron": "5",
+    "adj": "36",
+    "num": "40",
+    "adv": "10",
+    "phrase": "1",
+    "intj": "1"
+   }
+  },
+  "tam_particles": [
+   {
+    "form": "ʻoku",
+    "meaning": "present (concurrent)",
+    "ud": "Tense=Pres",
+    "example": "ʻOkú ne lea. He speaks.",
+    "source": "S1 ch.7 par.1",
+    "separate_token": "yes in grammar (written apart from the pronoun, Introduction 12(d)); corpus unknown"
+   },
+   {
+    "form": "kuo",
+    "meaning": "perfect",
+    "ud": "Aspect=Perf",
+    "example": "Kuó ne lea. He has spoken.",
+    "source": "S1 ch.7 par.1",
+    "separate_token": "yes in grammar (written apart from the pronoun, Introduction 12(d)); corpus unknown"
+   },
+   {
+    "form": "naʻa / naʻe",
+    "meaning": "past (naʻa before a pronominal subject, naʻe elsewhere)",
+    "ud": "Tense=Past",
+    "example": "Naʻá ne lea. He spoke.",
+    "source": "S1 ch.7 par.1",
+    "separate_token": "yes in grammar (written apart from the pronoun, Introduction 12(d)); corpus unknown"
+   },
+   {
+    "form": "ne",
+    "meaning": "past (alternative to naʻa/naʻe)",
+    "ud": "Tense=Past",
+    "example": "Ne ne lea. He spoke.",
+    "source": "S1 ch.7 par.1",
+    "separate_token": "yes in grammar (written apart from the pronoun, Introduction 12(d)); corpus unknown"
+   },
+   {
+    "form": "te / ʻe",
+    "meaning": "future (te before a pronominal subject, ʻe elsewhere; he for ʻe before ʻikai)",
+    "ud": "Tense=Fut",
+    "example": "Te ne lea. He will speak.",
+    "source": "S1 ch.7 par.1",
+    "separate_token": "yes in grammar (written apart from the pronoun, Introduction 12(d)); corpus unknown"
+   },
+   {
+    "form": "ka",
+    "meaning": "future in clauses after hangé, in adjectival clauses on time nouns, and after ka/ʻo ka + cardinal pronoun",
+    "ud": "Tense=Fut",
+    "source": "S1 ch.7 par.1",
+    "separate_token": "yes in grammar (written apart from the pronoun, Introduction 12(d)); corpus unknown"
+   },
+   {
+    "form": "lolotonga",
+    "meaning": "auxiliary verb, \"be in progress\"",
+    "ud": "Aspect=Prog",
+    "source": "S1 ch.7 par.1",
+    "separate_token": "yes in grammar (written apart from the pronoun, Introduction 12(d)); corpus unknown"
+   },
+   {
+    "form": "ʻosi",
+    "meaning": "auxiliary verb, \"already, finished\"",
+    "ud": "Aspect=Perf",
+    "source": "S1 ch.7 par.1",
+    "separate_token": "yes in grammar (written apart from the pronoun, Introduction 12(d)); corpus unknown"
+   }
+  ],
+  "pronouns": {
+   "cardinal": [
+    {
+     "person": "1",
+     "clusivity": "Exc",
+     "number": "Sing",
+     "preposed": [
+      "ou",
+      "ku",
+      "u",
+      "kau"
+     ],
+     "postposed": "au",
+     "ud": {
+      "Person": "1",
+      "Number": "Sing",
+      "Clusivity": "Exc",
+      "PronType": "Prs"
+     }
+    },
+    {
+     "person": "1",
+     "clusivity": "Exc",
+     "number": "Dual",
+     "preposed": [
+      "ma"
+     ],
+     "postposed": "kimaua",
+     "ud": {
+      "Person": "1",
+      "Number": "Dual",
+      "Clusivity": "Exc",
+      "PronType": "Prs"
+     }
+    },
+    {
+     "person": "1",
+     "clusivity": "Exc",
+     "number": "Plur",
+     "preposed": [
+      "mau"
+     ],
+     "postposed": "kimautolu",
+     "ud": {
+      "Person": "1",
+      "Number": "Plur",
+      "Clusivity": "Exc",
+      "PronType": "Prs"
+     }
+    },
+    {
+     "person": "1",
+     "clusivity": "Inc",
+     "number": "Sing",
+     "preposed": [
+      "te"
+     ],
+     "postposed": "kita",
+     "ud": {
+      "Person": "1",
+      "Number": "Sing",
+      "Clusivity": "Inc",
+      "PronType": "Prs"
+     }
+    },
+    {
+     "person": "1",
+     "clusivity": "Inc",
+     "number": "Dual",
+     "preposed": [
+      "ta"
+     ],
+     "postposed": "kitaua",
+     "ud": {
+      "Person": "1",
+      "Number": "Dual",
+      "Clusivity": "Inc",
+      "PronType": "Prs"
+     }
+    },
+    {
+     "person": "1",
+     "clusivity": "Inc",
+     "number": "Plur",
+     "preposed": [
+      "tau"
+     ],
+     "postposed": "kitautolu",
+     "ud": {
+      "Person": "1",
+      "Number": "Plur",
+      "Clusivity": "Inc",
+      "PronType": "Prs"
+     }
+    },
+    {
+     "person": "2",
+     "number": "Sing",
+     "preposed": [
+      "ke"
+     ],
+     "postposed": "koe",
+     "ud": {
+      "Person": "2",
+      "Number": "Sing",
+      "PronType": "Prs"
+     }
+    },
+    {
+     "person": "2",
+     "number": "Dual",
+     "preposed": [
+      "mo"
+     ],
+     "postposed": "kimoua",
+     "ud": {
+      "Person": "2",
+      "Number": "Dual",
+      "PronType": "Prs"
+     }
+    },
+    {
+     "person": "2",
+     "number": "Plur",
+     "preposed": [
+      "mou"
+     ],
+     "postposed": "kimoutolu",
+     "ud": {
+      "Person": "2",
+      "Number": "Plur",
+      "PronType": "Prs"
+     }
+    },
+    {
+     "person": "3",
+     "number": "Sing",
+     "preposed": [
+      "ne"
+     ],
+     "postposed": "ia",
+     "ud": {
+      "Person": "3",
+      "Number": "Sing",
+      "PronType": "Prs"
+     }
+    },
+    {
+     "person": "3",
+     "number": "Dual",
+     "preposed": [
+      "na"
+     ],
+     "postposed": "kinaua",
+     "ud": {
+      "Person": "3",
+      "Number": "Dual",
+      "PronType": "Prs"
+     }
+    },
+    {
+     "person": "3",
+     "number": "Plur",
+     "preposed": [
+      "nau"
+     ],
+     "postposed": "kinautolu",
+     "ud": {
+      "Person": "3",
+      "Number": "Plur",
+      "PronType": "Prs"
+     }
+    }
+   ],
+   "possessive_forms": [
+    {
+     "class_": "a",
+     "possessor": {
+      "Person": "1",
+      "Number": "Sing",
+      "Clusivity": "Exc"
+     },
+     "definite_ordinary": "heʻeku",
+     "definite_ordinary_elided": "ʻeku",
+     "definite_emotional": "siʻeku",
+     "indefinite_ordinary": "haʻaku",
+     "indefinite_emotional": "siʻaku",
+     "emphatic": "haʻaku"
+    },
+    {
+     "class_": "a",
+     "possessor": {
+      "Person": "1",
+      "Number": "Dual",
+      "Clusivity": "Exc"
+     },
+     "definite_ordinary": "heʻema",
+     "definite_ordinary_elided": "ʻema",
+     "definite_emotional": "siʻema",
+     "indefinite_ordinary": "haʻama",
+     "indefinite_emotional": "siʻama",
+     "emphatic": "haʻamaua"
+    },
+    {
+     "class_": "a",
+     "possessor": {
+      "Person": "1",
+      "Number": "Plur",
+      "Clusivity": "Exc"
+     },
+     "definite_ordinary": "heʻemau",
+     "definite_ordinary_elided": "ʻemau",
+     "definite_emotional": "siʻemau",
+     "indefinite_ordinary": "haʻamau",
+     "indefinite_emotional": "siʻamau",
+     "emphatic": "haʻamautolu"
+    },
+    {
+     "class_": "a",
+     "possessor": {
+      "Person": "1",
+      "Number": "Sing",
+      "Clusivity": "Inc"
+     },
+     "definite_ordinary": "heʻete",
+     "definite_ordinary_elided": "ʻete",
+     "definite_emotional": "siʻete",
+     "indefinite_ordinary": "haʻate",
+     "indefinite_emotional": "siʻate",
+     "emphatic": "haʻata"
+    },
+    {
+     "class_": "a",
+     "possessor": {
+      "Person": "1",
+      "Number": "Dual",
+      "Clusivity": "Inc"
+     },
+     "definite_ordinary": "heʻeta",
+     "definite_ordinary_elided": "ʻeta",
+     "definite_emotional": "siʻeta",
+     "indefinite_ordinary": "haʻata",
+     "indefinite_emotional": "siʻata",
+     "emphatic": "haʻataua"
+    },
+    {
+     "class_": "a",
+     "possessor": {
+      "Person": "1",
+      "Number": "Plur",
+      "Clusivity": "Inc"
+     },
+     "definite_ordinary": "heʻetau",
+     "definite_ordinary_elided": "ʻetau",
+     "definite_emotional": "siʻetau",
+     "indefinite_ordinary": "haʻatau",
+     "indefinite_emotional": "siʻatau",
+     "emphatic": "haʻatautolu"
+    },
+    {
+     "class_": "a",
+     "possessor": {
+      "Person": "2",
+      "Number": "Sing"
+     },
+     "definite_ordinary": "hoʻo",
+     "definite_ordinary_elided": "hoʻo",
+     "definite_emotional": "siʻo",
+     "indefinite_ordinary": "haʻo",
+     "indefinite_emotional": "siʻao",
+     "emphatic": "haʻau"
+    },
+    {
+     "class_": "a",
+     "possessor": {
+      "Person": "2",
+      "Number": "Dual"
+     },
+     "definite_ordinary": "hoʻomo",
+     "definite_ordinary_elided": "hoʻomo",
+     "definite_emotional": "siʻomo",
+     "indefinite_ordinary": "haʻamo",
+     "indefinite_emotional": "siʻamo",
+     "emphatic": "haʻamoua"
+    },
+    {
+     "class_": "a",
+     "possessor": {
+      "Person": "2",
+      "Number": "Plur"
+     },
+     "definite_ordinary": "hoʻomou",
+     "definite_ordinary_elided": "hoʻomou",
+     "definite_emotional": "siʻomou",
+     "indefinite_ordinary": "haʻamou",
+     "indefinite_emotional": "siʻamou",
+     "emphatic": "haʻamoutolu"
+    },
+    {
+     "class_": "a",
+     "possessor": {
+      "Person": "3",
+      "Number": "Sing"
+     },
+     "definite_ordinary": "heʻene",
+     "definite_ordinary_elided": "ʻene",
+     "definite_emotional": "siʻene",
+     "indefinite_ordinary": "haʻane",
+     "indefinite_emotional": "siʻane",
+     "emphatic": "haʻana"
+    },
+    {
+     "class_": "a",
+     "possessor": {
+      "Person": "3",
+      "Number": "Dual"
+     },
+     "definite_ordinary": "heʻena",
+     "definite_ordinary_elided": "ʻena",
+     "definite_emotional": "siʻena",
+     "indefinite_ordinary": "haʻana",
+     "indefinite_emotional": "siʻana",
+     "emphatic": "haʻanaua"
+    },
+    {
+     "class_": "a",
+     "possessor": {
+      "Person": "3",
+      "Number": "Plur"
+     },
+     "definite_ordinary": "heʻenau",
+     "definite_ordinary_elided": "ʻenau",
+     "definite_emotional": "siʻenau",
+     "indefinite_ordinary": "haʻanau",
+     "indefinite_emotional": "siʻanau",
+     "emphatic": "haʻanautolu"
+    },
+    {
+     "class_": "o",
+     "possessor": {
+      "Person": "1",
+      "Number": "Sing",
+      "Clusivity": "Exc"
+     },
+     "definite_ordinary": "hoku",
+     "definite_emotional": "siʻoku",
+     "indefinite_ordinary": "haku",
+     "indefinite_emotional": "siʻaku",
+     "emphatic": "hoʻoku"
+    },
+    {
+     "class_": "o",
+     "possessor": {
+      "Person": "1",
+      "Number": "Dual",
+      "Clusivity": "Exc"
+     },
+     "definite_ordinary": "homa",
+     "definite_emotional": "siʻoma",
+     "indefinite_ordinary": "hama",
+     "indefinite_emotional": "siʻama",
+     "emphatic": "hoʻomaua"
+    },
+    {
+     "class_": "o",
+     "possessor": {
+      "Person": "1",
+      "Number": "Plur",
+      "Clusivity": "Exc"
+     },
+     "definite_ordinary": "homau",
+     "definite_emotional": "siʻomau",
+     "indefinite_ordinary": "hamau",
+     "indefinite_emotional": "siʻamau",
+     "emphatic": "hoʻomautolu"
+    },
+    {
+     "class_": "o",
+     "possessor": {
+      "Person": "1",
+      "Number": "Sing",
+      "Clusivity": "Inc"
+     },
+     "definite_ordinary": "hoto",
+     "definite_emotional": "siʻoto",
+     "indefinite_ordinary": "hato",
+     "indefinite_emotional": "siʻato",
+     "emphatic": "hoʻota"
+    },
+    {
+     "class_": "o",
+     "possessor": {
+      "Person": "1",
+      "Number": "Dual",
+      "Clusivity": "Inc"
+     },
+     "definite_ordinary": "hota",
+     "definite_emotional": "siʻota",
+     "indefinite_ordinary": "hata",
+     "indefinite_emotional": "siʻata",
+     "emphatic": "hoʻotaua"
+    },
+    {
+     "class_": "o",
+     "possessor": {
+      "Person": "1",
+      "Number": "Plur",
+      "Clusivity": "Inc"
+     },
+     "definite_ordinary": "hotau",
+     "definite_emotional": "siʻotau",
+     "indefinite_ordinary": "hatau",
+     "indefinite_emotional": "siʻatau",
+     "emphatic": "hoʻotautolu"
+    },
+    {
+     "class_": "o",
+     "possessor": {
+      "Person": "2",
+      "Number": "Sing"
+     },
+     "definite_ordinary": "ho",
+     "definite_emotional": "siʻo",
+     "indefinite_ordinary": "hao",
+     "indefinite_emotional": "siʻao",
+     "emphatic": "hoʻou"
+    },
+    {
+     "class_": "o",
+     "possessor": {
+      "Person": "2",
+      "Number": "Dual"
+     },
+     "definite_ordinary": "homo",
+     "definite_emotional": "siʻomo",
+     "indefinite_ordinary": "hamo",
+     "indefinite_emotional": "siʻamo",
+     "emphatic": "hoʻomoua"
+    },
+    {
+     "class_": "o",
+     "possessor": {
+      "Person": "2",
+      "Number": "Plur"
+     },
+     "definite_ordinary": "homou",
+     "definite_emotional": "siʻomou",
+     "indefinite_ordinary": "hamou",
+     "indefinite_emotional": "siʻamou",
+     "emphatic": "hoʻomoutolu"
+    },
+    {
+     "class_": "o",
+     "possessor": {
+      "Person": "3",
+      "Number": "Sing"
+     },
+     "definite_ordinary": "hono",
+     "definite_emotional": "siʻono",
+     "indefinite_ordinary": "hano",
+     "indefinite_emotional": "siʻano",
+     "emphatic": "hoʻona"
+    },
+    {
+     "class_": "o",
+     "possessor": {
+      "Person": "3",
+      "Number": "Dual"
+     },
+     "definite_ordinary": "hona",
+     "definite_emotional": "siʻona",
+     "indefinite_ordinary": "hana",
+     "indefinite_emotional": "siʻana",
+     "emphatic": "hoʻonaua"
+    },
+    {
+     "class_": "o",
+     "possessor": {
+      "Person": "3",
+      "Number": "Plur"
+     },
+     "definite_ordinary": "honau",
+     "definite_emotional": "siʻonau",
+     "indefinite_ordinary": "hanau",
+     "indefinite_emotional": "siʻanau",
+     "emphatic": "hoʻonautolu"
+    }
+   ],
+   "possessive_note": "dual/plural pronominal element: plural = dual + -u (S1 ch.20 par.14)"
+  },
+  "register": [
+   {
+    "meaning": "to eat",
+    "ordinary": "kai",
+    "polite": "tokoni",
+    "honorific": "ʻilo",
+    "regal": "taumafa",
+    "derogatory": "mama",
+    "source": "S1 ch.36 par.6-7"
+   }
+  ],
+  "irregular_forms": [
+   {
+    "form": "ʻAfifio",
+    "lemma": "ʻAfio",
+    "kind": "plural",
+    "source": "S1 ch.6"
+   },
+   {
+    "form": "houʻeiki",
+    "lemma": "ʻeiki",
+    "kind": "plural",
+    "source": "S1 ch.6"
+   },
+   {
+    "form": "fefine",
+    "lemma": "fafine",
+    "kind": "variant plural",
+    "source": "S1 ch.6"
+   },
+   {
+    "form": "matuʻa",
+    "lemma": "motuʻa",
+    "kind": "plural",
+    "source": "S1 ch.6"
+   },
+   {
+    "form": "tamaiki",
+    "lemma": "tamasiʻi",
+    "kind": "plural",
+    "source": "S1 ch.6"
+   },
+   {
+    "form": "makapuna",
+    "lemma": "mokopuna",
+    "kind": "plural",
+    "source": "S1 ch.6"
+   },
+   {
+    "form": "fototehina",
+    "lemma": "tehina",
+    "kind": "plural",
+    "source": "S1 ch.6"
+   },
+   {
+    "form": "tuofafine",
+    "lemma": "tuofefine",
+    "kind": "plural",
+    "source": "S1 ch.6"
+   },
+   {
+    "form": "ō",
+    "lemma": "ʻalu",
+    "kind": "dual/plural subject",
+    "source": "S1 ch.6"
+   },
+   {
+    "form": "takoto",
+    "lemma": "tokoto",
+    "kind": "dual/plural object",
+    "source": "S1 ch.6"
+   },
+   {
+    "form": "fakatakoto",
+    "lemma": "fakatokoto",
+    "kind": "dual/plural object",
+    "source": "S1 ch.6"
+   },
+   {
+    "form": "nonofo",
+    "lemma": "nofo",
+    "kind": "dual/plural",
+    "source": "S1 ch.6"
+   },
+   {
+    "form": "keinanga",
+    "lemma": "kai",
+    "kind": "together",
+    "source": "S1 ch.6"
+   },
+   {
+    "form": "tutuʻu",
+    "lemma": "tuʻu",
+    "kind": "dual/plural",
+    "source": "S1 ch.6"
+   },
+   {
+    "form": "tutupu",
+    "lemma": "tupu",
+    "kind": "dual/plural",
+    "source": "S1 ch.6"
+   },
+   {
+    "form": "kakata",
+    "lemma": "kata",
+    "kind": "dual/plural",
+    "source": "S1 ch.6"
+   },
+   {
+    "form": "matutuʻa",
+    "lemma": "motuʻa",
+    "kind": "dual/plural adjective, persons",
+    "source": "S1 ch.6"
+   },
+   {
+    "form": "lalahi",
+    "lemma": "lahi",
+    "kind": "dual/plural adjective",
+    "source": "S1 ch.6"
+   }
+  ],
+  "rules": [
+   {
+    "id": "ORTH-001",
+    "input_pattern": "glottal stop written ʻ (U+02BB) in the dictionary; inverted apostrophe (‘) in the grammar; may be absent in some headwords",
+    "operation": "for matching: delete all of [ʻ ‘ ’ ' ʼ `] from both the form and the lexicon key; keep the dictionary spelling (U+02BB) as output",
+    "conditions": {
+     "pos": "any"
+    },
+    "examples": [
+     {
+      "form": "osi",
+      "lemma": "ʻosi",
+      "gloss": "to finish",
+      "translation": "To finish",
+      "source": "S2 forms of ʻosi"
+     },
+     {
+      "form": "oji",
+      "lemma": "ʻosi",
+      "gloss": "to finish",
+      "translation": "To finish",
+      "source": "S2 forms of ʻosi"
+     },
+     {
+      "form": "ʻoji",
+      "lemma": "ʻosi",
+      "gloss": "to finish",
+      "translation": "To finish",
+      "source": "S2 forms of ʻosi"
+     }
+    ],
+    "source": "S1 Introduction 5-6; S2",
+    "status": "rule",
+    "notes": "Grammar states the inverted apostrophe represents the glottal stop wherever it occurs (Privy Council 1943). Dictionary headwords use U+02BB (86 occurrences) but some headwords omit it (alu, oku) where the grammar writes ʻalu, ʻoku. Other encodings (straight, right-quote, U+02BC) are not described in the sources: treated only as normalization targets (see gaps)."
+   },
+   {
+    "id": "ORTH-002",
+    "input_pattern": "long vowels ā ē ī ō ū (macron)",
+    "operation": "for matching: remove macron; recover lemma from lexicon key; two headwords may differ only by the macron",
+    "conditions": {
+     "pos": "any"
+    },
+    "examples": [
+     {
+      "form": "māhina",
+      "lemma": "māhina",
+      "gloss": "moon",
+      "translation": "moon",
+      "source": "S2 headword"
+     },
+     {
+      "form": "mahina",
+      "lemma": "mahina",
+      "gloss": "moon",
+      "translation": "moon",
+      "source": "S2 headword"
+     },
+     {
+      "form": "mahina",
+      "lemma": "māhina",
+      "gloss": "moon",
+      "translation": "moon",
+      "source": "S2 two noun headwords, both \"moon\""
+     }
+    ],
+    "source": "S1 ch.2 par.4-5; S2",
+    "status": "lexicon_required",
+    "notes": "Grammar: normal vs long vowel often distinguishes meaning (e.g. kaka/kāka/kākā, mo/mō). Dictionary writes macrons (ā 60, ō 13, ē 13, ī 6, ū 1)."
+   },
+   {
+    "id": "ORTH-003",
+    "input_pattern": "acute accent for stress (final-vowel stress, definitive accent): falé, ngāué, ʻalú",
+    "operation": "delete U+0301 and any acute on a final vowel; lemma = unaccented form",
+    "conditions": {
+     "pos": "noun/verb/pronoun"
+    },
+    "examples": [
+     {
+      "form": "falé ni",
+      "lemma": "fale",
+      "gloss": "this house",
+      "translation": "this house",
+      "source": "S1 ch.2 par.12, ch.23 par.14(a)"
+     }
+    ],
+    "source": "S1 ch.2 par.6-17, 27-29",
+    "status": "rule",
+    "notes": "Grammar recommends marking only stressed final vowels other than macron vowels; the definitive accent shifts to the end of the nounal group. The dictionary does not mark stress."
+   },
+   {
+    "id": "ORTH-004",
+    "input_pattern": "word division: preposition, article and pronoun written apart; tense sign apart from pronoun; conjunction apart from pronoun; pé and taʻe, kei, mei apart; fie apart",
+    "operation": "tokenize at spaces; do not merge. Compounds written as one word keep one lemma",
+    "conditions": {
+     "pos": "any"
+    },
+    "examples": [
+     {
+      "form": "ki he falé",
+      "lemma": "ki he fale",
+      "gloss": "to the house",
+      "translation": "to the house",
+      "source": "S1 Introduction 12(a)"
+     },
+     {
+      "form": "te u ʻalu",
+      "lemma": "te u ʻalu",
+      "gloss": "I shall go",
+      "translation": "I shall go",
+      "source": "S1 Introduction 12(d)"
+     },
+     {
+      "form": "famasiʻi",
+      "lemma": "famasiʻi",
+      "gloss": "compound of tama + siʻi (as written in grammar)",
+      "translation": "compound word",
+      "source": "S1 Introduction 14"
+     }
+    ],
+    "source": "S1 Introduction 12-18",
+    "status": "rule",
+    "notes": "Written-as-one compounds named in grammar: tamaiki, meʻakai, vakapuna, manupuna, mamani (vs mama ni), faʻahitaʻu, tangataʻeiki; all possessive pronouns and pronominal adjectives are written as one word."
+   },
+   {
+    "id": "ORTH-005",
+    "input_pattern": "capitalised proper names; pos \"name\" in dictionary",
+    "operation": "lemma = capitalised name as headword (incl. ʻ and macron)",
+    "conditions": {
+     "pos": "PROPN"
+    },
+    "examples": [
+     {
+      "form": "Tonga",
+      "lemma": "Tonga",
+      "gloss": "Tonga (a country and archipelago of Polynesia in Oceania)",
+      "translation": "Tonga (a country and archipelago of Polynesia in Oceania)",
+      "source": "S2 headword"
+     },
+     {
+      "form": "Nukuʻalofa",
+      "lemma": "Nukuʻalofa",
+      "gloss": "Nuku'alofa (the capital city of Tonga)",
+      "translation": "Nuku'alofa (the capital city of Tonga)",
+      "source": "S2 headword"
+     },
+     {
+      "form": "Siaosi",
+      "lemma": "Siaosi",
+      "gloss": "a male given name used, among others, by Tongan royalty",
+      "translation": "a male given name used, among others, by Tongan royalty",
+      "source": "S2 headword"
+     }
+    ],
+    "source": "S2",
+    "status": "rule"
+   },
+   {
+    "id": "ORTH-006",
+    "input_pattern": "obsolete spelling variants: b for p, j for s (and other differences)",
+    "operation": "lemma = alt_of target given in the dictionary (lexicon lookup); b→p and j→s are described in the grammar as replaced by p and s",
+    "conditions": {
+     "pos": "PROPN/ADV/NOUN"
+    },
+    "examples": [
+     {
+      "form": "behe",
+      "lemma": "pehe",
+      "gloss": "thus; so",
+      "translation": "thus; so",
+      "source": "S2 headword"
+     },
+     {
+      "form": "Bilitania",
+      "lemma": "Pilitānia",
+      "gloss": "Great Britain",
+      "translation": "Great Britain",
+      "source": "S2 headword"
+     },
+     {
+      "form": "June",
+      "lemma": "Sune",
+      "gloss": "June",
+      "translation": "June",
+      "source": "S2 headword"
+     },
+     {
+      "form": "Okatoba",
+      "lemma": "ʻOkatopa",
+      "gloss": "October",
+      "translation": "October",
+      "source": "S2 headword"
+     },
+     {
+      "form": "koti",
+      "lemma": "kosi",
+      "gloss": "goat (any ruminant of the genus Capra)",
+      "translation": "goat (any ruminant of the genus Capra)",
+      "source": "S2 headword"
+     }
+    ],
+    "source": "S1 Introduction 7-8; S2 alt-of senses",
+    "status": "lexicon_required",
+    "notes": "Dictionary has 16 alt-of pairs (14 tagged obsolete, 2 alternative). Classes among the 16 pairs: macron/ʻ differences only 5 (Me/Mē, Sepitema/Sēpitema, Epeleli/ʻEpeleli, Aokosi/ʻAokosi, Novema/Nōvema); b→p 3 (behe, Bilitania, Okatoba); j→s 3 (June, Julai, Januali); other 5. No class has ≥10 forms, so no default_replacement is recorded.",
+    "lexicon_counts": {
+     "alt_of_pairs": "16",
+     "macron_or_glottal_only": "5",
+     "b_to_p": "3",
+     "j_to_s": "3",
+     "other": "5"
+    }
+   },
+   {
+    "id": "TAM-001",
+    "input_pattern": "ʻoku | kuo | naʻa | naʻe | ne | te | ʻe | he | ka (tense signs)",
+    "operation": "keep as separate token; provisional lemma = the sign itself (dictionary headwords: te, ne, naʻe particles; oku verb \"to be\")",
+    "conditions": {
+     "pos": "PART/AUX",
+     "features": "Tense or Aspect as in tam_particles"
+    },
+    "examples": [
+     {
+      "form": "te",
+      "lemma": "te",
+      "gloss": "will (future tense particle)",
+      "translation": "will (future tense particle)",
+      "source": "S2 headword"
+     },
+     {
+      "form": "naʻe",
+      "lemma": "naʻe",
+      "gloss": "Used before a predicate to mark a past tense/aspect construction",
+      "translation": "Used before a predicate to mark a past tense/aspect construction",
+      "source": "S2 headword"
+     },
+     {
+      "form": "ne",
+      "lemma": "ne",
+      "gloss": "Used before a predicate to mark a past tense/aspect construction",
+      "translation": "Used before a predicate to mark a past tense/aspect construction",
+      "source": "S2 headword"
+     },
+     {
+      "form": "ʻOkú ne lea",
+      "lemma": "ʻoku lea",
+      "gloss": "pres 3sg speak",
+      "translation": "He speaks.",
+      "source": "S1 ch.7 par.1"
+     }
+    ],
+    "source": "S1 ch.7 par.1-4, 10-16; S2",
+    "status": "ambiguous",
+    "notes": "Dictionary has no entries for kuo, naʻa, ʻe, he, ka; no source states a lemma for tense signs, so the choice (sign itself vs normalised naʻa→naʻe, he/ʻe→te) is open. Dictionary lists ʻoku as a verb \"to be\" (headword oku)."
+   },
+   {
+    "id": "TAM-002",
+    "input_pattern": "no tense sign after mo, and, ʻo, and; past sign often dropped after pea",
+    "operation": "no lemma operation; tense is unmarked",
+    "conditions": {
+     "pos": "VERB"
+    },
+    "examples": [
+     {
+      "form": "Nau nofo hifo",
+      "lemma": "nofo",
+      "gloss": "they sat down",
+      "translation": "They sat down.",
+      "source": "S1 ch.7 note 4"
+     }
+    ],
+    "source": "S1 ch.7 notes 2-4",
+    "status": "rule"
+   },
+   {
+    "id": "PRON-001",
+    "input_pattern": "preposed cardinal pronouns (subject, enclitic) and postposed forms (table above)",
+    "operation": "provisional: the dictionary lemmatizes the 1sg to the postposed form au (ou alt-of au) but 3sg to preposed ne; no other pronoun has an entry. Per-person lemma candidates are in pronouns.cardinal",
+    "conditions": {
+     "pos": "PRON",
+     "features": "Person, Number, Clusivity, PronType=Prs"
+    },
+    "examples": [
+     {
+      "form": "ou",
+      "lemma": "au",
+      "gloss": "I (personal pronoun)",
+      "translation": "I (personal pronoun)",
+      "source": "S2 headword"
+     },
+     {
+      "form": "Kuo u fai eni",
+      "lemma": "u → au (candidate)",
+      "gloss": "perfect I do this",
+      "translation": "I have done this.",
+      "source": "S1 ch.4 par.3"
+     },
+     {
+      "form": "Kau ʻalu muʻa?",
+      "lemma": "kau → au (candidate)",
+      "gloss": "I go please",
+      "translation": "May I go, please?",
+      "source": "S1 ch.19 par.3(d)"
+     },
+     {
+      "form": "naʻé ku ui kinautolu",
+      "lemma": "ku → au (candidate)",
+      "gloss": "past I call them",
+      "translation": "I called them",
+      "source": "S1 ch.13 par.9"
+     }
+    ],
+    "source": "S1 ch.19 par.1-3, 13; S2",
+    "status": "ambiguous",
+    "notes": "Five 1sg exclusive forms (au, ou, ku, u, kau): ou after ʻoku; ku after naʻa; u after kuo, ne, te, ka, ke, pea, mo, ʻo; kau sentence-initially. Choice of lemma (preposed vs postposed) is not fixed by any source."
+   },
+   {
+    "id": "PRON-002",
+    "input_pattern": "ne (preposed 3sg), ia, kinaua, nau, kinautolu; ia/ne sometimes refer to inanimates",
+    "operation": "lemma candidates in table; ne also = past sign, ia also = demonstrative",
+    "conditions": {
+     "pos": "PRON",
+     "features": "Person=3"
+    },
+    "examples": [
+     {
+      "form": "ne",
+      "lemma": "ne",
+      "gloss": "he, she, it, occasionally they in reference to inanimate objects",
+      "translation": "he, she, it, occasionally they in reference to inanimate objects",
+      "source": "S2 headword"
+     },
+     {
+      "form": "ʻOkú ne lea",
+      "lemma": "ne",
+      "gloss": "pres 3sg speak",
+      "translation": "He speaks.",
+      "source": "S1 ch.7 par.1"
+     }
+    ],
+    "source": "S1 ch.19 par.7-8; S2",
+    "status": "ambiguous"
+   },
+   {
+    "id": "PRON-003",
+    "input_pattern": "kita \"one\"; also in siokita, taʻesiokita, fakaekita",
+    "operation": "lemma kita (indefinite one, or humble I/me)",
+    "conditions": {
+     "pos": "PRON"
+    },
+    "examples": [
+     {
+      "form": "kita",
+      "lemma": "kita",
+      "gloss": "one",
+      "translation": "one (indefinite), or I/me in polite speech",
+      "source": "S1 ch.19 par.5-6"
+     },
+     {
+      "form": "siokita",
+      "lemma": "siokita",
+      "gloss": "selfish",
+      "translation": "selfish(ness)",
+      "source": "S1 ch.19 par.6"
+     }
+    ],
+    "source": "S1 ch.19 par.5-6",
+    "status": "rule"
+   },
+   {
+    "id": "POSS-001",
+    "input_pattern": "possessive pronouns: 12 possessors x (definite, indefinite) x (ordinary, emotional) + emphatic, in two ranks (a-class \"subjective\", o-class \"objective\")",
+    "operation": "provisional lemma = the form itself (dictionary headword hoku \"my\"; dual/plural = singular + -u pattern in grammar); alternative analysis = article + ʻa/ʻo + cardinal pronoun (he ʻa ku → heʻeku)",
+    "conditions": {
+     "pos": "DET",
+     "features": "Poss=Yes, Person[psor], Number[psor], Clusivity[psor]"
+    },
+    "examples": [
+     {
+      "form": "hoku",
+      "lemma": "hoku",
+      "gloss": "my",
+      "translation": "my",
+      "source": "S2 headword"
+     },
+     {
+      "form": "heʻeku",
+      "lemma": "heʻeku → he ʻa ku",
+      "gloss": "the-of-me",
+      "translation": "my (def.)",
+      "source": "S1 ch.20 par.10"
+     },
+     {
+      "form": "ʻeku hele",
+      "lemma": "ʻeku",
+      "gloss": "my knife",
+      "translation": "my knife",
+      "source": "S1 ch.20 par.1"
+     },
+     {
+      "form": "hono",
+      "lemma": "hono",
+      "gloss": "his",
+      "translation": "his, her, its (objective rank)",
+      "source": "S1 ch.13 par.1-4"
+     }
+    ],
+    "source": "S1 ch.20 par.1-14 (tables pp.131-132, 137)",
+    "status": "lexicon_required",
+    "notes": "Full table in pronouns.possessive_forms. 73 words per rank (1 preposition ʻa/ʻo, 60 possessive pronouns, 12 pronominal adjectives); 146 in all (ch.13 par.6-8). The grammar states that dual/plural forms add -u to the dual in the structure tables and that heʻe- forms (not ʻe-) appear after ʻe, ʻi, ki, mei; the second person has no elided form. Emotional forms: in the objective rank siʻ- replaces h-; 13 of the 24 emotional forms are identical in the two ranks (ch.20 par.17)."
+   },
+   {
+    "id": "POSS-002",
+    "input_pattern": "a-class vs o-class selection (ʻeku vs hoku)",
+    "operation": "select by meaning of relation, not by form: a-class (subjective: possessor active, influential towards the thing: goods, tools, animals owned, food, persons in one's employ; also the possessor corresponding to the subject of a verbal noun); o-class (objective: thing constitutes/represents/affects the possessor: body, mind, parts, clothing, relatives, friends, things provided; possessor corresponding to the object of a verbal noun)",
+    "conditions": {
+     "pos": "NOUN with possessor"
+    },
+    "examples": [
+     {
+      "form": "ʻeku taki",
+      "lemma": "ʻeku taki",
+      "gloss": "my leading",
+      "translation": "my leading (done by me)",
+      "source": "S1 ch.13 par.2-4"
+     },
+     {
+      "form": "hoku taki",
+      "lemma": "hoku taki",
+      "gloss": "my being led",
+      "translation": "my being led",
+      "source": "S1 ch.13 par.2-4"
+     },
+     {
+      "form": "ʻeku pa‘anga / hoku fale",
+      "lemma": "—",
+      "gloss": "my money / my house",
+      "translation": "my money / my house",
+      "source": "S1 ch.13 par.16"
+     }
+    ],
+    "source": "S1 ch.13 par.1-45",
+    "status": "lexicon_required",
+    "notes": "Class depends on the head noun (lexicon-dependent); listed exceptions: toki, huo, kupenga, tao, pa take the o-class despite being tools (ch.13 par.22); ʻinu, ʻoho, kofi, koko take it for food/drink (par.25)."
+   },
+   {
+    "id": "POSS-003",
+    "input_pattern": "hano/hono \"anticipative\" before a noun followed by ʻo; hono kotoa \"its whole\"",
+    "operation": "lemma = hono/hano (no base noun recovery)",
+    "conditions": {
+     "pos": "DET"
+    },
+    "examples": [
+     {
+      "form": "hono kotoa",
+      "lemma": "hono kotoa",
+      "gloss": "its whole",
+      "translation": "the whole of it",
+      "source": "S1 ch.20 par.4-5"
+     }
+    ],
+    "source": "S1 ch.20 par.4-6",
+    "status": "ambiguous"
+   },
+   {
+    "id": "PADJ-001",
+    "input_pattern": "pronominal adjectives ʻaʻaku/ʻaku, ʻoʻoku/ʻoku, ʻamaua, ʻomaua, … (preposition ʻa/ʻo + pronoun)",
+    "operation": "provisional lemma = form; analysis = ʻa/ʻo + pronoun without ki-; ʻoʻoku may be pronounced oku",
+    "conditions": {
+     "pos": "ADJ/PRON",
+     "features": "Poss=Yes"
+    },
+    "examples": [
+     {
+      "form": "ʻanautolu",
+      "lemma": "ʻanautolu → ʻa nautolu",
+      "gloss": "of them",
+      "translation": "their, theirs",
+      "source": "S1 ch.21 par.1"
+     },
+     {
+      "form": "ʻoʻoku",
+      "lemma": "ʻoʻoku → ʻo ku",
+      "gloss": "of me",
+      "translation": "my, mine",
+      "source": "S1 ch.21 par.2-3"
+     }
+    ],
+    "source": "S1 ch.21 par.1-3",
+    "status": "ambiguous",
+    "notes": "Homograph risk: ʻoku (pronominal adjective, \"oku\" pronunciation) vs ʻoku (present tense sign)."
+   },
+   {
+    "id": "PADV-001",
+    "input_pattern": "pronominal adverbs maʻaku, moʻoku, … (maʻa-/moʻo- + pronoun element) and ai, ʻaki",
+    "operation": "maʻa-/moʻo- replace ʻa-/ʻo- of the pronominal adjective; provisional lemma = form",
+    "conditions": {
+     "pos": "ADV"
+    },
+    "examples": [
+     {
+      "form": "maʻaku",
+      "lemma": "maʻaku",
+      "gloss": "for me",
+      "translation": "for me",
+      "source": "S1 ch.22 par.3-4"
+     },
+     {
+      "form": "moʻona",
+      "lemma": "moʻona",
+      "gloss": "for him",
+      "translation": "for him",
+      "source": "S1 ch.22 par.4-5"
+     }
+    ],
+    "source": "S1 ch.22 par.1-5",
+    "status": "lexicon_required"
+   },
+   {
+    "id": "ART-001",
+    "input_pattern": "he | e (definite), ha (indefinite), siʻi (emotional definite), siʻa (emotional indefinite)",
+    "operation": "he after ʻe, ʻi, ki, mei; e elsewhere; enclitic after maʻa and moʻo. Dictionary has only ha (indefinite article); no article entry for e/he (dictionary has prep e \"by\")",
+    "conditions": {
+     "pos": "DET",
+     "features": "Definite=Def|Ind"
+    },
+    "examples": [
+     {
+      "form": "ha",
+      "lemma": "ha",
+      "gloss": "a, an, some, any",
+      "translation": "a, an, some, any",
+      "source": "S2 headword"
+     },
+     {
+      "form": "ki he falé",
+      "lemma": "he",
+      "gloss": "to the house",
+      "translation": "to the house",
+      "source": "S1 ch.4 par.3"
+     },
+     {
+      "form": "mo e afé",
+      "lemma": "e",
+      "gloss": "with the fishing-line",
+      "translation": "with the fishing-line",
+      "source": "S1 ch.4 par.11(a)"
+     }
+    ],
+    "source": "S1 ch.4 par.1-6; S2",
+    "status": "ambiguous",
+    "notes": "Lemma of he/e not fixed: grammar groups them as \"he or e\"; he also = conj \"for, because\" (ch.8 par.29-31, light-word list)."
+   },
+   {
+    "id": "DEM-001",
+    "input_pattern": "demonstratives: ē, hē, pehē (deictic); ni, eni, heni, peheni (near speaker); na, ena, hena, pehena (near hearer); ia (third)",
+    "operation": "provisional lemma = form; ni/na are enclitic adjectives; heni/hena = ʻi + eni/ena when ʻi is omitted",
+    "conditions": {
+     "pos": "DET/PRON/ADV",
+     "features": "PronType=Dem"
+    },
+    "examples": [
+     {
+      "form": "falé ni",
+      "lemma": "ni",
+      "gloss": "house this",
+      "translation": "this house",
+      "source": "S1 ch.23 par.14(a)"
+     },
+     {
+      "form": "ki heni",
+      "lemma": "heni",
+      "gloss": "to here",
+      "translation": "to this place",
+      "source": "S1 ch.23 par.8"
+     },
+     {
+      "form": "falé na",
+      "lemma": "na",
+      "gloss": "house that",
+      "translation": "that house",
+      "source": "S1 ch.23 par.14(a)"
+     }
+    ],
+    "source": "S1 ch.23 par.1-16",
+    "status": "ambiguous",
+    "notes": "ni also = \"now\" (adverb); na also = pronoun \"they two\"; eni also = \"now\"."
+   },
+   {
+    "id": "NUMB-001",
+    "input_pattern": "number signs: ongo (dual), kau, fanga, ʻū, ngaahi (plural), tukui, tuʻu, hala (special)",
+    "operation": "lemma = the sign; do not treat as part of the noun",
+    "conditions": {
+     "pos": "DET",
+     "features": "Number=Dual|Plur"
+    },
+    "examples": [
+     {
+      "form": "ha ongo puha",
+      "lemma": "ongo",
+      "gloss": "a two box",
+      "translation": "two boxes",
+      "source": "S1 ch.5 par.1"
+     },
+     {
+      "form": "ha kau faifekau",
+      "lemma": "kau",
+      "gloss": "a PL minister",
+      "translation": "ministers",
+      "source": "S1 ch.5 par.4"
+     },
+     {
+      "form": "ngaahi malanga",
+      "lemma": "ngaahi",
+      "gloss": "PL sermon",
+      "translation": "sermons",
+      "source": "S1 ch.5 par.20"
+     }
+    ],
+    "source": "S1 ch.5 par.1-21",
+    "status": "ambiguous",
+    "notes": "kau also = 1sg pronoun and = prefix; ʻū = ʻ + ū (sign for things)."
+   },
+   {
+    "id": "PREP-001",
+    "input_pattern": "prepositions ʻe, ʻa, ko, ki, ʻi, ʻo, mo, maʻa, moʻo, mei, ʻaki, faka, faʻa (grammar ch.3, 16)",
+    "operation": "lemma = form; ʻe marks the actor, ʻa the thing acted on, ko identity (relation names in grammar, no case terminology)",
+    "conditions": {
+     "pos": "ADP",
+     "features": "Case as in note"
+    },
+    "examples": [
+     {
+      "form": "ki",
+      "lemma": "ki",
+      "gloss": "to (in the dative sense)",
+      "translation": "to (in the dative sense)",
+      "source": "S2 headword"
+     },
+     {
+      "form": "mei",
+      "lemma": "mei",
+      "gloss": "from",
+      "translation": "from",
+      "source": "S2 headword"
+     },
+     {
+      "form": "ʻi",
+      "lemma": "ʻi",
+      "gloss": "in, on, at",
+      "translation": "in, on, at",
+      "source": "S2 headword"
+     }
+    ],
+    "source": "S1 ch.3 par.3-6, ch.16 index; S2",
+    "status": "ambiguous",
+    "notes": "Case values not stated in source; Case=Erg for ʻe and Case=Abs for ʻa would be a task-convention mapping, not source terminology. ʻe also future sign, vocative sign and conj; ʻa also \"of\"; ko also demonstrative component."
+   },
+   {
+    "id": "NUM-001",
+    "input_pattern": "cardinals: noa, taha, ua, tolu, fā, nima, ono, fitu, valu, hiva, hongofulu, uofulu, tolungofulu … , teau, afe; compounds hongofulu mā taha …",
+    "operation": "lemma = surface form; compound numerals are multiword headwords in the dictionary (hongofulu mā taha = 11)",
+    "conditions": {
+     "pos": "NUM",
+     "features": "NumType=Card"
+    },
+    "examples": [
+     {
+      "form": "taha",
+      "lemma": "taha",
+      "gloss": "one",
+      "translation": "one",
+      "source": "S2 headword"
+     },
+     {
+      "form": "uofulu mā taha",
+      "lemma": "uofulu mā taha",
+      "gloss": "twenty-one",
+      "translation": "twenty-one",
+      "source": "S2 headword"
+     },
+     {
+      "form": "ha kau talavou ʻe toko nima",
+      "lemma": "ʻe toko nima",
+      "gloss": "a PL young-man PART person five",
+      "translation": "five young men",
+      "source": "S1 ch.5 par.24(c)"
+     }
+    ],
+    "source": "S2; S1 ch.5",
+    "status": "lexicon_required",
+    "notes": "Dictionary: 40 num entries; 18 are multiword. taha \"one\" / ua \"two\" may also act as adjective."
+   },
+   {
+    "id": "DIR-001",
+    "input_pattern": "directionals mai, atu, ange, ai, hake, hifo (adverbs); as verbs written ʻatu, ʻange, ʻai",
+    "operation": "lemma = adverb form; verb use shows initial glottal stop",
+    "conditions": {
+     "pos": "ADV/VERB"
+    },
+    "examples": [
+     {
+      "form": "hahake",
+      "lemma": "hake",
+      "gloss": "east (reduplicated hake)",
+      "translation": "the east",
+      "source": "S1 ch.32 par.9(c)"
+     },
+     {
+      "form": "ʻatu",
+      "lemma": "atu",
+      "gloss": "to give (verb use)",
+      "translation": "to give or send (to you)",
+      "source": "S1 ch.3 par.22"
+     }
+    ],
+    "source": "S1 ch.3 par.21-22",
+    "status": "ambiguous"
+   },
+   {
+    "id": "DER-001",
+    "input_pattern": "-ʻi (also -fi, -hi, -i, -ki, -mi, -ni, -ngi, -si): transitive/executive suffixes",
+    "operation": "strip the suffix; the variant is lexically determined; base must be checked in the lexicon (vowel/reduplication may change: ʻanuhi ← ʻaʻanu)",
+    "conditions": {
+     "pos": "VERB",
+     "features": "Valency transitive"
+    },
+    "examples": [
+     {
+      "form": "tokoniʻi",
+      "lemma": "tokoni",
+      "gloss": "to give help → help (tr.)",
+      "translation": "to help",
+      "source": "S1 ch.30 par.15(a)"
+     },
+     {
+      "form": "kaihaʻasi",
+      "lemma": "kaihaʻa",
+      "gloss": "to steal → steal (tr.)",
+      "translation": "to steal",
+      "source": "S1 ch.30 par.15(a)"
+     },
+     {
+      "form": "tufaki",
+      "lemma": "tufa",
+      "gloss": "allot → distribute",
+      "translation": "to distribute",
+      "source": "S1 ch.30 par.18(a)"
+     },
+     {
+      "form": "tapui",
+      "lemma": "tapu",
+      "gloss": "forbidden → forbid",
+      "translation": "to forbid",
+      "source": "S1 ch.30 par.15(d)"
+     },
+     {
+      "form": "ʻanuhi",
+      "lemma": "ʻaʻanu",
+      "gloss": "to spit → spit on",
+      "translation": "to spit on",
+      "source": "S1 ch.30 par.15(b)"
+     }
+    ],
+    "source": "S1 ch.30 par.14-18",
+    "status": "lexicon_required",
+    "notes": "Dictionary has no verb derived by -ʻi where the base is also a headword (0 attested pairs), so no counts support a default; lemma = base (alt: derived form as own lemma).",
+    "lexicon_counts": {
+     "dictionary_pairs": "0"
+    }
+   },
+   {
+    "id": "DER-002",
+    "input_pattern": "-a, -ina, -hia, -na, -kina (durational/impersonal transitive; also adjectival)",
+    "operation": "strip suffix; -ina/-hia/-na/-kina may be accompanied by vowel change (ʻofa → ʻofeina); lexicon needed",
+    "conditions": {
+     "pos": "VERB",
+     "features": "Voice=Pass (impersonal use)"
+    },
+    "examples": [
+     {
+      "form": "folaua",
+      "lemma": "folau",
+      "gloss": "voyage → voyage towards",
+      "translation": "to voyage to or towards",
+      "source": "S1 ch.30 par.22(a)"
+     },
+     {
+      "form": "ʻiloa",
+      "lemma": "ʻilo",
+      "gloss": "know → be known",
+      "translation": "to know, well known",
+      "source": "S1 ch.30 par.22(d)"
+     },
+     {
+      "form": "ʻofeina",
+      "lemma": "ʻofa",
+      "gloss": "love",
+      "translation": "to love (durational)",
+      "source": "S1 ch.30 par.23(b)"
+     },
+     {
+      "form": "liʻekina",
+      "lemma": "liʻati",
+      "gloss": "throw away → abandon",
+      "translation": "to abandon",
+      "source": "S1 ch.30 par.24(a)"
+     },
+     {
+      "form": "katekina",
+      "lemma": "kataki",
+      "gloss": "endure",
+      "translation": "to endure",
+      "source": "S1 ch.30 par.24(d)"
+     }
+    ],
+    "source": "S1 ch.30 par.19-25",
+    "status": "lexicon_required",
+    "notes": "Grammar: such verbs often occur without subject, equivalent to an English passive; no Voice terminology in source."
+   },
+   {
+    "id": "DER-003",
+    "input_pattern": "-a, -fia, -hia, -ia, -ina, -kina, -mia, -ngia, -sia, -ʻia: adjectives / intransitive verbs",
+    "operation": "strip suffix and recover base from lexicon; -ʻia: noun/adjective base kept intact",
+    "conditions": {
+     "pos": "ADJ/VERB"
+    },
+    "examples": [
+     {
+      "form": "efua",
+      "lemma": "efu",
+      "gloss": "dust → dusty",
+      "translation": "covered with dust",
+      "source": "S1 ch.30 par.29(a)"
+     },
+     {
+      "form": "koloaʻia",
+      "lemma": "koloa",
+      "gloss": "wealth → wealthy",
+      "translation": "rich",
+      "source": "S1 ch.30 par.34"
+     },
+     {
+      "form": "leleiʻia",
+      "lemma": "lelei",
+      "gloss": "good → regard as good",
+      "translation": "to regard as good",
+      "source": "S1 ch.30 par.35"
+     },
+     {
+      "form": "fiekaia",
+      "lemma": "fie kaia",
+      "gloss": "—",
+      "translation": "to be hungry",
+      "source": "S1 ch.30 par.30(a)"
+     },
+     {
+      "form": "mokosia",
+      "lemma": "momoko",
+      "gloss": "cold",
+      "translation": "cold (subjective)",
+      "source": "S1 ch.30 par.32(d)"
+     }
+    ],
+    "source": "S1 ch.30 par.28-38",
+    "status": "lexicon_required",
+    "notes": "Dictionary: fiekaia adj \"hungry\", kaia absent. Final a becomes ā before -a only with moʻu-."
+   },
+   {
+    "id": "DER-004",
+    "input_pattern": "-ʻaki: noun → verb \"treat/use as\"; verb → verb \"with/about\"; also reciprocal-forming after fe-",
+    "operation": "strip -ʻaki; for reciprocal see PREF-003",
+    "conditions": {
+     "pos": "VERB"
+    },
+    "examples": [
+     {
+      "form": "nimaʻaki",
+      "lemma": "nima",
+      "gloss": "hand → use as a hand",
+      "translation": "to use as a hand",
+      "source": "S1 ch.30 par.39"
+     },
+     {
+      "form": "ngāueʻaki",
+      "lemma": "ngāue",
+      "gloss": "work → use",
+      "translation": "to use",
+      "source": "S1 ch.30 par.42"
+     },
+     {
+      "form": "vaʻingaʻaki",
+      "lemma": "vaʻinga",
+      "gloss": "play → play with",
+      "translation": "to play with",
+      "source": "S1 ch.30 par.41"
+     },
+     {
+      "form": "moʻuiʻaki",
+      "lemma": "moʻui",
+      "gloss": "live → live for",
+      "translation": "to live for",
+      "source": "S1 ch.30 par.42"
+     }
+    ],
+    "source": "S1 ch.30 par.39-46; S2 (nima, ngāue)",
+    "status": "lexicon_required",
+    "notes": "Postposed subject of such verbs takes ʻe, showing it is a suffix (written as one word)."
+   },
+   {
+    "id": "DER-005",
+    "input_pattern": "-ʻanga (place/means), -nga (thing), -fanga/-nanga/-tanga (special), -a/-ʻa (2 words)",
+    "operation": "strip suffix; base verb recovered with lexicon; -nga words: nofoʻanga (place) vs … -nga (thing)",
+    "conditions": {
+     "pos": "NOUN"
+    },
+    "examples": [
+     {
+      "form": "nofoʻanga",
+      "lemma": "nofo",
+      "gloss": "dwell → dwelling-place",
+      "translation": "dwelling-place",
+      "source": "S1 ch.30 par.5"
+     },
+     {
+      "form": "akoʻanga",
+      "lemma": "ako",
+      "gloss": "learn → seat of learning",
+      "translation": "educational institution",
+      "source": "S1 ch.30 par.5"
+     },
+     {
+      "form": "toenga",
+      "lemma": "toe",
+      "gloss": "remain → remainder",
+      "translation": "remainder",
+      "source": "S1 ch.30 par.12(b)"
+     },
+     {
+      "form": "founga",
+      "lemma": "fou",
+      "gloss": "go by route → route",
+      "translation": "route, method",
+      "source": "S1 ch.30 par.12(c)"
+     },
+     {
+      "form": "hoko‘anga",
+      "lemma": "hoko",
+      "gloss": "join → junction",
+      "translation": "joint, junction",
+      "source": "S1 ch.30 par.10"
+     }
+    ],
+    "source": "S1 ch.30 par.5-13; S2 (puleʻanga, kavenga, fōtunga as headwords)",
+    "status": "lexicon_required",
+    "notes": "Dictionary headwords with these endings: puleʻanga \"kingdom\", kavenga \"burden\" (etymology kawe-ŋa), fōtunga \"face\", paʻanga: none has its base as a headword (0 pairs).",
+    "lexicon_counts": {
+     "dictionary_pairs": "0"
+    }
+   },
+   {
+    "id": "DER-006",
+    "input_pattern": "possessive -ʻi (mataʻi helé, ngakoʻi puaka) and momoʻi, meʻi, foʻi, mataʻi, tahaʻi",
+    "operation": "strip -ʻi → noun; ambiguous with transitive -ʻi; foʻi also dictionary verb \"to lose\"",
+    "conditions": {
+     "pos": "NOUN/NOUN"
+    },
+    "examples": [
+     {
+      "form": "mataʻi helé",
+      "lemma": "mata",
+      "gloss": "eye/face-of knife",
+      "translation": "the knife-blade",
+      "source": "S1 ch.30 par.50"
+     },
+     {
+      "form": "foʻi moli",
+      "lemma": "fua / moli",
+      "gloss": "fruit-of orange",
+      "translation": "an orange",
+      "source": "S1 ch.30 par.56(a)"
+     },
+     {
+      "form": "foʻi",
+      "lemma": "foʻi",
+      "gloss": "to lose (fail to win)",
+      "translation": "to lose (fail to win)",
+      "source": "S2 headword"
+     }
+    ],
+    "source": "S1 ch.30 par.50-59; S2",
+    "status": "ambiguous"
+   },
+   {
+    "id": "PREF-001",
+    "input_pattern": "faka- (likeness; causation; reflexive causative; provide/have), faka-e- (pertaining to), faka-fe-",
+    "operation": "strip faka-; lemma = base; alternative: derived form as own lemma (record both); reduplicating + faka- (fakapotopoto) see RED-006",
+    "conditions": {
+     "pos": "VERB/ADJ/ADV/NOUN"
+    },
+    "examples": [
+     {
+      "form": "fakamohe",
+      "lemma": "mohe",
+      "gloss": "sleep → put to sleep",
+      "translation": "to put to sleep",
+      "source": "S1 ch.31 par.3(a)"
+     },
+     {
+      "form": "fakafanongo",
+      "lemma": "fanongo",
+      "gloss": "hear → listen",
+      "translation": "to listen intently",
+      "source": "S1 ch.31 par.3(b)"
+     },
+     {
+      "form": "fakataha",
+      "lemma": "taha",
+      "gloss": "one → assemble",
+      "translation": "to assemble",
+      "source": "S1 ch.31 par.3(b)"
+     },
+     {
+      "form": "fakafefine",
+      "lemma": "fefine",
+      "gloss": "woman",
+      "translation": "woman",
+      "source": "S2 headword"
+     },
+     {
+      "form": "fakaleitī",
+      "lemma": "leitī",
+      "gloss": "woman",
+      "translation": "woman",
+      "source": "S2 headword"
+     },
+     {
+      "form": "fakaekolo",
+      "lemma": "kolo",
+      "gloss": "village",
+      "translation": "pertaining to one particular village",
+      "source": "S1 ch.31 par.7(a)"
+     }
+    ],
+    "source": "S1 ch.31 par.1-9, 16; S2",
+    "status": "lexicon_required",
+    "notes": "Dictionary: 13 faka-initial headword entries (12 distinct); 2 have the remainder as headword (fakaleitī, fakafefine) = 2 of 12. Too few (n<10) for a default. Dictionary also lists faka as preposition \"in the manner of\" (doublet faʻa).",
+    "lexicon_counts": {
+     "faka_distinct_headwords": "12",
+     "remainder_is_headword": "2"
+    }
+   },
+   {
+    "id": "PREF-002",
+    "input_pattern": "fe- (reciprocative, reciprocal, communal; alone: fetaki, feʻao, fekai)",
+    "operation": "strip fe- (and the following suffix -ʻaki/-aki/-i/-ki…); lexicon needed",
+    "conditions": {
+     "pos": "VERB"
+    },
+    "examples": [
+     {
+      "form": "feʻofaʻaki",
+      "lemma": "ʻofa",
+      "gloss": "love → love one another",
+      "translation": "to love one another",
+      "source": "S1 ch.31 par.11(b)"
+     },
+     {
+      "form": "feʻaluʻaki",
+      "lemma": "ʻalu",
+      "gloss": "go → go hither and thither",
+      "translation": "to go hither and thither",
+      "source": "S1 ch.31 par.11(a)"
+     },
+     {
+      "form": "felelei",
+      "lemma": "lele",
+      "gloss": "run → run together",
+      "translation": "to run together",
+      "source": "S1 ch.31 par.12(b)"
+     },
+     {
+      "form": "fetaki",
+      "lemma": "taki",
+      "gloss": "lead → go hand in hand",
+      "translation": "to go hand in hand",
+      "source": "S1 ch.31 par.13(a)"
+     },
+     {
+      "form": "fekataʻaki",
+      "lemma": "kata",
+      "gloss": "laugh → laugh at each other",
+      "translation": "to laugh at one another",
+      "source": "S1 ch.31 par.11(b)"
+     }
+    ],
+    "source": "S1 ch.31 par.10-16",
+    "status": "lexicon_required",
+    "notes": "Irregular: fekeʻikeʻi ← kē, fepaki ← pa?, femoʻuekina ← moʻua. Dictionary has no fe- derived headwords (feke, fekika are unrelated)."
+   },
+   {
+    "id": "PREF-003",
+    "input_pattern": "ma-, mo-, mā- (potential; resultant state; other)",
+    "operation": "strip prefix; for reduplicated (mahaehae) see RED-006",
+    "conditions": {
+     "pos": "VERB"
+    },
+    "examples": [
+     {
+      "form": "mahae",
+      "lemma": "hae",
+      "gloss": "tear → be torn",
+      "translation": "to be torn",
+      "source": "S1 ch.31 par.18(a)"
+     },
+     {
+      "form": "matoʻo",
+      "lemma": "toʻo",
+      "gloss": "take → come off",
+      "translation": "to come off",
+      "source": "S1 ch.31 par.18(a)"
+     },
+     {
+      "form": "mafulihi",
+      "lemma": "fulihi",
+      "gloss": "turn over → be able to turn over",
+      "translation": "to be able to turn over",
+      "source": "S1 ch.31 par.19"
+     },
+     {
+      "form": "mahina",
+      "lemma": "hina",
+      "gloss": "white → moon",
+      "translation": "moon",
+      "source": "S1 ch.31 par.21"
+     }
+    ],
+    "source": "S1 ch.31 par.17-22; S2 (hina, māfana)",
+    "status": "lexicon_required",
+    "notes": "ma- also = noun/ prefix homograph with ma \"bread\"/\"we two\". Dictionary: māfana adj/noun \"warm\" (from ma-fana) while fana is a verb \"to shoot\": derived form has its own lemma."
+   },
+   {
+    "id": "PREF-004",
+    "input_pattern": "moʻu- + -a (continuation); kaunga- (together, fellow-)",
+    "operation": "strip prefix (and -a, with final a → ā); lexicon needed",
+    "conditions": {
+     "pos": "VERB/NOUN"
+    },
+    "examples": [
+     {
+      "form": "moʻumohea",
+      "lemma": "mohe",
+      "gloss": "sleep → oversleep",
+      "translation": "to oversleep",
+      "source": "S1 ch.31 par.23"
+     },
+     {
+      "form": "kaungalotu",
+      "lemma": "lotu",
+      "gloss": "worship → fellow-worshipper",
+      "translation": "fellow-worshipper",
+      "source": "S1 ch.31 par.25(a)"
+     }
+    ],
+    "source": "S1 ch.31 par.23-26",
+    "status": "lexicon_required"
+   },
+   {
+    "id": "RED-001",
+    "input_pattern": "complete reduplication XX (with or without vowel change in the first copy: pekepeka, muʻomuʻa)",
+    "operation": "if the form is a doubled string, base = second half; accept only if the base is in the lexicon; else keep the form as lemma",
+    "conditions": {
+     "pos": "any"
+    },
+    "examples": [
+     {
+      "form": "katakata",
+      "lemma": "kata",
+      "gloss": "laugh → smile slightly",
+      "translation": "to laugh slightly",
+      "source": "S1 ch.32 par.7(b)"
+     },
+     {
+      "form": "pekepeka",
+      "lemma": "peka",
+      "gloss": "flying-fox → swallow",
+      "translation": "swallow",
+      "source": "S1 ch.32 par.1(b)"
+     },
+     {
+      "form": "kehekehe",
+      "lemma": "kehe",
+      "gloss": "other → various",
+      "translation": "various",
+      "source": "S1 ch.32 par.5(c)"
+     },
+     {
+      "form": "mafimafi",
+      "lemma": "mafi",
+      "gloss": "powerful → almighty",
+      "translation": "almighty",
+      "source": "S1 ch.32 par.1(b)"
+     },
+     {
+      "form": "anoano",
+      "lemma": "anoano",
+      "gloss": "marshy; boggy",
+      "translation": "marshy; boggy",
+      "source": "S2 headword"
+     }
+    ],
+    "source": "S1 ch.32 par.1,5-7; S2",
+    "status": "lexicon_required",
+    "notes": "Dictionary: 13 headwords have a doubled shape (kisikisi, pēpē, malimali, pepe, anoano, kaukau, huhu, tuitui, vaivai, keke, ʻoneʻone, kumukumu, fanafana); the base is a headword in 3 cases (anoano/ano, ʻoneʻone/ʻone, vaivai/vai?). All have their own entry, so lexicalised reduplications keep their own lemma. n=13 attested forms but base recovered ≤ 3 → no default_replacement.",
+    "lexicon_counts": {
+     "doubled_headwords": "13",
+     "base_also_headword": "3"
+    }
+   },
+   {
+    "id": "RED-002",
+    "input_pattern": "partial reduplication of the first syllable (lalahi, mamata, fofoʻou, papaʻuli, tutupu, nonofo)",
+    "operation": "remove the first CV (when it repeats the next CV, allowing vowel change) → base; lexicon needed",
+    "conditions": {
+     "pos": "VERB/ADJ"
+    },
+    "examples": [
+     {
+      "form": "lalahi",
+      "lemma": "lahi",
+      "gloss": "big → big (pl.)",
+      "translation": "big (dual/plural)",
+      "source": "S1 ch.6 par.5"
+     },
+     {
+      "form": "nonofo",
+      "lemma": "nofo",
+      "gloss": "sit → live together",
+      "translation": "to live together (pl.)",
+      "source": "S1 ch.6 par.3"
+     },
+     {
+      "form": "tutupu",
+      "lemma": "tupu",
+      "gloss": "grow",
+      "translation": "to grow (pl.)",
+      "source": "S1 ch.6 par.3"
+     },
+     {
+      "form": "kakata",
+      "lemma": "kata",
+      "gloss": "laugh (pl.)",
+      "translation": "to laugh (pl.)",
+      "source": "S1 ch.6 par.3"
+     },
+     {
+      "form": "fifili",
+      "lemma": "fili",
+      "gloss": "choose → ponder",
+      "translation": "to ponder",
+      "source": "S1 ch.32 par.8(c)"
+     },
+     {
+      "form": "mamata",
+      "lemma": "mata",
+      "gloss": "eye → look",
+      "translation": "to look",
+      "source": "S1 ch.32 par.2(a)"
+     }
+    ],
+    "source": "S1 ch.6, ch.32 par.2,8",
+    "status": "lexicon_required",
+    "notes": "Dictionary: kakau \"to swim\" and loloa \"long\" are single headwords derived historically from reduplication; kaukau as complete reduplication of kau. These keep their own lemma."
+   },
+   {
+    "id": "RED-003",
+    "input_pattern": "partial reduplication of the later part (havilivili) and middle part (ʻAfifio)",
+    "operation": "recover base by removing the repeated segment; lexicon needed",
+    "conditions": {
+     "pos": "NOUN"
+    },
+    "examples": [
+     {
+      "form": "havilivili",
+      "lemma": "havili",
+      "gloss": "strong wind → breeze",
+      "translation": "a breeze",
+      "source": "S1 ch.32 par.3(a)"
+     },
+     {
+      "form": "ʻAfifio",
+      "lemma": "ʻAfio",
+      "gloss": "Majesty (pl.)",
+      "translation": "Their Majesties",
+      "source": "S1 ch.6 par.1; ch.32 par.4"
+     }
+    ],
+    "source": "S1 ch.6 par.1, ch.32 par.3-4",
+    "status": "lexicon_required"
+   },
+   {
+    "id": "RED-004",
+    "input_pattern": "reduplication changing meaning: plural/repetition, intensification, moderation, change of part of speech, other",
+    "operation": "lemma = base unless the reduplicated word has its own dictionary entry",
+    "conditions": {
+     "pos": "any"
+    },
+    "examples": [
+     {
+      "form": "kupukupu",
+      "lemma": "kupu",
+      "gloss": "section → sections",
+      "translation": "sections (three or more)",
+      "source": "S1 ch.32 par.5(b)"
+     },
+     {
+      "form": "ʻuliʻuli",
+      "lemma": "ʻuli",
+      "gloss": "dirty → black",
+      "translation": "black",
+      "source": "S1 ch.32 par.6"
+     },
+     {
+      "form": "mokomoko",
+      "lemma": "momoko",
+      "gloss": "cold → cool",
+      "translation": "cool",
+      "source": "S1 ch.32 par.7(a)"
+     },
+     {
+      "form": "vaivai",
+      "lemma": "vai",
+      "gloss": "water → weak",
+      "translation": "weak",
+      "source": "S1 ch.32 par.9(a)"
+     },
+     {
+      "form": "fanongonongo",
+      "lemma": "fanongo",
+      "gloss": "listen → announce",
+      "translation": "to make publicly known",
+      "source": "S1 ch.32 par.8(g)"
+     }
+    ],
+    "source": "S1 ch.32 par.5-9",
+    "status": "ambiguous",
+    "notes": "Many reduplicated forms change part of speech (noun→adj/verb) and are lexicalised; dictionary headword vaivai \"weak\" exists, vai \"water\" (noun) too."
+   },
+   {
+    "id": "RED-005",
+    "input_pattern": "two reduplication types for the same base (hifihifi vs hihifi, vakuvaku vs vavaku, lomilomi vs lolomi)",
+    "operation": "pick lemma = base; the two shapes differ in meaning only",
+    "conditions": {
+     "pos": "VERB"
+    },
+    "examples": [
+     {
+      "form": "hihifi",
+      "lemma": "hifi",
+      "gloss": "cut roughly",
+      "translation": "to cut roughly",
+      "source": "S1 ch.32 par.10"
+     },
+     {
+      "form": "hifihifi",
+      "lemma": "hifi",
+      "gloss": "cut repeatedly",
+      "translation": "to cut repeatedly",
+      "source": "S1 ch.32 par.10"
+     }
+    ],
+    "source": "S1 ch.32 par.10",
+    "status": "lexicon_required"
+   },
+   {
+    "id": "RED-006",
+    "input_pattern": "faka- + reduplication (fakapotopoto, fakaalaala, fakahangahanga, fakamuʻomuʻa)",
+    "operation": "remove faka- then undo reduplication; fakamuʻomuʻa is simply causative of muʻomuʻa",
+    "conditions": {
+     "pos": "VERB/ADJ"
+    },
+    "examples": [
+     {
+      "form": "fakapotopoto",
+      "lemma": "poto",
+      "gloss": "clever → sensible",
+      "translation": "wise, sensible",
+      "source": "S1 ch.32 par.11(a)"
+     },
+     {
+      "form": "fakaalaala",
+      "lemma": "ala",
+      "gloss": "touch → be careful",
+      "translation": "to be careful",
+      "source": "S1 ch.32 par.11(a)"
+     },
+     {
+      "form": "fakamuʻomuʻa",
+      "lemma": "muʻomuʻa",
+      "gloss": "go in front → put in front",
+      "translation": "to put in front",
+      "source": "S1 ch.32 par.12"
+     }
+    ],
+    "source": "S1 ch.32 par.11-12",
+    "status": "lexicon_required"
+   },
+   {
+    "id": "IRR-001",
+    "input_pattern": "special dual/plural forms of nouns, verbs, adjectives (table irregular_forms)",
+    "operation": "map to the singular by table; lexicon only",
+    "conditions": {
+     "pos": "NOUN/VERB/ADJ",
+     "features": "Number=Plur|Dual"
+    },
+    "examples": [
+     {
+      "form": "matuʻa",
+      "lemma": "motuʻa",
+      "gloss": "parent (pl.)",
+      "translation": "parents",
+      "source": "S1 ch.6 par.1"
+     },
+     {
+      "form": "tamaiki",
+      "lemma": "tamasiʻi",
+      "gloss": "child (pl.)",
+      "translation": "children",
+      "source": "S1 ch.6 par.1"
+     },
+     {
+      "form": "ō",
+      "lemma": "ʻalu",
+      "gloss": "go (dual/pl.)",
+      "translation": "to go",
+      "source": "S1 ch.6 par.3"
+     },
+     {
+      "form": "lalahi",
+      "lemma": "lahi",
+      "gloss": "big (pl.)",
+      "translation": "big",
+      "source": "S1 ch.6 par.5"
+     }
+    ],
+    "source": "S1 ch.6 par.1-7",
+    "status": "lexicon_required",
+    "notes": "OCR of the scan left several table items uncertain (pekia, siʻi/ʻiiki, loloa); only clear items are listed. Dictionary has fafine and fefine as doublets and motuʻa as adj + noun."
+   },
+   {
+    "id": "REG-001",
+    "input_pattern": "five-level lexical equivalents (ordinary, polite, honorific, regal, derogatory), e.g. kai / tokoni / ʻilo / taumafa / mama",
+    "operation": "each form is its own lemma when it is also an ordinary word (tokoni \"help\", ʻilo \"know\", mama \"chew\"); mapping to the ordinary item is not stated; record as lexicon equivalence",
+    "conditions": {
+     "pos": "VERB"
+    },
+    "examples": [
+     {
+      "form": "taumafa",
+      "lemma": "kai",
+      "gloss": "regal \"to eat\"",
+      "translation": "to eat",
+      "source": "S1 ch.36 par.7"
+     },
+     {
+      "form": "tokoni",
+      "lemma": "kai",
+      "gloss": "polite \"to eat\"",
+      "translation": "to eat (polite)",
+      "source": "S1 ch.36 par.7"
+     },
+     {
+      "form": "kai",
+      "lemma": "kai",
+      "gloss": "To eat",
+      "translation": "To eat",
+      "source": "S2 headword"
+     }
+    ],
+    "source": "S1 ch.36 par.5-8; S2 (lau honorific/polite tag)",
+    "status": "lexicon_required",
+    "notes": "Only this one set is attested; the chapter text in the available PDF stops at p.305. Dictionary entry lau \"hair\" carries tags honorific+polite (no equivalent given); tokoni is a headword \"to help\"."
+   }
+  ],
+  "ambiguities": [
+   {
+    "form": "te",
+    "readings": "TAM future sign | cardinal pronoun \"one\" (1inc sg) | conj untranslatable",
+    "status": "ambiguous"
+   },
+   {
+    "form": "ne",
+    "readings": "TAM past sign | pronoun 3sg he/she/it",
+    "status": "ambiguous"
+   },
+   {
+    "form": "kau",
+    "readings": "pronoun 1sg (sentence-initial) | plural sign for persons | prefix kaunga- | = ka u \"but I\"",
+    "status": "ambiguous"
+   },
+   {
+    "form": "na",
+    "readings": "pronoun 3 dual | demonstrative \"that\"",
+    "status": "ambiguous"
+   },
+   {
+    "form": "ni",
+    "readings": "demonstrative \"this\" | adverb \"now\"",
+    "status": "ambiguous"
+   },
+   {
+    "form": "e/he",
+    "readings": "definite article | conj \"for, because\" (he) | particle before numerals (ʻe)",
+    "status": "ambiguous"
+   },
+   {
+    "form": "ʻe",
+    "readings": "future sign | preposition marking agent | vocative sign | conj untranslatable",
+    "status": "ambiguous"
+   },
+   {
+    "form": "ʻa",
+    "readings": "preposition untranslatable | preposition \"of\"",
+    "status": "ambiguous"
+   },
+   {
+    "form": "ʻo",
+    "readings": "preposition \"of\" | conj \"and\"",
+    "status": "ambiguous"
+   },
+   {
+    "form": "mo",
+    "readings": "preposition/conj \"and, with\" | pronoun 2 dual",
+    "status": "ambiguous"
+   },
+   {
+    "form": "ka",
+    "readings": "conj \"but\" | conj \"if, when\" | future sign",
+    "status": "ambiguous"
+   },
+   {
+    "form": "ke",
+    "readings": "conj \"to, that\" | conj untranslatable | pronoun 2sg",
+    "status": "ambiguous"
+   },
+   {
+    "form": "ma",
+    "readings": "pronoun 1exc dual | prefix ma- | noun \"preserved breadfruit\" (dictionary mā)",
+    "status": "ambiguous"
+   },
+   {
+    "form": "tau",
+    "readings": "pronoun 1inc plural | verb \"fight\" (dictionary)",
+    "status": "ambiguous"
+   },
+   {
+    "form": "ʻoku",
+    "readings": "present sign | pronominal adjective \"my\" pronounced oku | dictionary verb oku \"to be\"",
+    "status": "ambiguous"
+   },
+   {
+    "form": "ou/ʻou",
+    "readings": "pronoun 1sg after ʻoku | ʻou = abbreviated ʻoʻou \"your\"",
+    "status": "ambiguous"
+   },
+   {
+    "form": "haʻaku",
+    "readings": "indefinite ordinary vs emphatic (differ by accent only)",
+    "status": "ambiguous"
+   },
+   {
+    "form": "siʻaku etc.",
+    "readings": "13 of 24 emotional possessive forms identical in a-class and o-class",
+    "status": "ambiguous"
+   },
+   {
+    "form": "faʻa",
+    "readings": "preposition | adverb (dictionary; doublet of faka)",
+    "status": "ambiguous"
+   },
+   {
+    "form": "foʻi",
+    "readings": "\"fruit-of\" classifier | verb \"to lose\" (dictionary)",
+    "status": "ambiguous"
+   },
+   {
+    "form": "noa",
+    "readings": "numeral zero (dictionary) | adjective \"unreal, worthless\" (grammar)",
+    "status": "ambiguous"
+   },
+   {
+    "form": "mahina/māhina",
+    "readings": "two headwords \"moon\" distinguished only by macron",
+    "status": "ambiguous"
+   },
+   {
+    "form": "i/languages M to Z",
+    "readings": "artifact headword of the dictionary = prep i \"in\"",
+    "status": "ambiguous"
+   },
+   {
+    "form": "dictionary homographs",
+    "readings": "39 headwords occur in >1 entry (pos or sense): ao (2), ne (2), mate (2), kava (2), kai (2), pule (2), moa (2), kola (2), tuli (2), vai (3), ato (2), tapu (2), mei (2), tunu (3), folau (2), huhu (3), hele (2), fā (2), moli (2), nima (2), fisi (4), motuʻa (2), hiva (3), faʻa (2), ʻosi (2), ifi (2), fonu (2), mahaki (2), tepi (2), faingataʻa (2), ngāue (2), saoa (2), malimali (2), fakatuʻupakē (2), māfana (2), fakabona (2), fē (2), mālohi (2), faiako (2)",
+    "status": "ambiguous"
+   }
+  ],
+  "lemma_conventions": [
+   {
+    "id": "LC-001",
+    "topic": "citation form",
+    "convention": "dictionary headword (see lexicon_files)",
+    "source": "dictionary",
+    "status": "provisional"
+   },
+   {
+    "id": "LC-002",
+    "topic": "glottal stop in lemma",
+    "convention": "U+02BB; headwords alu, oku have none although the grammar writes ʻalu, ʻoku",
+    "source": "dictionary",
+    "status": "provisional"
+   },
+   {
+    "id": "LC-003",
+    "topic": "macrons in lemma",
+    "convention": "kept (māhina, kulī, fā)",
+    "source": "dictionary",
+    "status": "provisional"
+   },
+   {
+    "id": "LC-004",
+    "topic": "particles/tense signs",
+    "convention": "sign itself (te, ne, naʻe particle); ʻoku as verb \"oku\"",
+    "source": "dictionary",
+    "status": "provisional"
+   },
+   {
+    "id": "LC-005",
+    "topic": "pronouns",
+    "convention": "1sg au (ou alt-of au); 3sg ne; possessive hoku as headword",
+    "source": "dictionary",
+    "status": "provisional"
+   },
+   {
+    "id": "LC-006",
+    "topic": "obsolete spellings",
+    "convention": "map to alt_of target",
+    "source": "dictionary",
+    "status": "provisional"
+   },
+   {
+    "id": "LC-007",
+    "topic": "derived verbs/nouns",
+    "convention": "both derived form and base are possible lemmas; rules marked lexicon_required",
+    "source": "dictionary",
+    "status": "provisional"
+   },
+   {
+    "id": "LC-008",
+    "topic": "compound notation like past#present",
+    "convention": "not applicable (no corpus)",
+    "source": "none",
+    "status": "gap"
+   }
+  ]
+ },
+ "Syntax": {
+  "scope": "only what lemmatization needs",
+  "word_division": "tense sign, article, preposition and pronoun are written as separate words; see Morphology.rules ORTH-004",
+  "agent_and_patient_markers": "ʻe precedes the actor and ʻa the thing acted on (S1 ch.3 par.5); see Morphology.rules PREP-001",
+  "not_populated": "clause structure not transferred (see gaps)"
+ },
+ "Semantics": {
+  "scope": "only lexical equivalence sets needed for lemma choice",
+  "register_equivalents": [
+   {
+    "meaning": "to eat",
+    "ordinary": "kai",
+    "polite": "tokoni",
+    "honorific": "ʻilo",
+    "regal": "taumafa",
+    "derogatory": "mama",
+    "source": "S1 ch.36 par.6-7"
+   }
+  ],
+  "possessive_class_selection": "a-class vs o-class depends on the relation of possessor to thing (see Morphology.rules POSS-002)"
+ },
+ "Interfaces_and_Integration": {
+  "lexicon_use": "the dictionary is registered in Lexicon_Overview.lexicon_files and is not copied here",
+  "rule_status_values": "rule | lexicon_required | ambiguous",
+  "target_corpus": "not attached; UD feature names used where relevant"
+ },
+ "Relations_and_Properties": {
+  "ambiguity_relations": "form-to-reading homograph records are in Morphology.ambiguities",
+  "derivation_relations": "base-to-derived pairs are in Morphology.rules DER-*, PREF-*, RED-* and Morphology.irregular_forms"
+ },
+ "Lexicon_Overview": {
+  "lexicon_files": [
+   {
+    "file": "kaikki_org-dictionary-Tongan.jsonl",
+    "format": "JSON Lines, one entry per line",
+    "entries": "468",
+    "distinct_headwords": "423",
+    "columns": [
+     "word",
+     "pos",
+     "lang",
+     "lang_code",
+     "senses[].glosses",
+     "senses[].tags",
+     "senses[].alt_of",
+     "senses[].form_of(absent)",
+     "forms[].form",
+     "forms[].tags",
+     "head_templates",
+     "sounds",
+     "etymology_text",
+     "etymology_templates",
+     "hyphenations",
+     "derived",
+     "related",
+     "descendants"
+    ],
+    "pos_counts": {
+     "character": "3",
+     "name": "32",
+     "particle": "4",
+     "noun": "280",
+     "prep": "8",
+     "verb": "47",
+     "article": "1",
+     "pron": "5",
+     "adj": "36",
+     "num": "40",
+     "adv": "10",
+     "phrase": "1",
+     "intj": "1"
+    },
+    "licence_note": "not stated in the file",
+    "citation_form": "take `word`; strip the artifact suffix \"/languages M to Z\"; if senses[].alt_of exists use alt_of[].word; restore ʻ if a variant without ʻ is found in forms[].form",
+    "lemma_convention": "dictionary headword, lowercase for common words, capitalised for pos=name, ʻ=U+02BB, macron where written, separate entry per part of speech, multiword headwords for numerals and phrases; no stress marks; no derivational links (derived field has 10 entries)"
+   }
+  ],
+  "gaps": [
+   {
+    "topic": "target corpus conventions (Input C)",
+    "reason": "not attached; dictionary conventions recorded as provisional"
+   },
+   {
+    "topic": "glottal-stop encodings other than U+02BB and inverted apostrophe",
+    "reason": "straight apostrophe, U+2019, U+02BC are not described in the sources"
+   },
+   {
+    "topic": "stress marking in the target corpus",
+    "reason": "no corpus; grammar marks stress, dictionary does not"
+   },
+   {
+    "topic": "lemmas of kuo, naʻa, ʻe, he, ka, pea, ko, ʻa",
+    "reason": "absent in the dictionary and not stated in the grammar"
+   },
+   {
+    "topic": "regional dialects",
+    "reason": "no dialect differences described in the processed text; only pronunciation variants (Jisa/Jihova, oku for ʻoʻoku, kiaté kinautolu) are mentioned"
+   },
+   {
+    "topic": "register vocabulary beyond kai/tokoni/ʻilo/taumafa/mama",
+    "reason": "the PDF ends in ch.36 p.305 before the word lists"
+   },
+   {
+    "topic": "verbal nouns, classification of nouns (ch.14-15), adverbs (27), comparison (28), special words (29), conjunctions (8), negatives (9), interrogatives (24), numerals detail (25), adjectives (26), greetings (34), vowel protraction (35)",
+    "reason": "not transferred in this version; only the parts needed above were read"
+   },
+   {
+    "topic": "licence of the dictionary",
+    "reason": "not stated in the file"
+   },
+   {
+    "topic": "OCR uncertainty",
+    "reason": "some items in S1 tables (pekia, siʻi/ʻiiki plural, loloa singular, demonstrative kena/hena) are illegible and omitted"
+   }
+  ],
+  "verification": {
+   "examples_removed_unverified": [
+    {
+     "rule": "PREP-001",
+     "form": "Naʻe tāmateʻi ʻe Tēvita ʻa Koliate",
+     "lemma": "ʻe, ʻa"
+    },
+    {
+     "rule": "PREF-001",
+     "form": "fakatuʻi",
+     "lemma": "tuʻi"
+    },
+    {
+     "rule": "PREF-004",
+     "form": "kaungaʻapi",
+     "lemma": "ʻapi"
+    }
+   ],
+   "checks": "every example form and lemma token found in OCR text of S1 or in S2 (diacritics and glottal marks ignored)"
+  }
+ }
+}
