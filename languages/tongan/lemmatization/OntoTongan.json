@@ -2,30 +2,19 @@
  "meta": {
   "title": "OntoTongan: Tongan morphology ontology for rule-based lemmatization",
   "version": "0.1",
-  "language": "Tongan (Lea faka-Tonga)",
-  "iso_639_3": "ton",
-  "iso_639_1": "to",
-  "date": "2026-10-21",
+  "description": "Tongan (ton) morphology ontology for a rule-based lemmatizer, following the GOLD OntoLing structure; filled only from the attached sources. Morphology module for lemmatization (orthography, particles, pronouns, possessives, determiners, derivation, reduplication, register). Syntax and Semantics of GOLD not populated.",
   "sources": [
-   {
-    "id": "S1",
-    "citation": "Churchward, C. Maxwell. Tongan Grammar. First published 1953; Vavaʻu Press paperback 1985",
-    "file": "tongan-grammar_compress.pdf",
-    "note": "scanned image PDF, text obtained by OCR (tesseract); 160 page images; covers chapters 1-36 (ch.36 ends at p.305); OCR noise present, so only clearly legible items are used"
-   },
-   {
-    "id": "S2",
-    "citation": "Kaikki.org Tongan dictionary extract (Wiktionary data)",
-    "file": "kaikki_org-dictionary-Tongan.jsonl"
-   },
-   {
-    "id": "S3",
-    "citation": "Unified Ontology of General and Theoretical Linguistics (GOLD OntoLing), v1.0",
-    "file": "GOLD_OntoLing.json",
-    "note": "Input A: structure only"
-   }
+   "S1. Churchward, C. Maxwell. Tongan Grammar. First published 1953; Vavaʻu Press paperback 1985 (file: tongan-grammar_compress.pdf); scanned image PDF, text obtained by OCR (tesseract); 160 page images; covers chapters 1-36 (ch.36 ends at p.305); OCR noise present, so only clearly legible items are used",
+   "S2. Kaikki.org Tongan dictionary extract (Wiktionary data) (file: kaikki_org-dictionary-Tongan.jsonl)",
+   "S3. Unified Ontology of General and Theoretical Linguistics (GOLD OntoLing), v1.0 (file: GOLD_OntoLing.json); Input A: structure only"
   ],
-  "scope": "Morphology module for lemmatization (orthography, particles, pronouns, possessives, determiners, derivation, reduplication, register). Syntax and Semantics of GOLD not populated.",
+  "gold_base_uri": "http://purl.org/linguistics/gold/",
+  "language_name": "Tongan (Lea faka-Tonga)",
+  "iso_code": "ton",
+  "iso_639_1": "to",
+  "classification": "Polynesian (the dictionary etymologies trace Tongan words to Proto-Polynesian); full genetic path not stated in the processed sources",
+  "location": "Tonga (subject of S1, Churchward, Tongan Grammar)",
+  "date": "2026-10-21",
   "input_c": "not attached: no target corpus; Universal Dependencies feature names used; lemma conventions taken from dictionary headwords"
  },
  "Core_Foundations": {
@@ -35,6 +24,7 @@
    "iso_639_1": "to",
    "source": "S1; S2"
   },
+  "writing_system": "Latin script with glottal stop (ʻ) and macrons; see Morphology.orthography rules ORTH-001..006",
   "gold_sections_kept": [
    "Phonetics_and_Phonology (orthography only)",
    "Morphology"
@@ -44,7 +34,14 @@
    "Semantics",
    "Interfaces_and_Integration",
    "Relations_and_Properties"
-  ]
+  ],
+  "dialects": "no regional dialect differences described in the processed sources (see gaps)"
+ },
+ "Phonetics_and_Phonology": {
+  "scope": "only the orthographic facts needed for form matching are populated; rules ORTH-001 (glottal stop), ORTH-002 (long vowels), ORTH-003 (stress accent) are stored in Morphology.rules",
+  "glottal_stop": "written ʻ (U+02BB) in the dictionary, inverted apostrophe in the grammar (S1 Introduction 5-6)",
+  "long_vowels": "ā ē ī ō ū (S1 ch.2 par.4)",
+  "stress": "acute accent marks stressed final vowel in the grammar; absent in the dictionary (S1 ch.2)"
  },
  "Morphology": {
   "parts_of_speech": {
@@ -62,19 +59,19 @@
    ],
    "citation_form": "dictionary headword (S2); nouns, verbs, adjectives, adverbs interchange functions with no change of form (S1 ch.3 par.7-23)",
    "dictionary_pos": {
-    "character": 3,
-    "name": 32,
-    "particle": 4,
-    "noun": 280,
-    "prep": 8,
-    "verb": 47,
-    "article": 1,
-    "pron": 5,
-    "adj": 36,
-    "num": 40,
-    "adv": 10,
-    "phrase": 1,
-    "intj": 1
+    "character": "3",
+    "name": "32",
+    "particle": "4",
+    "noun": "280",
+    "prep": "8",
+    "verb": "47",
+    "article": "1",
+    "pron": "5",
+    "adj": "36",
+    "num": "40",
+    "adv": "10",
+    "phrase": "1",
+    "intj": "1"
    }
   },
   "tam_particles": [
@@ -122,7 +119,6 @@
     "form": "ka",
     "meaning": "future in clauses after hangé, in adjectival clauses on time nouns, and after ka/ʻo ka + cardinal pronoun",
     "ud": "Tense=Fut",
-    "example": null,
     "source": "S1 ch.7 par.1",
     "separate_token": "yes in grammar (written apart from the pronoun, Introduction 12(d)); corpus unknown"
    },
@@ -130,7 +126,6 @@
     "form": "lolotonga",
     "meaning": "auxiliary verb, \"be in progress\"",
     "ud": "Aspect=Prog",
-    "example": null,
     "source": "S1 ch.7 par.1",
     "separate_token": "yes in grammar (written apart from the pronoun, Introduction 12(d)); corpus unknown"
    },
@@ -138,7 +133,6 @@
     "form": "ʻosi",
     "meaning": "auxiliary verb, \"already, finished\"",
     "ud": "Aspect=Perf",
-    "example": null,
     "source": "S1 ch.7 par.1",
     "separate_token": "yes in grammar (written apart from the pronoun, Introduction 12(d)); corpus unknown"
    }
@@ -240,7 +234,6 @@
     },
     {
      "person": "2",
-     "clusivity": null,
      "number": "Sing",
      "preposed": [
       "ke"
@@ -254,7 +247,6 @@
     },
     {
      "person": "2",
-     "clusivity": null,
      "number": "Dual",
      "preposed": [
       "mo"
@@ -268,7 +260,6 @@
     },
     {
      "person": "2",
-     "clusivity": null,
      "number": "Plur",
      "preposed": [
       "mou"
@@ -282,7 +273,6 @@
     },
     {
      "person": "3",
-     "clusivity": null,
      "number": "Sing",
      "preposed": [
       "ne"
@@ -296,7 +286,6 @@
     },
     {
      "person": "3",
-     "clusivity": null,
      "number": "Dual",
      "preposed": [
       "na"
@@ -310,7 +299,6 @@
     },
     {
      "person": "3",
-     "clusivity": null,
      "number": "Plur",
      "preposed": [
       "nau"
@@ -494,7 +482,6 @@
       "Clusivity": "Exc"
      },
      "definite_ordinary": "hoku",
-     "definite_ordinary_elided": null,
      "definite_emotional": "siʻoku",
      "indefinite_ordinary": "haku",
      "indefinite_emotional": "siʻaku",
@@ -508,7 +495,6 @@
       "Clusivity": "Exc"
      },
      "definite_ordinary": "homa",
-     "definite_ordinary_elided": null,
      "definite_emotional": "siʻoma",
      "indefinite_ordinary": "hama",
      "indefinite_emotional": "siʻama",
@@ -522,7 +508,6 @@
       "Clusivity": "Exc"
      },
      "definite_ordinary": "homau",
-     "definite_ordinary_elided": null,
      "definite_emotional": "siʻomau",
      "indefinite_ordinary": "hamau",
      "indefinite_emotional": "siʻamau",
@@ -536,7 +521,6 @@
       "Clusivity": "Inc"
      },
      "definite_ordinary": "hoto",
-     "definite_ordinary_elided": null,
      "definite_emotional": "siʻoto",
      "indefinite_ordinary": "hato",
      "indefinite_emotional": "siʻato",
@@ -550,7 +534,6 @@
       "Clusivity": "Inc"
      },
      "definite_ordinary": "hota",
-     "definite_ordinary_elided": null,
      "definite_emotional": "siʻota",
      "indefinite_ordinary": "hata",
      "indefinite_emotional": "siʻata",
@@ -564,7 +547,6 @@
       "Clusivity": "Inc"
      },
      "definite_ordinary": "hotau",
-     "definite_ordinary_elided": null,
      "definite_emotional": "siʻotau",
      "indefinite_ordinary": "hatau",
      "indefinite_emotional": "siʻatau",
@@ -577,7 +559,6 @@
       "Number": "Sing"
      },
      "definite_ordinary": "ho",
-     "definite_ordinary_elided": null,
      "definite_emotional": "siʻo",
      "indefinite_ordinary": "hao",
      "indefinite_emotional": "siʻao",
@@ -590,7 +571,6 @@
       "Number": "Dual"
      },
      "definite_ordinary": "homo",
-     "definite_ordinary_elided": null,
      "definite_emotional": "siʻomo",
      "indefinite_ordinary": "hamo",
      "indefinite_emotional": "siʻamo",
@@ -603,7 +583,6 @@
       "Number": "Plur"
      },
      "definite_ordinary": "homou",
-     "definite_ordinary_elided": null,
      "definite_emotional": "siʻomou",
      "indefinite_ordinary": "hamou",
      "indefinite_emotional": "siʻamou",
@@ -616,7 +595,6 @@
       "Number": "Sing"
      },
      "definite_ordinary": "hono",
-     "definite_ordinary_elided": null,
      "definite_emotional": "siʻono",
      "indefinite_ordinary": "hano",
      "indefinite_emotional": "siʻano",
@@ -629,7 +607,6 @@
       "Number": "Dual"
      },
      "definite_ordinary": "hona",
-     "definite_ordinary_elided": null,
      "definite_emotional": "siʻona",
      "indefinite_ordinary": "hana",
      "indefinite_emotional": "siʻana",
@@ -642,7 +619,6 @@
       "Number": "Plur"
      },
      "definite_ordinary": "honau",
-     "definite_ordinary_elided": null,
      "definite_emotional": "siʻonau",
      "indefinite_ordinary": "hanau",
      "indefinite_emotional": "siʻanau",
@@ -976,11 +952,11 @@
     "status": "lexicon_required",
     "notes": "Dictionary has 16 alt-of pairs (14 tagged obsolete, 2 alternative). Classes among the 16 pairs: macron/ʻ differences only 5 (Me/Mē, Sepitema/Sēpitema, Epeleli/ʻEpeleli, Aokosi/ʻAokosi, Novema/Nōvema); b→p 3 (behe, Bilitania, Okatoba); j→s 3 (June, Julai, Januali); other 5. No class has ≥10 forms, so no default_replacement is recorded.",
     "lexicon_counts": {
-     "alt_of_pairs": 16,
-     "macron_or_glottal_only": 5,
-     "b_to_p": 3,
-     "j_to_s": 3,
-     "other": 5
+     "alt_of_pairs": "16",
+     "macron_or_glottal_only": "5",
+     "b_to_p": "3",
+     "j_to_s": "3",
+     "other": "5"
     }
    },
    {
@@ -1538,7 +1514,7 @@
     "status": "lexicon_required",
     "notes": "Dictionary has no verb derived by -ʻi where the base is also a headword (0 attested pairs), so no counts support a default; lemma = base (alt: derived form as own lemma).",
     "lexicon_counts": {
-     "dictionary_pairs": 0
+     "dictionary_pairs": "0"
     }
    },
    {
@@ -1727,7 +1703,7 @@
     "status": "lexicon_required",
     "notes": "Dictionary headwords with these endings: puleʻanga \"kingdom\", kavenga \"burden\" (etymology kawe-ŋa), fōtunga \"face\", paʻanga: none has its base as a headword (0 pairs).",
     "lexicon_counts": {
-     "dictionary_pairs": 0
+     "dictionary_pairs": "0"
     }
    },
    {
@@ -1818,8 +1794,8 @@
     "status": "lexicon_required",
     "notes": "Dictionary: 13 faka-initial headword entries (12 distinct); 2 have the remainder as headword (fakaleitī, fakafefine) = 2 of 12. Too few (n<10) for a default. Dictionary also lists faka as preposition \"in the manner of\" (doublet faʻa).",
     "lexicon_counts": {
-     "faka_distinct_headwords": 12,
-     "remainder_is_headword": 2
+     "faka_distinct_headwords": "12",
+     "remainder_is_headword": "2"
     }
    },
    {
@@ -1985,8 +1961,8 @@
     "status": "lexicon_required",
     "notes": "Dictionary: 13 headwords have a doubled shape (kisikisi, pēpē, malimali, pepe, anoano, kaukau, huhu, tuitui, vaivai, keke, ʻoneʻone, kumukumu, fanafana); the base is a headword in 3 cases (anoano/ano, ʻoneʻone/ʻone, vaivai/vai?). All have their own entry, so lexicalised reduplications keep their own lemma. n=13 attested forms but base recovered ≤ 3 → no default_replacement.",
     "lexicon_counts": {
-     "doubled_headwords": 13,
-     "base_also_headword": 3
+     "doubled_headwords": "13",
+     "base_also_headword": "3"
     }
    },
    {
@@ -2435,110 +2411,140 @@
    }
   ]
  },
- "lexicon_files": [
-  {
-   "file": "kaikki_org-dictionary-Tongan.jsonl",
-   "format": "JSON Lines, one entry per line",
-   "entries": 468,
-   "distinct_headwords": 423,
-   "columns": [
-    "word",
-    "pos",
-    "lang",
-    "lang_code",
-    "senses[].glosses",
-    "senses[].tags",
-    "senses[].alt_of",
-    "senses[].form_of(absent)",
-    "forms[].form",
-    "forms[].tags",
-    "head_templates",
-    "sounds",
-    "etymology_text",
-    "etymology_templates",
-    "hyphenations",
-    "derived",
-    "related",
-    "descendants"
-   ],
-   "pos_counts": {
-    "character": 3,
-    "name": 32,
-    "particle": 4,
-    "noun": 280,
-    "prep": 8,
-    "verb": 47,
-    "article": 1,
-    "pron": 5,
-    "adj": 36,
-    "num": 40,
-    "adv": 10,
-    "phrase": 1,
-    "intj": 1
-   },
-   "licence": null,
-   "licence_note": "not stated in the file",
-   "citation_form": "take `word`; strip the artifact suffix \"/languages M to Z\"; if senses[].alt_of exists use alt_of[].word; restore ʻ if a variant without ʻ is found in forms[].form",
-   "lemma_convention": "dictionary headword, lowercase for common words, capitalised for pos=name, ʻ=U+02BB, macron where written, separate entry per part of speech, multiword headwords for numerals and phrases; no stress marks; no derivational links (derived field has 10 entries)"
-  }
- ],
- "gaps": [
-  {
-   "topic": "target corpus conventions (Input C)",
-   "reason": "not attached; dictionary conventions recorded as provisional"
-  },
-  {
-   "topic": "glottal-stop encodings other than U+02BB and inverted apostrophe",
-   "reason": "straight apostrophe, U+2019, U+02BC are not described in the sources"
-  },
-  {
-   "topic": "stress marking in the target corpus",
-   "reason": "no corpus; grammar marks stress, dictionary does not"
-  },
-  {
-   "topic": "lemmas of kuo, naʻa, ʻe, he, ka, pea, ko, ʻa",
-   "reason": "absent in the dictionary and not stated in the grammar"
-  },
-  {
-   "topic": "regional dialects",
-   "reason": "no dialect differences described in the processed text; only pronunciation variants (Jisa/Jihova, oku for ʻoʻoku, kiaté kinautolu) are mentioned"
-  },
-  {
-   "topic": "register vocabulary beyond kai/tokoni/ʻilo/taumafa/mama",
-   "reason": "the PDF ends in ch.36 p.305 before the word lists"
-  },
-  {
-   "topic": "verbal nouns, classification of nouns (ch.14-15), adverbs (27), comparison (28), special words (29), conjunctions (8), negatives (9), interrogatives (24), numerals detail (25), adjectives (26), greetings (34), vowel protraction (35)",
-   "reason": "not transferred in this version; only the parts needed above were read"
-  },
-  {
-   "topic": "licence of the dictionary",
-   "reason": "not stated in the file"
-  },
-  {
-   "topic": "OCR uncertainty",
-   "reason": "some items in S1 tables (pekia, siʻi/ʻiiki plural, loloa singular, demonstrative kena/hena) are illegible and omitted"
-  }
- ],
- "verification": {
-  "rules_without_attested_example": [],
-  "examples_removed_unverified": [
+ "Syntax": {
+  "scope": "only what lemmatization needs",
+  "word_division": "tense sign, article, preposition and pronoun are written as separate words; see Morphology.rules ORTH-004",
+  "agent_and_patient_markers": "ʻe precedes the actor and ʻa the thing acted on (S1 ch.3 par.5); see Morphology.rules PREP-001",
+  "not_populated": "clause structure not transferred (see gaps)"
+ },
+ "Semantics": {
+  "scope": "only lexical equivalence sets needed for lemma choice",
+  "register_equivalents": [
    {
-    "rule": "PREP-001",
-    "form": "Naʻe tāmateʻi ʻe Tēvita ʻa Koliate",
-    "lemma": "ʻe, ʻa"
-   },
-   {
-    "rule": "PREF-001",
-    "form": "fakatuʻi",
-    "lemma": "tuʻi"
-   },
-   {
-    "rule": "PREF-004",
-    "form": "kaungaʻapi",
-    "lemma": "ʻapi"
+    "meaning": "to eat",
+    "ordinary": "kai",
+    "polite": "tokoni",
+    "honorific": "ʻilo",
+    "regal": "taumafa",
+    "derogatory": "mama",
+    "source": "S1 ch.36 par.6-7"
    }
   ],
-  "checks": "every example form and lemma token found in OCR text of S1 or in S2 (diacritics and glottal marks ignored)"
+  "possessive_class_selection": "a-class vs o-class depends on the relation of possessor to thing (see Morphology.rules POSS-002)"
+ },
+ "Interfaces_and_Integration": {
+  "lexicon_use": "the dictionary is registered in Lexicon_Overview.lexicon_files and is not copied here",
+  "rule_status_values": "rule | lexicon_required | ambiguous",
+  "target_corpus": "not attached; UD feature names used where relevant"
+ },
+ "Relations_and_Properties": {
+  "ambiguity_relations": "form-to-reading homograph records are in Morphology.ambiguities",
+  "derivation_relations": "base-to-derived pairs are in Morphology.rules DER-*, PREF-*, RED-* and Morphology.irregular_forms"
+ },
+ "Lexicon_Overview": {
+  "lexicon_files": [
+   {
+    "file": "kaikki_org-dictionary-Tongan.jsonl",
+    "format": "JSON Lines, one entry per line",
+    "entries": "468",
+    "distinct_headwords": "423",
+    "columns": [
+     "word",
+     "pos",
+     "lang",
+     "lang_code",
+     "senses[].glosses",
+     "senses[].tags",
+     "senses[].alt_of",
+     "senses[].form_of(absent)",
+     "forms[].form",
+     "forms[].tags",
+     "head_templates",
+     "sounds",
+     "etymology_text",
+     "etymology_templates",
+     "hyphenations",
+     "derived",
+     "related",
+     "descendants"
+    ],
+    "pos_counts": {
+     "character": "3",
+     "name": "32",
+     "particle": "4",
+     "noun": "280",
+     "prep": "8",
+     "verb": "47",
+     "article": "1",
+     "pron": "5",
+     "adj": "36",
+     "num": "40",
+     "adv": "10",
+     "phrase": "1",
+     "intj": "1"
+    },
+    "licence_note": "not stated in the file",
+    "citation_form": "take `word`; strip the artifact suffix \"/languages M to Z\"; if senses[].alt_of exists use alt_of[].word; restore ʻ if a variant without ʻ is found in forms[].form",
+    "lemma_convention": "dictionary headword, lowercase for common words, capitalised for pos=name, ʻ=U+02BB, macron where written, separate entry per part of speech, multiword headwords for numerals and phrases; no stress marks; no derivational links (derived field has 10 entries)"
+   }
+  ],
+  "gaps": [
+   {
+    "topic": "target corpus conventions (Input C)",
+    "reason": "not attached; dictionary conventions recorded as provisional"
+   },
+   {
+    "topic": "glottal-stop encodings other than U+02BB and inverted apostrophe",
+    "reason": "straight apostrophe, U+2019, U+02BC are not described in the sources"
+   },
+   {
+    "topic": "stress marking in the target corpus",
+    "reason": "no corpus; grammar marks stress, dictionary does not"
+   },
+   {
+    "topic": "lemmas of kuo, naʻa, ʻe, he, ka, pea, ko, ʻa",
+    "reason": "absent in the dictionary and not stated in the grammar"
+   },
+   {
+    "topic": "regional dialects",
+    "reason": "no dialect differences described in the processed text; only pronunciation variants (Jisa/Jihova, oku for ʻoʻoku, kiaté kinautolu) are mentioned"
+   },
+   {
+    "topic": "register vocabulary beyond kai/tokoni/ʻilo/taumafa/mama",
+    "reason": "the PDF ends in ch.36 p.305 before the word lists"
+   },
+   {
+    "topic": "verbal nouns, classification of nouns (ch.14-15), adverbs (27), comparison (28), special words (29), conjunctions (8), negatives (9), interrogatives (24), numerals detail (25), adjectives (26), greetings (34), vowel protraction (35)",
+    "reason": "not transferred in this version; only the parts needed above were read"
+   },
+   {
+    "topic": "licence of the dictionary",
+    "reason": "not stated in the file"
+   },
+   {
+    "topic": "OCR uncertainty",
+    "reason": "some items in S1 tables (pekia, siʻi/ʻiiki plural, loloa singular, demonstrative kena/hena) are illegible and omitted"
+   }
+  ],
+  "verification": {
+   "examples_removed_unverified": [
+    {
+     "rule": "PREP-001",
+     "form": "Naʻe tāmateʻi ʻe Tēvita ʻa Koliate",
+     "lemma": "ʻe, ʻa"
+    },
+    {
+     "rule": "PREF-001",
+     "form": "fakatuʻi",
+     "lemma": "tuʻi"
+    },
+    {
+     "rule": "PREF-004",
+     "form": "kaungaʻapi",
+     "lemma": "ʻapi"
+    }
+   ],
+   "checks": "every example form and lemma token found in OCR text of S1 or in S2 (diacritics and glottal marks ignored)"
+  }
  }
 }
