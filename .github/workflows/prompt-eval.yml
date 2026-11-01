@@ -1,0 +1,62 @@
+name: Prompt evaluation
+# Runs each new/changed prompt through the lab's local LLM (corpus-host qwen router),
+# extracts the lemmatizer, Clingo-validates it, scores it against EVALUATION.md, and
+# posts the results as a PR comment. Runs on a self-hosted runner on corpus-host so it
+# can reach the local LLM at 127.0.0.1:11434 (no external API key).
+on:
+  pull_request:
+    paths: ["Prompts/**"]
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: "all | changed (manual runs: 'all' evaluates every prompt in the branch)"
+        default: "all"
+
+jobs:
+  evaluate:
+    runs-on: [self-hosted, linguist-eval]
+    env:
+      LLM_URL: http://127.0.0.1:11434/v1/chat/completions
+      LLM_MODEL: qwen3.8:27b-mtp-128k
+      LINGUA_RULES: ${{ github.workspace }}/.lingua-rules
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+
+      - name: Select prompts to evaluate
+        id: sel
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ inputs.scope }}" != "all" ]; then
+            FILES=$(git diff --name-only "origin/${{ github.base_ref }}"...HEAD -- 'Prompts/**' || true)
+          else
+            FILES=$(find Prompts -type f 2>/dev/null)
+          fi
+          echo "count=$(printf '%s\n' "$FILES" | grep -c . || true)" >> "$GITHUB_OUTPUT"
+          { echo 'files<<__EOF__'; printf '%s\n' "$FILES"; echo '__EOF__'; } >> "$GITHUB_OUTPUT"
+
+      - name: Prepare deps + lingua-rules checkout (use-case grounding)
+        if: steps.sel.outputs.count != '0'
+        shell: bash
+        run: |
+          python3 -m pip install --quiet --upgrade "clingo>=5.6"
+          rm -rf .lingua-rules
+          git clone --depth=1 https://github.com/DenisBaliuckij/lingua-rules .lingua-rules || true
+
+      - name: Evaluate prompts
+        if: steps.sel.outputs.count != '0'
+        shell: bash
+        run: |
+          mapfile -t F < <(printf '%s\n' "${{ steps.sel.outputs.files }}" | grep .)
+          python3 scripts/eval_prompt.py "${F[@]}" --out prompt_eval.md
+
+      - name: Post results as PR comment
+        if: always() && github.event_name == 'pull_request' && steps.sel.outputs.count != '0'
+        shell: bash
+        run: gh pr comment "${{ github.event.pull_request.number }}" --repo "${{ github.repository }}" --body-file prompt_eval.md
+
+      - name: Job summary
+        if: always()
+        shell: bash
+        run: '[ -f prompt_eval.md ] && cat prompt_eval.md >> "$GITHUB_STEP_SUMMARY" || echo "no prompts evaluated" >> "$GITHUB_STEP_SUMMARY"'
