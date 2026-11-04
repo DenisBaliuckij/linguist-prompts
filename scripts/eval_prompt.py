@@ -12,8 +12,9 @@ rule blocks), and assess it against the EVALUATION.md rubric + lingua-rules:
                             Accuracy feeds the score and an optional hard gate.
   4. Rubric signals      -- ASP/Clingo constructs, data-logic separation, sanctioned
                             helpers, negative constraints (General Metrics M1.x).
-  5. Use-case grounding  -- if the prompt targets a language already in lingua-rules,
-                            its golden paradigm tests are available as use cases.
+  5. lingua-rules tests  -- if the language is already covered in lingua-rules
+                            (github.com/DenisBaliuckij/lingua-rules), run its golden-file
+                            paradigm tests (`lingua-rules test <iso>`) as a grounding step.
 
 Writes a Markdown report to --out and exits non-zero if any prompt fails a hard gate
 (no valid lemmatizer, or -- when PROMPT_EVAL_MIN_ACCURACY is set -- test accuracy below it).
@@ -152,6 +153,41 @@ def test_lemmatizer(blocks, iso, timeout: int = 600) -> dict:
     return res
 
 
+def lingua_rules_tests(iso, timeout: int = 300) -> dict:
+    """If lingua-rules (https://github.com/DenisBaliuckij/lingua-rules) already has this
+    language, run its golden-file paradigm tests (`lingua-rules test <iso>`) as a grounding
+    step. Reports pass/fail; does not gate the prompt (it exercises lingua-rules, not the
+    LLM output)."""
+    res = {"available": False, "ran": False, "passed": None, "summary": "", "detail": ""}
+    if not iso:
+        res["detail"] = "no ISO code in prompt"; return res
+    root = LINGUA_RULES
+    has_tests = os.path.isdir(os.path.join(root, "tests", iso))
+    has_rules = os.path.isdir(os.path.join(root, "rules", iso))
+    if not (has_tests or has_rules):
+        res["detail"] = "lingua-rules has no rules/tests for this language"; return res
+    res["available"] = True
+    if not has_tests:
+        res["detail"] = "rules present but no golden tests in lingua-rules"; return res
+    env = {**os.environ, "PYTHONPATH": os.path.join(root, "src") + os.pathsep + os.environ.get("PYTHONPATH", "")}
+    for cmd in (["lingua-rules", "test", iso], [sys.executable, "-m", "lingua_rules.cli.main", "test", iso]):
+        try:
+            p = subprocess.run(cmd, cwd=root, capture_output=True, text=True, timeout=timeout, env=env)
+        except FileNotFoundError:
+            continue
+        except subprocess.TimeoutExpired:
+            res["detail"] = "lingua-rules tests timed out"; return res
+        out = (p.stdout + ("\n" + p.stderr if p.stderr else "")).strip()
+        res["ran"] = True
+        res["passed"] = (p.returncode == 0)
+        tail = [ln for ln in out.splitlines() if ln.strip()][-4:]
+        res["summary"] = " / ".join(tail)[:300]
+        res["detail"] = "" if res["passed"] else "lingua-rules golden tests failed"
+        return res
+    res["detail"] = "lingua-rules CLI not runnable (install the lingua-rules checkout)"
+    return res
+
+
 def rubric_signals(prompt_text: str) -> dict:
     t = prompt_text.lower()
     return {
@@ -180,6 +216,8 @@ def score_prompt(path: str) -> dict:
     rep["signals"] = rubric_signals(prompt_text)
     # use-case grounding: does lingua-rules already have this language's golden tests?
     rep["use_cases_available"] = bool(iso) and os.path.isdir(os.path.join(LINGUA_RULES, "rules", iso))
+    # lingua-rules golden paradigm tests for this language, when present (grounding step).
+    rep["lingua_rules"] = lingua_rules_tests(iso)
     # LLM-assisted testing: the LLM writes form->lemma cases + Clingo drivers, we run them.
     rep["test"] = test_lemmatizer(blocks, iso) if (blocks and rep["clingo_failed"] == 0) else \
         {"ran": False, "accuracy": None, "detail": "skipped (no valid lemmatizer)"}
@@ -202,25 +240,33 @@ def score_prompt(path: str) -> dict:
 
 def to_markdown(reports):
     lines = ["## Prompt evaluation", "",
-             "| Prompt | ISO | LP blocks | Clingo ok/fail | Rubric | Tests pass/total | Accuracy | Score | Status |",
-             "|---|---|---|---|---|---|---|---|---|"]
+             "| Prompt | ISO | LP blocks | Clingo ok/fail | Rubric | Tests pass/total | Accuracy | lingua-rules | Score | Status |",
+             "|---|---|---|---|---|---|---|---|---|---|"]
     for r in reports:
         sig = sum(r.get("signals", {}).values()) if "signals" in r else 0
         t = r.get("test", {}) or {}
         tcell = f"{t.get('passed','-')}/{t.get('total','-')}" if t.get("ran") else "—"
         acc = t.get("accuracy")
         acell = f"{int(acc*100)}%" if acc is not None else "—"
+        lr = r.get("lingua_rules", {}) or {}
+        lrcell = ("pass" if lr.get("passed") else "fail") if lr.get("ran") else ("n/a" if not lr.get("available") else "—")
         lines.append(f"| {r['prompt']} | {r.get('iso') or '?'} | {r.get('lp_blocks','-')} | "
                      f"{r.get('clingo_parsed','-')}/{r.get('clingo_failed','-')} | {sig}/4 | "
-                     f"{tcell} | {acell} | {r.get('score','-')} | **{r.get('status','?')}** |")
-    # per-prompt test detail (misses) for anything that ran tests
-    detail = [f"- **{r['prompt']}**: {r['test']['detail']}" for r in reports
-              if (r.get("test") or {}).get("detail")]
+                     f"{tcell} | {acell} | {lrcell} | {r.get('score','-')} | **{r.get('status','?')}** |")
+    # per-prompt detail: LLM-test misses and lingua-rules outcomes
+    detail = []
+    for r in reports:
+        if (r.get("test") or {}).get("detail"):
+            detail.append(f"- **{r['prompt']}** (LLM test): {r['test']['detail']}")
+        lr = r.get("lingua_rules") or {}
+        if lr.get("ran"):
+            detail.append(f"- **{r['prompt']}** (lingua-rules): {'passed' if lr['passed'] else 'FAILED'} — {lr.get('summary','')}")
     lines += ["", "_Lemmatizer extracted via the local LLM, Clingo-validated, then **tested**: the "
               "LLM generates `form→lemma` cases and a Clingo driver per case, which are executed and "
-              "scored (accuracy). 'Tests' empty = Clingo/driver could not run._"]
+              "scored (accuracy). The **lingua-rules** column runs that project's golden paradigm tests "
+              "for the language when it is already covered (grounding; not a gate on the prompt)._"]
     if detail:
-        lines += ["", "### Test details", *detail]
+        lines += ["", "### Details", *detail]
     return "\n".join(lines)
 
 

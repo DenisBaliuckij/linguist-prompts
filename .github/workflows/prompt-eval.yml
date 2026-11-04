@@ -43,6 +43,8 @@ jobs:
           python3 -m pip install --quiet --upgrade "clingo>=5.6"
           rm -rf .lingua-rules
           git clone --depth=1 https://github.com/DenisBaliuckij/lingua-rules .lingua-rules || true
+          # Install the lingua-rules CLI so its golden paradigm tests can run as a step.
+          python3 -m pip install --quiet ./.lingua-rules || true
 
       - name: Evaluate prompts
         if: steps.sel.outputs.count != '0'
