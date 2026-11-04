@@ -1,0 +1,2177 @@
+# Reserved for evaluation only. Do not use this file until the final evaluation stage.
+language:
+  name: Russian
+  iso639_3: rus
+  iso639_1: ru
+sources:
+- name: SynTagRus (UD Russian-SynTagRus), train split
+  url: https://github.com/UniversalDependencies/UD_Russian-SynTagRus
+  version: attached file ru_syntagrus-ud-train-a.conllu; commit hash is not present in the file
+  license: CC BY-NC-SA 4.0
+  annotation_type: Lemmas are copied unchanged from the LEMMA column of the attached CoNLL-U file.
+- name: SynTagRus (UD Russian-SynTagRus), test split
+  url: https://github.com/UniversalDependencies/UD_Russian-SynTagRus
+  version: attached file ru_syntagrus-ud-test.conllu; commit hash is not present in the file
+  license: CC BY-NC-SA 4.0
+  annotation_type: Lemmas are copied unchanged from the LEMMA column of the attached CoNLL-U file.
+split: holdout
+selection:
+  seed: 42
+  rule: Unique lowercased lemmas from both SynTagRus files were shuffled with seed 42 and split 80/20 (integer truncation) into development and holdout; development cases were then taken only from ru_syntagrus-ud-train-a.conllu and holdout cases only from ru_syntagrus-ud-test.conllu, after dropping trivial form=lemma pairs and duplicate (form, lemma, upos) triples, shuffling sentences with the same generator and keeping at most three cases per sentence until 1000 and 300 cases.
+counts:
+  total_cases: 300
+  by_source:
+    syntagrus_train: 0
+    syntagrus_test: 300
+    timberlake: 0
+    wade: 0
+  by_upos:
+    ADJ: 60
+    ADV: 4
+    DET: 3
+    NOUN: 122
+    PRON: 2
+    PROPN: 8
+    VERB: 101
+  by_feature:
+    Case:
+      Nom: 24
+      Acc: 18
+      Gen: 80
+      Dat: 20
+      Ins: 37
+      Loc: 27
+    Number:
+      Sing: 197
+      Plur: 89
+    Gender:
+      Masc: 104
+      Fem: 75
+      Neut: 39
+    VerbForm:
+      Fin: 72
+      Part: 19
+      Inf: 0
+      Conv: 10
+    Tense:
+      Pres: 42
+      Past: 53
+      Fut: 5
+    Aspect:
+      Perf: 42
+      Imp: 59
+    Person:
+      '1': 3
+      '2': 5
+      '3': 23
+    Degree:
+      Pos: 59
+      Cmp: 4
+      Sup: 0
+cases:
+- sentence_id: 2013Ataman_Vikhr.xml_71
+  token_id: 17
+  form: лошадей
+  lemma: лошадь
+  upos: NOUN
+  features: Animacy=Anim|Case=Gen|Gender=Fem|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2012Fobos-grunt_gibel_mechty.xml_120
+  token_id: 1
+  form: Раскрывались
+  lemma: раскрываться
+  upos: VERB
+  features: Aspect=Imp|Mood=Ind|Number=Plur|Tense=Past|VerbForm=Fin|Voice=Mid
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2012Fobos-grunt_gibel_mechty.xml_120
+  token_id: 13
+  form: автоматическая
+  lemma: автоматический
+  upos: ADJ
+  features: Case=Nom|Degree=Pos|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2010Bolezn_rosta.xml_105
+  token_id: 3
+  form: моем
+  lemma: мой
+  upos: DET
+  features: Case=Loc|Gender=Masc|Number=Sing|Poss=Yes|PronType=Prs
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2019Zanimatelnaya_estetika.xml_54
+  token_id: 7
+  form: поверхностях
+  lemma: поверхность
+  upos: NOUN
+  features: Animacy=Inan|Case=Loc|Gender=Fem|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2019Zanimatelnaya_estetika.xml_54
+  token_id: 27
+  form: треугольников
+  lemma: треугольник
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Masc|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2013ES-ofshor.xml_21
+  token_id: 7
+  form: необходимую
+  lemma: необходимый
+  upos: ADJ
+  features: Case=Acc|Degree=Pos|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2007Gematologiya.xml_13
+  token_id: 4
+  form: кровопотерей
+  lemma: кровопотеря
+  upos: NOUN
+  features: Animacy=Inan|Case=Ins|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2007Gematologiya.xml_13
+  token_id: 6
+  form: требующей
+  lemma: требовать
+  upos: VERB
+  features: Aspect=Imp|Case=Ins|Gender=Fem|Number=Sing|Tense=Pres|VerbForm=Part|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2007Gematologiya.xml_13
+  token_id: 14
+  form: падением
+  lemma: падение
+  upos: NOUN
+  features: Animacy=Inan|Case=Ins|Gender=Neut|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2007Gematologiya.xml_46
+  token_id: 7
+  form: способных
+  lemma: способный
+  upos: ADJ
+  features: Case=Gen|Degree=Pos|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2007Bezrybie.xml_86
+  token_id: 10
+  form: средствам
+  lemma: средство
+  upos: NOUN
+  features: Animacy=Inan|Case=Dat|Gender=Neut|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2020_RFFIMoskva_2042.xml_312
+  token_id: 4
+  form: ручку
+  lemma: ручка
+  upos: NOUN
+  features: Animacy=Inan|Case=Acc|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2014Bogi_menyayutsya.xml_212
+  token_id: 4
+  form: косоглазые
+  lemma: косоглазый
+  upos: ADJ
+  features: Case=Nom|Degree=Pos|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2014Geroi.xml_3
+  token_id: 1
+  form: Рыбаки
+  lemma: рыбак
+  upos: NOUN
+  features: Animacy=Anim|Case=Nom|Gender=Masc|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2014Geroi.xml_3
+  token_id: 3
+  form: каменщики
+  lemma: каменщик
+  upos: NOUN
+  features: Animacy=Anim|Case=Nom|Gender=Masc|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2014Geroi.xml_3
+  token_id: 24
+  form: пророков
+  lemma: пророк
+  upos: NOUN
+  features: Animacy=Anim|Case=Gen|Gender=Masc|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Bez_epokhi.xml_113
+  token_id: 34
+  form: правительственной
+  lemma: правительственный
+  upos: ADJ
+  features: Case=Ins|Degree=Pos|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Bez_epokhi.xml_113
+  token_id: 38
+  form: распоряжений
+  lemma: распоряжение
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Neut|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2010Korrektsiya_mifov.xml_19
+  token_id: 7
+  form: Стэнфордского
+  lemma: стэнфордский
+  upos: ADJ
+  features: Case=Gen|Degree=Pos|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2010Korrektsiya_mifov.xml_19
+  token_id: 9
+  form: попытались
+  lemma: попытаться
+  upos: VERB
+  features: Aspect=Perf|Mood=Ind|Number=Plur|Tense=Past|VerbForm=Fin|Voice=Mid
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2019Pokhozhdeniya_ryadovogo_podpisanta.xml_74
+  token_id: 9
+  form: телемеханики
+  lemma: телемеханика
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2009Letayushchaya_tarelka.xml_57
+  token_id: 3
+  form: вихревое
+  lemma: вихревой
+  upos: ADJ
+  features: Case=Nom|Degree=Pos|Gender=Neut|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2009Letayushchaya_tarelka.xml_57
+  token_id: 14
+  form: центрального
+  lemma: центральный
+  upos: ADJ
+  features: Case=Gen|Degree=Pos|Gender=Neut|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2009Letayushchaya_tarelka.xml_57
+  token_id: 24
+  form: эжектора
+  lemma: эжектор
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003I_evro_takoi_molodoi.xml_27
+  token_id: 7
+  form: государствами
+  lemma: государство
+  upos: NOUN
+  features: Animacy=Inan|Case=Ins|Gender=Neut|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Armeniya.xml_67
+  token_id: 2
+  form: начала
+  lemma: начало
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Neut|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Armeniya.xml_67
+  token_id: 15
+  form: Еревана
+  lemma: Ереван
+  upos: PROPN
+  features: Animacy=Inan|Case=Gen|Gender=Masc|NameType=Geo|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2014Chto_takoe_interesno.xml_25
+  token_id: 10
+  form: зашло
+  lemma: зайти
+  upos: VERB
+  features: Aspect=Perf|Gender=Neut|Mood=Ind|Number=Sing|Tense=Past|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2018Poseshchenie_muzeya.xml_103
+  token_id: 26
+  form: сияли
+  lemma: сиять
+  upos: VERB
+  features: Aspect=Imp|Mood=Ind|Number=Plur|Tense=Past|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2018Poseshchenie_muzeya.xml_103
+  token_id: 38
+  form: тигровой
+  lemma: тигровый
+  upos: ADJ
+  features: Case=Loc|Degree=Pos|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2014Geroi.xml_31
+  token_id: 13
+  form: тянется
+  lemma: тянуться
+  upos: VERB
+  features: Aspect=Imp|Mood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin|Voice=Mid
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2014Geroi.xml_31
+  token_id: 15
+  form: зимними
+  lemma: зимний
+  upos: ADJ
+  features: Case=Ins|Degree=Pos|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: uppsalaKorp_266.xml_14
+  token_id: 1
+  form: Коллективная
+  lemma: коллективный
+  upos: ADJ
+  features: Case=Nom|Degree=Pos|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2018Kto_za_Trampa.xml_55
+  token_id: 13
+  form: афродизиаком
+  lemma: афродизиак
+  upos: NOUN
+  features: Animacy=Inan|Case=Ins|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2007Mars.xml_16
+  token_id: 1
+  form: Марсианская
+  lemma: марсианский
+  upos: ADJ
+  features: Case=Nom|Degree=Pos|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2014Bogi_menyayutsya.xml_76
+  token_id: 10
+  form: выросли
+  lemma: вырасти
+  upos: VERB
+  features: Aspect=Perf|Mood=Ind|Number=Plur|Tense=Past|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2011Formula-1.xml_335
+  token_id: 12
+  form: устраивает
+  lemma: устраивать
+  upos: VERB
+  features: Aspect=Imp|Mood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2011Formula-1.xml_335
+  token_id: 44
+  form: основную
+  lemma: основной
+  upos: ADJ
+  features: Case=Acc|Degree=Pos|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2020_Corpus2_0Peredacha.xml_61
+  token_id: 9
+  form: заговорила
+  lemma: заговорить
+  upos: VERB
+  features: Aspect=Perf|Gender=Fem|Mood=Ind|Number=Sing|Tense=Past|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2013Ataman_Vikhr.xml_22
+  token_id: 21
+  form: присутственен
+  lemma: присутственный
+  upos: ADJ
+  features: Degree=Pos|Gender=Masc|Number=Sing|Variant=Short
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2013Ataman_Vikhr.xml_22
+  token_id: 23
+  form: подавал
+  lemma: подавать
+  upos: VERB
+  features: Aspect=Imp|Gender=Masc|Mood=Ind|Number=Sing|Tense=Past|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Artist_mimansa.xml_222
+  token_id: 6
+  form: сидит
+  lemma: сидеть
+  upos: VERB
+  features: Aspect=Imp|Mood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Artist_mimansa.xml_222
+  token_id: 8
+  form: подперев
+  lemma: подпереть
+  upos: VERB
+  features: Aspect=Perf|Tense=Past|VerbForm=Conv|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2014Geroi.xml_210
+  token_id: 44
+  form: нежной
+  lemma: нежный
+  upos: ADJ
+  features: Case=Gen|Degree=Pos|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2013Ataman_Vikhr.xml_8
+  token_id: 26
+  form: подхода
+  lemma: подход
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2007Lesorub.xml_99
+  token_id: 37
+  form: транспортировке
+  lemma: транспортировка
+  upos: NOUN
+  features: Animacy=Inan|Case=Dat|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2012Fobos-grunt_gibel_mechty.xml_124
+  token_id: 6
+  form: декабре
+  lemma: декабрь
+  upos: NOUN
+  features: Animacy=Inan|Case=Loc|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2012Fobos-grunt_gibel_mechty.xml_178
+  token_id: 7
+  form: разработок
+  lemma: разработка
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Fem|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2012Fobos-grunt_gibel_mechty.xml_178
+  token_id: 9
+  form: марсоходу
+  lemma: марсоход
+  upos: NOUN
+  features: Animacy=Inan|Case=Dat|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2012Fobos-grunt_gibel_mechty.xml_178
+  token_id: 24
+  form: стартовал
+  lemma: стартовать
+  upos: VERB
+  features: Aspect=Imp|Gender=Masc|Mood=Ind|Number=Sing|Tense=Past|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2007Lunokhod.xml_26
+  token_id: 2
+  form: правилу
+  lemma: правило
+  upos: NOUN
+  features: Animacy=Inan|Case=Dat|Gender=Neut|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2007Lunokhod.xml_26
+  token_id: 16
+  form: собрались
+  lemma: собраться
+  upos: VERB
+  features: Aspect=Perf|Mood=Ind|Number=Plur|Tense=Past|VerbForm=Fin|Voice=Mid
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2007Foto.xml_64
+  token_id: 4
+  form: иллюзорен
+  lemma: иллюзорный
+  upos: ADJ
+  features: Degree=Pos|Gender=Masc|Number=Sing|Variant=Short
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2013Martovskaya_revolyutsiya.xml_28
+  token_id: 3
+  form: подавлено
+  lemma: подавить
+  upos: VERB
+  features: Aspect=Perf|Gender=Neut|Number=Sing|Tense=Past|Variant=Short|VerbForm=Part|Voice=Pass
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2018Kto_za_Trampa.xml_25
+  token_id: 5
+  form: Трампом
+  lemma: Трамп
+  upos: PROPN
+  features: Animacy=Anim|Case=Ins|Gender=Masc|NameType=Sur|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2014Bogi_menyayutsya.xml_131
+  token_id: 19
+  form: дай
+  lemma: дать
+  upos: VERB
+  features: Aspect=Perf|Mood=Imp|Number=Sing|Person=2|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2012Kolchak.xml_83
+  token_id: 14
+  form: заливе
+  lemma: залив
+  upos: NOUN
+  features: Animacy=Inan|Case=Loc|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2007Gematologiya.xml_27
+  token_id: 4
+  form: покоя
+  lemma: покой
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2014Geroi.xml_80
+  token_id: 1
+  form: Писатели
+  lemma: писатель
+  upos: NOUN
+  features: Animacy=Anim|Case=Nom|Gender=Masc|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Bez_epokhi.xml_74
+  token_id: 13
+  form: Анджелы
+  lemma: Анджела
+  upos: PROPN
+  features: Animacy=Anim|Case=Gen|Gender=Fem|NameType=Giv|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2005Kvartira_na_depozit.xml_2
+  token_id: 13
+  form: владельцу
+  lemma: владелец
+  upos: NOUN
+  features: Animacy=Anim|Case=Dat|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2008Kobzon.xml_17
+  token_id: 9
+  form: чувством
+  lemma: чувство
+  upos: NOUN
+  features: Animacy=Inan|Case=Ins|Gender=Neut|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2008Kobzon.xml_17
+  token_id: 31
+  form: плюнул
+  lemma: плюнуть
+  upos: VERB
+  features: Aspect=Perf|Gender=Masc|Mood=Ind|Number=Sing|Tense=Past|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2008Kobzon.xml_17
+  token_id: 67
+  form: ногами
+  lemma: нога
+  upos: NOUN
+  features: Animacy=Inan|Case=Ins|Gender=Fem|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Artist_mimansa.xml_136
+  token_id: 26
+  form: сидела
+  lemma: сидеть
+  upos: VERB
+  features: Aspect=Imp|Gender=Fem|Mood=Ind|Number=Sing|Tense=Past|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Artist_mimansa.xml_136
+  token_id: 27
+  form: ближе
+  lemma: близко
+  upos: ADV
+  features: Degree=Cmp
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Artist_mimansa.xml_146
+  token_id: 29
+  form: кипяченой
+  lemma: кипяченый
+  upos: ADJ
+  features: Case=Ins|Degree=Pos|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003I_k_nim_ne_zarastet_narodnaya_tropa.xml_25
+  token_id: 6
+  form: проявляют
+  lemma: проявлять
+  upos: VERB
+  features: Aspect=Imp|Mood=Ind|Number=Plur|Person=3|Tense=Pres|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2020_RFFIMoskva_2042.xml_499
+  token_id: 12
+  form: общими
+  lemma: общий
+  upos: ADJ
+  features: Case=Ins|Degree=Pos|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2009Innovatsionnaya_ekonomika.xml_73
+  token_id: 7
+  form: направленный
+  lemma: направить
+  upos: VERB
+  features: Aspect=Perf|Case=Nom|Gender=Masc|Number=Sing|Tense=Past|VerbForm=Part|Voice=Pass
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Chto_doktor_propisal.xml_50
+  token_id: 12
+  form: рентгене
+  lemma: рентген
+  upos: NOUN
+  features: Animacy=Inan|Case=Loc|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2012Kolchak.xml_185
+  token_id: 11
+  form: большевизмом
+  lemma: большевизм
+  upos: NOUN
+  features: Animacy=Inan|Case=Ins|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2007Mars.xml_4
+  token_id: 18
+  form: прессой
+  lemma: пресса
+  upos: NOUN
+  features: Animacy=Inan|Case=Ins|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2020_RFFIMoskva_2042.xml_529
+  token_id: 2
+  form: нижних
+  lemma: нижний
+  upos: ADJ
+  features: Case=Gen|Degree=Pos|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2007Lesorub.xml_20
+  token_id: 5
+  form: указывает
+  lemma: указывать
+  upos: VERB
+  features: Aspect=Imp|Mood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2007Lesorub.xml_20
+  token_id: 8
+  form: падения
+  lemma: падение
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Neut|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Bez_epokhi.xml_97
+  token_id: 8
+  form: низкие
+  lemma: низкий
+  upos: ADJ
+  features: Case=Nom|Degree=Pos|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2018Poseshchenie_muzeya.xml_112
+  token_id: 8
+  form: тянулся
+  lemma: тянуться
+  upos: VERB
+  features: Aspect=Imp|Gender=Masc|Mood=Ind|Number=Sing|Tense=Past|VerbForm=Fin|Voice=Mid
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2018Poseshchenie_muzeya.xml_112
+  token_id: 52
+  form: глыбе
+  lemma: глыба
+  upos: NOUN
+  features: Animacy=Inan|Case=Loc|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Bez_epokhi.xml_2
+  token_id: 18
+  form: Патриарших
+  lemma: патриарший
+  upos: ADJ
+  features: Case=Gen|Degree=Pos|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: uppsalaKorp_601.xml_10
+  token_id: 3
+  form: объективности
+  lemma: объективность
+  upos: NOUN
+  features: Animacy=Inan|Case=Dat|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: uppsalaKorp_601.xml_10
+  token_id: 15
+  form: социологического
+  lemma: социологический
+  upos: ADJ
+  features: Case=Gen|Degree=Pos|Gender=Neut|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: uppsalaKorp_601.xml_10
+  token_id: 32
+  form: учитывающего
+  lemma: учитывать
+  upos: VERB
+  features: Aspect=Imp|Case=Gen|Gender=Neut|Number=Sing|Tense=Pres|VerbForm=Part|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2012Iz_pochtovykh_yashchikov.xml_6
+  token_id: 16
+  form: доли
+  lemma: доля
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2012Iz_pochtovykh_yashchikov.xml_6
+  token_id: 20
+  form: поношения
+  lemma: поношение
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Neut|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2020_Corpus2_0Peredacha.xml_44
+  token_id: 3
+  form: диалога
+  lemma: диалог
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2020_Corpus2_0Peredacha.xml_44
+  token_id: 10
+  form: зимнее
+  lemma: зимний
+  upos: ADJ
+  features: Case=Acc|Degree=Pos|Gender=Neut|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2020_Corpus2_0Peredacha.xml_44
+  token_id: 19
+  form: находил
+  lemma: находить
+  upos: VERB
+  features: Aspect=Imp|Gender=Masc|Mood=Ind|Number=Sing|Tense=Past|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: uppsalaKorp_603.xml_42
+  token_id: 23
+  form: выхаживании
+  lemma: выхаживание
+  upos: NOUN
+  features: Animacy=Inan|Case=Loc|Gender=Neut|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Armeniya.xml_129
+  token_id: 22
+  form: правом
+  lemma: право
+  upos: NOUN
+  features: Animacy=Inan|Case=Ins|Gender=Neut|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Armeniya.xml_129
+  token_id: 24
+  form: соответствующих
+  lemma: соответствующий
+  upos: ADJ
+  features: Case=Gen|Degree=Pos|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2020_RFFIMoskva_2042.xml_561
+  token_id: 7
+  form: пудовая
+  lemma: пудовый
+  upos: ADJ
+  features: Case=Nom|Degree=Pos|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2011Formula-1.xml_33
+  token_id: 8
+  form: прибавляются
+  lemma: прибавлять
+  upos: VERB
+  features: Aspect=Imp|Mood=Ind|Number=Plur|Person=3|Tense=Pres|VerbForm=Fin|Voice=Pass
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2019Zanimatelnaya_estetika.xml_51
+  token_id: 12
+  form: композиции
+  lemma: композиция
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2019Zanimatelnaya_estetika.xml_51
+  token_id: 37
+  form: посуде
+  lemma: посуда
+  upos: NOUN
+  features: Animacy=Inan|Case=Loc|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2020_RFFIMoskva_2042.xml_597
+  token_id: 2
+  form: выскочил
+  lemma: выскочить
+  upos: VERB
+  features: Aspect=Perf|Gender=Masc|Mood=Ind|Number=Sing|Tense=Past|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2020_RFFIMoskva_2042.xml_597
+  token_id: 13
+  form: прося
+  lemma: просить
+  upos: VERB
+  features: Aspect=Imp|Tense=Pres|VerbForm=Conv|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2019Zanimatelnaya_estetika.xml_359
+  token_id: 58
+  form: сторожем
+  lemma: сторож
+  upos: NOUN
+  features: Animacy=Anim|Case=Ins|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Ekspluatatsiya_elity.xml_40
+  token_id: 2
+  form: сталкиваемся
+  lemma: сталкиваться
+  upos: VERB
+  features: Aspect=Imp|Mood=Ind|Number=Plur|Person=1|Tense=Pres|VerbForm=Fin|Voice=Mid
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2005Gubarev.xml_129
+  token_id: 5
+  form: доступными
+  lemma: доступный
+  upos: ADJ
+  features: Case=Ins|Degree=Pos|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2005Gubarev.xml_129
+  token_id: 7
+  form: необходимыми
+  lemma: необходимый
+  upos: ADJ
+  features: Case=Ins|Degree=Pos|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2012Fobos-grunt_gibel_mechty.xml_51
+  token_id: 7
+  form: перелетного
+  lemma: перелетный
+  upos: ADJ
+  features: Case=Gen|Degree=Pos|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2012Fobos-grunt_gibel_mechty.xml_51
+  token_id: 8
+  form: модуля
+  lemma: модуль
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2020_RFFIMoskva_2042.xml_285
+  token_id: 4
+  form: хихикнул
+  lemma: хихикнуть
+  upos: VERB
+  features: Aspect=Perf|Gender=Masc|Mood=Ind|Number=Sing|Tense=Past|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2007Gematologiya.xml_23
+  token_id: 7
+  form: донорские
+  lemma: донорский
+  upos: ADJ
+  features: Case=Nom|Degree=Pos|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2012Kolchak.xml_240
+  token_id: 8
+  form: жертв
+  lemma: жертва
+  upos: NOUN
+  features: Animacy=Anim|Case=Gen|Gender=Fem|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2007Gematologiya.xml_107
+  token_id: 10
+  form: усилиям
+  lemma: усилие
+  upos: NOUN
+  features: Animacy=Inan|Case=Dat|Gender=Neut|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2007Gematologiya.xml_107
+  token_id: 18
+  form: снизился
+  lemma: снизиться
+  upos: VERB
+  features: Aspect=Perf|Gender=Masc|Mood=Ind|Number=Sing|Tense=Past|VerbForm=Fin|Voice=Mid
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Bolshie_peremeny.xml_39
+  token_id: 6
+  form: повышающие
+  lemma: повышать
+  upos: VERB
+  features: Animacy=Inan|Aspect=Imp|Case=Acc|Number=Plur|Tense=Pres|VerbForm=Part|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Bolshie_peremeny.xml_39
+  token_id: 10
+  form: экзамена
+  lemma: экзамен
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2010Bolezn_rosta.xml_9
+  token_id: 2
+  form: признают
+  lemma: признавать
+  upos: VERB
+  features: Aspect=Imp|Mood=Ind|Number=Plur|Person=3|Tense=Pres|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2010Bolezn_rosta.xml_9
+  token_id: 5
+  form: программой
+  lemma: программа
+  upos: NOUN
+  features: Animacy=Inan|Case=Ins|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2018Kto_za_Trampa.xml_80
+  token_id: 13
+  form: вынудивший
+  lemma: вынудить
+  upos: VERB
+  features: Aspect=Perf|Case=Nom|Gender=Masc|Number=Sing|Tense=Past|VerbForm=Part|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2011Lekarstva_ot_ustalosti.xml_88
+  token_id: 6
+  form: выносливости
+  lemma: выносливость
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Artist_mimansa.xml_271
+  token_id: 5
+  form: стою
+  lemma: стоять
+  upos: VERB
+  features: Aspect=Imp|Mood=Ind|Number=Sing|Person=1|Tense=Pres|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Chto_doktor_propisal.xml_55
+  token_id: 10
+  form: эффективнее
+  lemma: эффективно
+  upos: ADV
+  features: Degree=Cmp
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Armeniya.xml_79
+  token_id: 2
+  form: состоянию
+  lemma: состояние
+  upos: NOUN
+  features: Animacy=Inan|Case=Dat|Gender=Neut|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Armeniya.xml_79
+  token_id: 5
+  form: марта
+  lemma: март
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Armeniya.xml_79
+  token_id: 10
+  form: фиксированной
+  lemma: фиксировать
+  upos: VERB
+  features: Aspect=Perf|Case=Gen|Gender=Fem|Number=Sing|Tense=Past|VerbForm=Part|Voice=Pass
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2011Lekarstva_ot_ustalosti.xml_77
+  token_id: 8
+  form: метода
+  lemma: метод
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2020_RFFIMoskva_2042.xml_73
+  token_id: 3
+  form: приблизился
+  lemma: приблизиться
+  upos: VERB
+  features: Aspect=Perf|Gender=Masc|Mood=Ind|Number=Sing|Tense=Past|VerbForm=Fin|Voice=Mid
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2020_RFFIMoskva_2042.xml_73
+  token_id: 5
+  form: прилавку
+  lemma: прилавок
+  upos: NOUN
+  features: Animacy=Inan|Case=Dat|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2020_RFFIMoskva_2042.xml_73
+  token_id: 24
+  form: бутылки
+  lemma: бутылка
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Artist_mimansa.xml_158
+  token_id: 7
+  form: бежали
+  lemma: бежать
+  upos: VERB
+  features: Aspect=Imp|Mood=Ind|Number=Plur|Tense=Past|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2007Foto.xml_48
+  token_id: 6
+  form: нуждался
+  lemma: нуждаться
+  upos: VERB
+  features: Aspect=Imp|Gender=Masc|Mood=Ind|Number=Sing|Tense=Past|VerbForm=Fin|Voice=Mid
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2020_RFFIMoskva_2042.xml_256
+  token_id: 5
+  form: подравнялись
+  lemma: подравняться
+  upos: VERB
+  features: Aspect=Perf|Mood=Ind|Number=Plur|Tense=Past|VerbForm=Fin|Voice=Mid
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2020_RFFIMoskva_2042.xml_256
+  token_id: 14
+  form: расслабились
+  lemma: расслабиться
+  upos: VERB
+  features: Aspect=Perf|Mood=Ind|Number=Plur|Tense=Past|VerbForm=Fin|Voice=Mid
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Artist_mimansa.xml_12
+  token_id: 13
+  form: посторонние
+  lemma: посторонний
+  upos: NOUN
+  features: Animacy=Anim|Case=Nom|Gender=Masc|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2020_Corpus2_0Peredacha.xml_255
+  token_id: 3
+  form: одеваясь
+  lemma: одевать
+  upos: VERB
+  features: Aspect=Imp|Tense=Pres|VerbForm=Conv|Voice=Pass
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2014Bogi_menyayutsya.xml_105
+  token_id: 3
+  form: начале
+  lemma: начало
+  upos: NOUN
+  features: Animacy=Inan|Case=Loc|Gender=Neut|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2014Bogi_menyayutsya.xml_121
+  token_id: 6
+  form: попавших
+  lemma: попасть
+  upos: VERB
+  features: Aspect=Perf|Case=Gen|Number=Plur|Tense=Past|VerbForm=Part|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2014Bogi_menyayutsya.xml_121
+  token_id: 19
+  form: прошлом
+  lemma: прошлое
+  upos: NOUN
+  features: Animacy=Inan|Case=Loc|Gender=Neut|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2013Doktor_Z.xml_134
+  token_id: 2
+  form: боишься
+  lemma: бояться
+  upos: VERB
+  features: Aspect=Imp|Mood=Ind|Number=Sing|Person=2|Tense=Pres|VerbForm=Fin|Voice=Mid
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2011Formula-1.xml_322
+  token_id: 7
+  form: бьется
+  lemma: биться
+  upos: VERB
+  features: Aspect=Imp|Mood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin|Voice=Mid
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Artist_mimansa.xml_40
+  token_id: 4
+  form: рубильники
+  lemma: рубильник
+  upos: NOUN
+  features: Animacy=Inan|Case=Acc|Gender=Masc|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Artist_mimansa.xml_181
+  token_id: 4
+  form: пошатываясь
+  lemma: пошатываться
+  upos: VERB
+  features: Aspect=Imp|Tense=Pres|VerbForm=Conv|Voice=Mid
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Armeniya.xml_90
+  token_id: 18
+  form: кредита
+  lemma: кредит
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2012Kolchak.xml_307
+  token_id: 8
+  form: корректной
+  lemma: корректный
+  upos: ADJ
+  features: Case=Loc|Degree=Pos|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2012Fobos-grunt_gibel_mechty.xml_158
+  token_id: 1
+  form: Возвращаемый
+  lemma: возвращать
+  upos: VERB
+  features: Aspect=Imp|Case=Nom|Gender=Masc|Number=Sing|Tense=Pres|VerbForm=Part|Voice=Pass
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2009Dolgovaya_vyshka.xml_17
+  token_id: 15
+  form: заключающие
+  lemma: заключать
+  upos: VERB
+  features: Aspect=Imp|Case=Nom|Number=Plur|Tense=Pres|VerbForm=Part|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2009Dolgovaya_vyshka.xml_17
+  token_id: 17
+  form: банками
+  lemma: банк
+  upos: NOUN
+  features: Animacy=Inan|Case=Ins|Gender=Masc|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2009Dolgovaya_vyshka.xml_17
+  token_id: 18
+  form: соответствующие
+  lemma: соответствующий
+  upos: ADJ
+  features: Animacy=Inan|Case=Acc|Degree=Pos|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Bolshie_peremeny.xml_44
+  token_id: 8
+  form: результатам
+  lemma: результат
+  upos: NOUN
+  features: Animacy=Inan|Case=Dat|Gender=Masc|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2020_RFFIMoskva_2042.xml_292
+  token_id: 13
+  form: здешним
+  lemma: здешний
+  upos: ADJ
+  features: Case=Dat|Degree=Pos|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Artist_mimansa.xml_68
+  token_id: 7
+  form: кого
+  lemma: кто
+  upos: PRON
+  features: Animacy=Anim|Case=Gen|Gender=Masc|Number=Sing|PronType=Int,Rel
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2013Ataman_Vikhr.xml_62
+  token_id: 3
+  form: казачьей
+  lemma: казачий
+  upos: ADJ
+  features: Case=Gen|Degree=Pos|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2013Ataman_Vikhr.xml_62
+  token_id: 4
+  form: кавалерии
+  lemma: кавалерия
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2013Ataman_Vikhr.xml_62
+  token_id: 10
+  form: отступающей
+  lemma: отступать
+  upos: VERB
+  features: Aspect=Imp|Case=Gen|Gender=Fem|Number=Sing|Tense=Pres|VerbForm=Part|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Artist_mimansa.xml_111
+  token_id: 8
+  form: заметил
+  lemma: заметить
+  upos: VERB
+  features: Aspect=Perf|Gender=Masc|Mood=Ind|Number=Sing|Tense=Past|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2010Bolezn_rosta.xml_63
+  token_id: 7
+  form: жилищных
+  lemma: жилищный
+  upos: ADJ
+  features: Case=Gen|Degree=Pos|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2020_RFFIMoskva_2042.xml_290
+  token_id: 16
+  form: посоветовала
+  lemma: посоветовать
+  upos: VERB
+  features: Aspect=Perf|Gender=Fem|Mood=Ind|Number=Sing|Tense=Past|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2007Bezrybie.xml_17
+  token_id: 11
+  form: находит
+  lemma: находить
+  upos: VERB
+  features: Aspect=Imp|Mood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2007Bezrybie.xml_17
+  token_id: 13
+  form: проблемы
+  lemma: проблема
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2007Bezrybie.xml_17
+  token_id: 15
+  form: изменении
+  lemma: изменение
+  upos: NOUN
+  features: Animacy=Inan|Case=Loc|Gender=Neut|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2008Chto_v_imeni.xml_79
+  token_id: 2
+  form: Предположим
+  lemma: предположить
+  upos: VERB
+  features: Aspect=Perf|Mood=Ind|Number=Plur|Person=1|Tense=Fut|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2018Poseshchenie_muzeya.xml_9
+  token_id: 2
+  form: всяческих
+  lemma: всяческий
+  upos: DET
+  features: Case=Gen|Number=Plur|PronType=Tot
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2018Poseshchenie_muzeya.xml_9
+  token_id: 3
+  form: достопримечательностей
+  lemma: достопримечательность
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Fem|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: uppsalaKorp_266.xml_22
+  token_id: 9
+  form: простую
+  lemma: простой
+  upos: ADJ
+  features: Case=Acc|Degree=Pos|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2010Kovcheg_Zhana_Vanie.xml_6
+  token_id: 25
+  form: Дауна
+  lemma: Даун
+  upos: PROPN
+  features: Animacy=Anim|Case=Gen|Gender=Masc|NameType=Sur|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2010Kovcheg_Zhana_Vanie.xml_6
+  token_id: 28
+  form: закоулках
+  lemma: закоулок
+  upos: NOUN
+  features: Animacy=Inan|Case=Loc|Gender=Masc|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2014Bogi_menyayutsya.xml_223
+  token_id: 10
+  form: потребляли
+  lemma: потреблять
+  upos: VERB
+  features: Aspect=Imp|Mood=Ind|Number=Plur|Tense=Past|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2014Bogi_menyayutsya.xml_223
+  token_id: 15
+  form: заговорили
+  lemma: заговорить
+  upos: VERB
+  features: Aspect=Perf|Mood=Ind|Number=Plur|Tense=Past|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: uppsalaKorp_603.xml_13
+  token_id: 4
+  form: великолепия
+  lemma: великолепие
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Neut|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: uppsalaKorp_603.xml_13
+  token_id: 6
+  form: патриаршего
+  lemma: патриарший
+  upos: ADJ
+  features: Case=Gen|Degree=Pos|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2007Lyzhi.xml_83
+  token_id: 4
+  form: лыжей
+  lemma: лыжа
+  upos: NOUN
+  features: Animacy=Inan|Case=Ins|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2014Bogi_menyayutsya.xml_47
+  token_id: 5
+  form: моим
+  lemma: мой
+  upos: DET
+  features: Case=Dat|Number=Plur|Poss=Yes|PronType=Prs
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2012Iz_pochtovykh_yashchikov.xml_13
+  token_id: 9
+  form: аэродромы
+  lemma: аэродром
+  upos: NOUN
+  features: Animacy=Inan|Case=Acc|Gender=Masc|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2005Gubarev.xml_80
+  token_id: 3
+  form: реакторе
+  lemma: реактор
+  upos: NOUN
+  features: Animacy=Inan|Case=Loc|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2020_RFFIMoskva_2042.xml_576
+  token_id: 4
+  form: крепче
+  lemma: крепко
+  upos: ADV
+  features: Degree=Cmp
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2007Foto.xml_60
+  token_id: 10
+  form: нью-йоркской
+  lemma: нью-йоркский
+  upos: ADJ
+  features: Case=Gen|Degree=Pos|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2007Foto.xml_60
+  token_id: 23
+  form: мотивов
+  lemma: мотив
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Masc|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2007Foto.xml_60
+  token_id: 24
+  form: творчества
+  lemma: творчество
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Neut|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2009Innovatsionnaya_ekonomika.xml_69
+  token_id: 13
+  form: гранты
+  lemma: грант
+  upos: NOUN
+  features: Animacy=Inan|Case=Acc|Gender=Masc|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Chto_doktor_propisal.xml_11
+  token_id: 8
+  form: спасает
+  lemma: спасать
+  upos: VERB
+  features: Aspect=Imp|Mood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Chto_doktor_propisal.xml_11
+  token_id: 15
+  form: судебных
+  lemma: судебный
+  upos: ADJ
+  features: Case=Gen|Degree=Pos|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2012Kolchak.xml_137
+  token_id: 6
+  form: Гучкова
+  lemma: Гучков
+  upos: PROPN
+  features: Animacy=Anim|Case=Gen|Gender=Masc|NameType=Sur|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2012Kolchak.xml_137
+  token_id: 9
+  form: разумные
+  lemma: разумный
+  upos: ADJ
+  features: Animacy=Inan|Case=Acc|Degree=Pos|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2011Formula-1.xml_143
+  token_id: 14
+  form: исключая
+  lemma: исключать
+  upos: VERB
+  features: Aspect=Imp|Tense=Pres|VerbForm=Conv|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2011Formula-1.xml_143
+  token_id: 18
+  form: овалы
+  lemma: овал
+  upos: NOUN
+  features: Animacy=Inan|Case=Acc|Gender=Masc|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Armeniya.xml_96
+  token_id: 17
+  form: электронной
+  lemma: электронный
+  upos: ADJ
+  features: Case=Gen|Degree=Pos|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2019Zanimatelnaya_estetika.xml_6
+  token_id: 28
+  form: претерпевает
+  lemma: претерпевать
+  upos: VERB
+  features: Aspect=Imp|Mood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2007Bezrybie.xml_13
+  token_id: 3
+  form: научаясь
+  lemma: научаться
+  upos: VERB
+  features: Aspect=Imp|Tense=Pres|VerbForm=Conv|Voice=Mid
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2007Bezrybie.xml_13
+  token_id: 5
+  form: рефлексии
+  lemma: рефлексия
+  upos: NOUN
+  features: Animacy=Inan|Case=Dat|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2007Bezrybie.xml_13
+  token_id: 8
+  form: начинает
+  lemma: начинать
+  upos: VERB
+  features: Aspect=Imp|Mood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2007Kodeks_molchaniya.xml_93
+  token_id: 5
+  form: экранов
+  lemma: экран
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Masc|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2007Gematologiya.xml_113
+  token_id: 4
+  form: тяжелое
+  lemma: тяжелый
+  upos: ADJ
+  features: Case=Nom|Degree=Pos|Gender=Neut|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2007Gematologiya.xml_113
+  token_id: 12
+  form: тромбики
+  lemma: тромбик
+  upos: NOUN
+  features: Animacy=Inan|Case=Nom|Gender=Masc|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2007Bezrybie.xml_63
+  token_id: 5
+  form: сталкиваются
+  lemma: сталкиваться
+  upos: VERB
+  features: Aspect=Imp|Mood=Ind|Number=Plur|Person=3|Tense=Pres|VerbForm=Fin|Voice=Mid
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Artist_mimansa.xml_62
+  token_id: 6
+  form: буфете
+  lemma: буфет
+  upos: NOUN
+  features: Animacy=Inan|Case=Loc|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Artist_mimansa.xml_62
+  token_id: 7
+  form: столпилось
+  lemma: столпиться
+  upos: VERB
+  features: Aspect=Perf|Gender=Neut|Mood=Ind|Number=Sing|Tense=Past|VerbForm=Fin|Voice=Mid
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Bez_epokhi.xml_84
+  token_id: 3
+  form: сувениров
+  lemma: сувенир
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Masc|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Bez_epokhi.xml_84
+  token_id: 21
+  form: Олимпийского
+  lemma: олимпийский
+  upos: ADJ
+  features: Case=Gen|Degree=Pos|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Bez_epokhi.xml_84
+  token_id: 23
+  form: лорда
+  lemma: лорд
+  upos: NOUN
+  features: Animacy=Anim|Case=Gen|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2013Martovskaya_revolyutsiya.xml_74
+  token_id: 2
+  form: усугубил
+  lemma: усугубить
+  upos: VERB
+  features: Aspect=Perf|Gender=Masc|Mood=Ind|Number=Sing|Tense=Past|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2013Martovskaya_revolyutsiya.xml_74
+  token_id: 26
+  form: компрометации
+  lemma: компрометация
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003I_k_nim_ne_zarastet_narodnaya_tropa.xml_22
+  token_id: 17
+  form: волны
+  lemma: волна
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Artist_mimansa.xml_104
+  token_id: 2
+  form: поедешь
+  lemma: поехать
+  upos: VERB
+  features: Aspect=Perf|Mood=Ind|Number=Sing|Person=2|Tense=Fut|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2005Gubarev.xml_157
+  token_id: 8
+  form: немецкой
+  lemma: немецкий
+  upos: ADJ
+  features: Case=Gen|Degree=Pos|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2014Bogi_menyayutsya.xml_7
+  token_id: 4
+  form: хозяйственные
+  lemma: хозяйственный
+  upos: ADJ
+  features: Case=Nom|Degree=Pos|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Armeniya.xml_12
+  token_id: 2
+  form: окончания
+  lemma: окончание
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Neut|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Armeniya.xml_12
+  token_id: 23
+  form: проходящей
+  lemma: проходить
+  upos: VERB
+  features: Aspect=Imp|Case=Gen|Gender=Fem|Number=Sing|Tense=Pres|VerbForm=Part|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Lyubit_drakona.xml_137
+  token_id: 14
+  form: бутылкой
+  lemma: бутылка
+  upos: NOUN
+  features: Animacy=Inan|Case=Ins|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2013Doktor_Z.xml_38
+  token_id: 12
+  form: марте
+  lemma: март
+  upos: NOUN
+  features: Animacy=Inan|Case=Loc|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2019Zanimatelnaya_estetika.xml_190
+  token_id: 11
+  form: накладываются
+  lemma: накладываться
+  upos: VERB
+  features: Aspect=Imp|Mood=Ind|Number=Plur|Person=3|Tense=Pres|VerbForm=Fin|Voice=Mid
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Artist_mimansa.xml_386
+  token_id: 6
+  form: ножом
+  lemma: нож
+  upos: NOUN
+  features: Animacy=Inan|Case=Ins|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Artist_mimansa.xml_386
+  token_id: 10
+  form: макал
+  lemma: макать
+  upos: VERB
+  features: Aspect=Imp|Gender=Masc|Mood=Ind|Number=Sing|Tense=Past|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2020_RFFIMoskva_2042.xml_239
+  token_id: 18
+  form: переулками
+  lemma: переулок
+  upos: NOUN
+  features: Animacy=Inan|Case=Ins|Gender=Masc|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2018Kto_za_Trampa.xml_47
+  token_id: 8
+  form: способная
+  lemma: способный
+  upos: ADJ
+  features: Case=Nom|Degree=Pos|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Artist_mimansa.xml_226
+  token_id: 11
+  form: уютно
+  lemma: уютный
+  upos: ADJ
+  features: Degree=Pos|Gender=Neut|Number=Sing|Variant=Short
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2017Nad_Sinaem.xml_71
+  token_id: 4
+  form: отказали
+  lemma: отказать
+  upos: VERB
+  features: Aspect=Perf|Mood=Ind|Number=Plur|Tense=Past|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2020_RFFIMoskva_2042.xml_108
+  token_id: 6
+  form: огляделся
+  lemma: оглянуться
+  upos: VERB
+  features: Aspect=Perf|Gender=Masc|Mood=Ind|Number=Sing|Tense=Past|VerbForm=Fin|Voice=Mid
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2011Lekarstva_ot_ustalosti.xml_74
+  token_id: 3
+  form: наркотиков
+  lemma: наркотик
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Masc|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2011Lekarstva_ot_ustalosti.xml_67
+  token_id: 4
+  form: бодрости
+  lemma: бодрость
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2009Innovatsionnaya_ekonomika.xml_66
+  token_id: 8
+  form: обучению
+  lemma: обучение
+  upos: NOUN
+  features: Animacy=Inan|Case=Dat|Gender=Neut|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2005Kvartira_na_depozit.xml_54
+  token_id: 16
+  form: необитаем
+  lemma: необитаемый
+  upos: ADJ
+  features: Degree=Pos|Gender=Masc|Number=Sing|Variant=Short
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2019Zanimatelnaya_estetika.xml_41
+  token_id: 22
+  form: дана
+  lemma: дать
+  upos: VERB
+  features: Aspect=Perf|Gender=Fem|Number=Sing|Tense=Past|Variant=Short|VerbForm=Part|Voice=Pass
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2020_RFFIMoskva_2042.xml_104
+  token_id: 4
+  form: сдвигался
+  lemma: сдвигать
+  upos: VERB
+  features: Aspect=Imp|Gender=Masc|Mood=Ind|Number=Sing|Tense=Past|VerbForm=Fin|Voice=Pass
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2011Lekarstva_ot_ustalosti.xml_97
+  token_id: 11
+  form: упомянут
+  lemma: упомянуть
+  upos: VERB
+  features: Aspect=Perf|Gender=Masc|Number=Sing|Tense=Past|Variant=Short|VerbForm=Part|Voice=Pass
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2005Kvartira_na_depozit.xml_37
+  token_id: 17
+  form: взоры
+  lemma: взор
+  upos: NOUN
+  features: Animacy=Inan|Case=Nom|Gender=Masc|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2013ES-ofshor.xml_34
+  token_id: 5
+  form: уступает
+  lemma: уступать
+  upos: VERB
+  features: Aspect=Imp|Mood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2020_RFFIMoskva_2042.xml_685
+  token_id: 9
+  form: оскорбил
+  lemma: оскорбить
+  upos: VERB
+  features: Aspect=Perf|Gender=Masc|Mood=Ind|Number=Sing|Tense=Past|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2020_RFFIMoskva_2042.xml_685
+  token_id: 11
+  form: покоробил
+  lemma: покоробить
+  upos: VERB
+  features: Aspect=Perf|Gender=Masc|Mood=Ind|Number=Sing|Tense=Past|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Artist_mimansa.xml_87
+  token_id: 7
+  form: киксу
+  lemma: кикса
+  upos: NOUN
+  features: Animacy=Inan|Case=Acc|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Artist_mimansa.xml_87
+  token_id: 8
+  form: дала
+  lemma: дать
+  upos: VERB
+  features: Aspect=Perf|Gender=Fem|Mood=Ind|Number=Sing|Tense=Past|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Artist_mimansa.xml_87
+  token_id: 17
+  form: попавшую
+  lemma: попасть
+  upos: VERB
+  features: Aspect=Perf|Case=Acc|Gender=Fem|Number=Sing|Tense=Past|VerbForm=Part|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2008Chto_v_imeni.xml_5
+  token_id: 2
+  form: безупречного
+  lemma: безупречный
+  upos: ADJ
+  features: Case=Gen|Degree=Pos|Gender=Neut|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2008Chto_v_imeni.xml_5
+  token_id: 4
+  form: обходится
+  lemma: обходиться
+  upos: VERB
+  features: Aspect=Imp|Mood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin|Voice=Mid
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2009Letayushchaya_tarelka.xml_40
+  token_id: 5
+  form: узников
+  lemma: узник
+  upos: NOUN
+  features: Animacy=Anim|Case=Gen|Gender=Masc|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2009Letayushchaya_tarelka.xml_40
+  token_id: 16
+  form: налета
+  lemma: налет
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2009Letayushchaya_tarelka.xml_40
+  token_id: 39
+  form: кабиной
+  lemma: кабина
+  upos: NOUN
+  features: Animacy=Inan|Case=Ins|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2020_RFFIMoskva_2042.xml_584
+  token_id: 3
+  form: замахивался
+  lemma: замахиваться
+  upos: VERB
+  features: Aspect=Imp|Gender=Masc|Mood=Ind|Number=Sing|Tense=Past|VerbForm=Fin|Voice=Mid
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2013Doktor_Z.xml_18
+  token_id: 3
+  form: сидя
+  lemma: сидеть
+  upos: VERB
+  features: Aspect=Imp|Tense=Pres|VerbForm=Conv|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2013Doktor_Z.xml_18
+  token_id: 10
+  form: основному
+  lemma: основной
+  upos: ADJ
+  features: Case=Dat|Degree=Pos|Gender=Neut|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2009Kukla_Gitlera.xml_1
+  token_id: 37
+  form: безделушками
+  lemma: безделушка
+  upos: NOUN
+  features: Animacy=Inan|Case=Ins|Gender=Fem|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2009Kukla_Gitlera.xml_1
+  token_id: 47
+  form: одеждой
+  lemma: одежда
+  upos: NOUN
+  features: Animacy=Inan|Case=Ins|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2012Fobos-grunt_gibel_mechty.xml_25
+  token_id: 4
+  form: аварийной
+  lemma: аварийный
+  upos: ADJ
+  features: Case=Ins|Degree=Pos|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2012Fobos-grunt_gibel_mechty.xml_25
+  token_id: 25
+  form: направленности
+  lemma: направленность
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2007Gematologiya.xml_20
+  token_id: 10
+  form: объема
+  lemma: объем
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2007Gematologiya.xml_20
+  token_id: 14
+  form: гемоглобина
+  lemma: гемоглобин
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2012Kolchak.xml_184
+  token_id: 4
+  form: актуальной
+  lemma: актуальный
+  upos: ADJ
+  features: Case=Ins|Degree=Pos|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2012Kolchak.xml_184
+  token_id: 10
+  form: боеспособности
+  lemma: боеспособность
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2019Zanimatelnaya_estetika.xml_225
+  token_id: 13
+  form: указывающую
+  lemma: указывать
+  upos: VERB
+  features: Aspect=Imp|Case=Acc|Gender=Fem|Number=Sing|Tense=Pres|VerbForm=Part|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2014Geroi.xml_120
+  token_id: 7
+  form: напряженное
+  lemma: напряженный
+  upos: ADJ
+  features: Case=Nom|Degree=Pos|Gender=Neut|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2014Geroi.xml_120
+  token_id: 11
+  form: закаленной
+  lemma: закаленный
+  upos: ADJ
+  features: Case=Gen|Degree=Pos|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2020_RFFIMoskva_2042.xml_731
+  token_id: 8
+  form: смущаясь
+  lemma: смущаться
+  upos: VERB
+  features: Aspect=Imp|Tense=Pres|VerbForm=Conv|Voice=Mid
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Artist_mimansa.xml_140
+  token_id: 19
+  form: актером
+  lemma: актер
+  upos: NOUN
+  features: Animacy=Anim|Case=Ins|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2011Formula-1.xml_295
+  token_id: 8
+  form: введении
+  lemma: введение
+  upos: NOUN
+  features: Animacy=Inan|Case=Loc|Gender=Neut|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2011Formula-1.xml_13
+  token_id: 13
+  form: прогресса
+  lemma: прогресс
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2011Formula-1.xml_13
+  token_id: 45
+  form: стремления
+  lemma: стремление
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Neut|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2011Formula-1.xml_351
+  token_id: 5
+  form: чемпионатом
+  lemma: чемпионат
+  upos: NOUN
+  features: Animacy=Inan|Case=Ins|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Chto_doktor_propisal.xml_52
+  token_id: 12
+  form: отсекая
+  lemma: отсекать
+  upos: VERB
+  features: Aspect=Imp|Tense=Pres|VerbForm=Conv|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2008Kobzon.xml_30
+  token_id: 7
+  form: кремлевским
+  lemma: кремлевский
+  upos: ADJ
+  features: Case=Dat|Degree=Pos|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2014Geroi.xml_177
+  token_id: 7
+  form: переулкам
+  lemma: переулок
+  upos: NOUN
+  features: Animacy=Inan|Case=Dat|Gender=Masc|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2014Geroi.xml_177
+  token_id: 12
+  form: душных
+  lemma: душный
+  upos: ADJ
+  features: Case=Loc|Degree=Pos|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2020_RFFIMoskva_2042.xml_490
+  token_id: 7
+  form: смеетесь
+  lemma: смеяться
+  upos: VERB
+  features: Aspect=Imp|Mood=Ind|Number=Plur|Person=2|Tense=Pres|VerbForm=Fin|Voice=Mid
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2018Kto_za_Trampa.xml_29
+  token_id: 5
+  form: Трампу
+  lemma: Трамп
+  upos: PROPN
+  features: Animacy=Anim|Case=Dat|Gender=Masc|NameType=Sur|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2012Fobos-grunt_gibel_mechty.xml_115
+  token_id: 14
+  form: весомым
+  lemma: весомый
+  upos: ADJ
+  features: Case=Ins|Degree=Pos|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Armeniya.xml_9
+  token_id: 8
+  form: века
+  lemma: век
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Armeniya.xml_9
+  token_id: 9
+  form: находилась
+  lemma: находиться
+  upos: VERB
+  features: Aspect=Imp|Gender=Fem|Mood=Ind|Number=Sing|Tense=Past|VerbForm=Fin|Voice=Mid
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Armeniya.xml_9
+  token_id: 13
+  form: судеб
+  lemma: судьба
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Fem|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2020_RFFIMoskva_2042.xml_336
+  token_id: 4
+  form: приблизилась
+  lemma: приблизиться
+  upos: VERB
+  features: Aspect=Perf|Gender=Fem|Mood=Ind|Number=Sing|Tense=Past|VerbForm=Fin|Voice=Mid
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2011Lekarstva_ot_ustalosti.xml_28
+  token_id: 16
+  form: средством
+  lemma: средство
+  upos: NOUN
+  features: Animacy=Inan|Case=Ins|Gender=Neut|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2018Budet_chto_vspomnit.xml_25
+  token_id: 4
+  form: сбалансирован
+  lemma: сбалансировать
+  upos: VERB
+  features: Aspect=Perf|Gender=Masc|Number=Sing|Tense=Past|Variant=Short|VerbForm=Part|Voice=Pass
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2012Fobos-grunt_gibel_mechty.xml_35
+  token_id: 24
+  form: оставалась
+  lemma: оставаться
+  upos: VERB
+  features: Aspect=Imp|Gender=Fem|Mood=Ind|Number=Sing|Tense=Past|VerbForm=Fin|Voice=Mid
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2011Formula-1.xml_360
+  token_id: 24
+  form: 60-х
+  lemma: 60-й
+  upos: ADJ
+  features: Case=Loc|Number=Plur|NumForm=Combi|NumType=Ord
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2013Doktor_Z.xml_53
+  token_id: 1
+  form: Пробив
+  lemma: пробить
+  upos: VERB
+  features: Aspect=Perf|Tense=Past|VerbForm=Conv|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2013Doktor_Z.xml_53
+  token_id: 7
+  form: производите
+  lemma: производить
+  upos: VERB
+  features: Aspect=Imp|Mood=Ind|Number=Plur|Person=2|Tense=Pres|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Artist_mimansa.xml_398
+  token_id: 4
+  form: хамил
+  lemma: хамить
+  upos: VERB
+  features: Aspect=Imp|Gender=Masc|Mood=Ind|Number=Sing|Tense=Past|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Artist_mimansa.xml_398
+  token_id: 10
+  form: цыкал
+  lemma: цыкать
+  upos: VERB
+  features: Aspect=Imp|Gender=Masc|Mood=Ind|Number=Sing|Tense=Past|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2013ES-ofshor.xml_38
+  token_id: 15
+  form: последствиями
+  lemma: последствие
+  upos: NOUN
+  features: Animacy=Inan|Case=Ins|Gender=Neut|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2011Formula-1.xml_239
+  token_id: 18
+  form: прижимную
+  lemma: прижимной
+  upos: ADJ
+  features: Case=Acc|Degree=Pos|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2011Formula-1.xml_239
+  token_id: 22
+  form: разреженного
+  lemma: разредить
+  upos: VERB
+  features: Aspect=Perf|Case=Gen|Gender=Masc|Number=Sing|Tense=Past|VerbForm=Part|Voice=Pass
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2018Poseshchenie_muzeya.xml_6
+  token_id: 2
+  form: приятелю
+  lemma: приятель
+  upos: NOUN
+  features: Animacy=Anim|Case=Dat|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2007Lyzhi.xml_40
+  token_id: 17
+  form: одевают
+  lemma: одевать
+  upos: VERB
+  features: Aspect=Imp|Mood=Ind|Number=Plur|Person=3|Tense=Pres|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2011Formula-1.xml_395
+  token_id: 9
+  form: автомобиле
+  lemma: автомобиль
+  upos: NOUN
+  features: Animacy=Inan|Case=Loc|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Lyubit_drakona.xml_48
+  token_id: 1
+  form: Жертвой
+  lemma: жертва
+  upos: NOUN
+  features: Animacy=Anim|Case=Ins|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2014Geroi.xml_207
+  token_id: 6
+  form: зимнем
+  lemma: зимний
+  upos: ADJ
+  features: Case=Loc|Degree=Pos|Gender=Neut|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2014Geroi.xml_207
+  token_id: 10
+  form: сбивает
+  lemma: сбивать
+  upos: VERB
+  features: Aspect=Imp|Mood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2019Pokhozhdeniya_ryadovogo_podpisanta.xml_19
+  token_id: 2
+  form: райкомы
+  lemma: райком
+  upos: NOUN
+  features: Animacy=Inan|Case=Acc|Gender=Masc|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2020_RFFIMoskva_2042.xml_409
+  token_id: 4
+  form: переключилось
+  lemma: переключиться
+  upos: VERB
+  features: Aspect=Perf|Gender=Neut|Mood=Ind|Number=Sing|Tense=Past|VerbForm=Fin|Voice=Mid
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2012Kolchak.xml_27
+  token_id: 4
+  form: весну
+  lemma: весна
+  upos: NOUN
+  features: Animacy=Inan|Case=Acc|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2013ES-ofshor.xml_32
+  token_id: 7
+  form: модели
+  lemma: модель
+  upos: NOUN
+  features: Animacy=Inan|Case=Dat|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Armeniya.xml_116
+  token_id: 4
+  form: функционируют
+  lemma: функционировать
+  upos: VERB
+  features: Aspect=Imp|Mood=Ind|Number=Plur|Person=3|Tense=Pres|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Armeniya.xml_116
+  token_id: 9
+  form: занимающихся
+  lemma: заниматься
+  upos: VERB
+  features: Aspect=Imp|Case=Gen|Number=Plur|Tense=Pres|VerbForm=Part|Voice=Mid
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2019Dvadtsat_let_defoltu.xml_159
+  token_id: 11
+  form: сохранится
+  lemma: сохраниться
+  upos: VERB
+  features: Aspect=Perf|Mood=Ind|Number=Sing|Person=3|Tense=Fut|VerbForm=Fin|Voice=Mid
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2012Iz_pochtovykh_yashchikov.xml_29
+  token_id: 9
+  form: Красноярске
+  lemma: Красноярск
+  upos: PROPN
+  features: Animacy=Inan|Case=Loc|Gender=Masc|NameType=Geo|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2012Iz_pochtovykh_yashchikov.xml_29
+  token_id: 30
+  form: выйдут
+  lemma: выйти
+  upos: VERB
+  features: Aspect=Perf|Mood=Ind|Number=Plur|Person=3|Tense=Fut|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2012Iz_pochtovykh_yashchikov.xml_29
+  token_id: 40
+  form: пообещают
+  lemma: пообещать
+  upos: VERB
+  features: Aspect=Perf|Mood=Ind|Number=Plur|Person=3|Tense=Fut|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2013Doktor_Z.xml_133
+  token_id: 1
+  form: Силовики
+  lemma: силовик
+  upos: NOUN
+  features: Animacy=Anim|Case=Nom|Gender=Masc|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2019Zanimatelnaya_estetika.xml_132
+  token_id: 6
+  form: лошади
+  lemma: лошадь
+  upos: NOUN
+  features: Animacy=Anim|Case=Nom|Gender=Fem|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2012Iz_pochtovykh_yashchikov.xml_54
+  token_id: 9
+  form: кем
+  lemma: кто
+  upos: PRON
+  features: Animacy=Anim|Case=Ins|Gender=Masc|Number=Sing|PronType=Int,Rel
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2008Bezrabotnye.xml_16
+  token_id: 8
+  form: Центральном
+  lemma: центральный
+  upos: ADJ
+  features: Case=Loc|Degree=Pos|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2008Bezrabotnye.xml_16
+  token_id: 20
+  form: поменьше
+  lemma: мало
+  upos: ADV
+  features: Degree=Cmp|PronType=Tot
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2008Bezrabotnye.xml_16
+  token_id: 26
+  form: округах
+  lemma: округ
+  upos: NOUN
+  features: Animacy=Inan|Case=Loc|Gender=Masc|Number=Plur
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2005Kvartira_na_depozit.xml_9
+  token_id: 6
+  form: царит
+  lemma: царить
+  upos: VERB
+  features: Aspect=Imp|Mood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin|Voice=Act
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2011Formula-1.xml_357
+  token_id: 2
+  form: пелотоне
+  lemma: пелотон
+  upos: NOUN
+  features: Animacy=Inan|Case=Loc|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2011Formula-1.xml_357
+  token_id: 9
+  form: номером
+  lemma: номер
+  upos: NOUN
+  features: Animacy=Inan|Case=Ins|Gender=Masc|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Bolshie_peremeny.xml_36
+  token_id: 21
+  form: транспортировки
+  lemma: транспортировка
+  upos: NOUN
+  features: Animacy=Inan|Case=Gen|Gender=Fem|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+- sentence_id: 2003Armeniya.xml_36
+  token_id: 5
+  form: Ереване
+  lemma: Ереван
+  upos: PROPN
+  features: Animacy=Inan|Case=Loc|Gender=Masc|NameType=Geo|Number=Sing
+  source: SynTagRus (UD Russian-SynTagRus), test split
+notes:
+- This file is reserved for evaluation only and must not be used until the final evaluation stage.
+- Timberlake (2004) and Wade (2011) were not used. Only ru_syntagrus-ud-train-a.conllu and ru_syntagrus-ud-test.conllu were read, so timberlake and wade counts are 0.
+- A lemma assigned to development contributes cases only from the train file; a lemma assigned to holdout contributes cases only from the test file. Cases of the same lemma in the other file were dropped to avoid leakage.
+- 'Duplicate (form, lemma, upos) triples dropped before sampling: train 129853, test 39149.'
+- 'Eligible pool after the lemma split: development 39266, holdout 5139.'
