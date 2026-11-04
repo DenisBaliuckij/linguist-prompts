@@ -5,7 +5,7 @@ name: Prompt evaluation
 # can reach the local LLM at 127.0.0.1:11434 (no external API key).
 on:
   pull_request:
-    paths: ["Prompts/**"]
+    paths: ["Prompts/**", "languages/**"]
   workflow_dispatch:
     inputs:
       scope:
@@ -29,9 +29,9 @@ jobs:
         shell: bash
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ inputs.scope }}" != "all" ]; then
-            FILES=$(git diff --name-only "origin/${{ github.base_ref }}"...HEAD -- 'Prompts/**' || true)
+            FILES=$(git diff --name-only "origin/${{ github.base_ref }}"...HEAD -- 'Prompts/**' 'languages/**' | grep -iE 'prompt' || true)
           else
-            FILES=$(find Prompts -type f 2>/dev/null)
+            FILES=$( { find Prompts -type f 2>/dev/null; find languages -type f -iname '*prompt*' 2>/dev/null; } | sort -u )
           fi
           echo "count=$(printf '%s\n' "$FILES" | grep -c . || true)" >> "$GITHUB_OUTPUT"
           { echo 'files<<__EOF__'; printf '%s\n' "$FILES"; echo '__EOF__'; } >> "$GITHUB_OUTPUT"

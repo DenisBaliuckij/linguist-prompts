@@ -6,15 +6,21 @@ rule blocks), and assess it against the EVALUATION.md rubric + lingua-rules:
 
   1. LLM round-trip      -- the prompt actually yields a lemmatizer.
   2. Clingo validity     -- every extracted .lp block parses + grounds (rubric M1.4).
-  3. Rubric signals      -- ASP/Clingo constructs, data-logic separation, sanctioned
+  3. LLM-assisted test   -- the LLM writes `form -> lemma` cases and, per case, a runnable
+                            Clingo driver (lemmatizer + input + `#show lemma/1.`); each driver
+                            is executed and the shown lemma compared to the expected one.
+                            Accuracy feeds the score and an optional hard gate.
+  4. Rubric signals      -- ASP/Clingo constructs, data-logic separation, sanctioned
                             helpers, negative constraints (General Metrics M1.x).
-  4. Use-case grounding  -- if the prompt targets a language already in lingua-rules,
+  5. Use-case grounding  -- if the prompt targets a language already in lingua-rules,
                             its golden paradigm tests are available as use cases.
 
-Writes a Markdown report to --out and exits non-zero if any prompt fails a hard gate.
+Writes a Markdown report to --out and exits non-zero if any prompt fails a hard gate
+(no valid lemmatizer, or -- when PROMPT_EVAL_MIN_ACCURACY is set -- test accuracy below it).
 
 Env: LLM_URL (default http://127.0.0.1:11434/v1/chat/completions), LLM_MODEL
-(default qwen3.8:27b-mtp-128k), LINGUA_RULES (path to a lingua-rules checkout).
+(default qwen3.8:27b-mtp-128k), LINGUA_RULES (path to a lingua-rules checkout),
+PROMPT_EVAL_MIN_ACCURACY (0..1, default 0 = report only, do not gate on accuracy).
 """
 from __future__ import annotations
 import argparse, json, os, re, subprocess, sys, urllib.request
@@ -60,6 +66,92 @@ def clingo_check(lp: str):
         return False, str(e).splitlines()[0][:160]
 
 
+TEST_SYS = ("You are a computational-linguistics test engineer. You are given a rule-based "
+            "lemmatizer written in Clingo (ASP). Produce test cases for it and, for EACH case, a "
+            "single self-contained Clingo program that runs the lemmatizer on one surface form and "
+            "exposes the result as `lemma(\"<result>\")` via `#show lemma/1.`. "
+            "Reply with ONLY a JSON object: {\"cases\": [{\"form\": str, \"lemma\": str, \"program\": str}]}. "
+            "`program` must contain the lemmatizer code, the input fact(s) for `form`, and end with "
+            "`#show lemma/1.` so that solving prints exactly the lemma(s). Keep 6-10 diverse cases.")
+
+
+def _llm_json(system: str, user: str, timeout: int = 600) -> dict:
+    body = json.dumps({"model": LLM_MODEL, "messages": [
+        {"role": "system", "content": system}, {"role": "user", "content": user}],
+        "max_tokens": 4096, "temperature": 0.1, "stream": False}).encode()
+    req = urllib.request.Request(LLM_URL, data=body, headers={"Content-Type": "application/json"})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        d = json.load(r)
+    msg = d["choices"][0]["message"]
+    text = msg.get("content") or msg.get("reasoning_content") or ""
+    m = re.search(r"\{.*\}", text, re.DOTALL)
+    return json.loads(m.group(0)) if m else {}
+
+
+def _norm(s: str) -> str:
+    return re.sub(r"\s+", "", (s or "").strip().lower())
+
+
+def run_clingo_lemma(program: str, timeout: int = 20):
+    """Solve `program`, return the set of lemma/1 string args (the shown result), or None on error."""
+    try:
+        import clingo
+    except Exception:  # noqa: BLE001
+        return None
+    found: set[str] = set()
+    try:
+        ctl = clingo.Control(["--warn=none", "-n", "0"])
+        ctl.add("base", [], program)
+        ctl.ground([("base", [])])
+        def on_model(m):  # collect shown lemma/1 atoms
+            for sym in m.symbols(shown=True):
+                if sym.name == "lemma" and len(sym.arguments) == 1:
+                    a = sym.arguments[0]
+                    found.add(a.string if a.type == clingo.SymbolType.String else str(a))
+        ctl.solve(on_model=on_model)
+    except Exception:  # noqa: BLE001
+        return None
+    return found
+
+
+def test_lemmatizer(blocks, iso, timeout: int = 600) -> dict:
+    """LLM-assisted testing: the LLM writes form->lemma cases + a runnable Clingo driver per case;
+    we execute each driver and score exact/normalized accuracy. Returns a result dict."""
+    res = {"ran": False, "total": 0, "passed": 0, "accuracy": None, "detail": ""}
+    if not blocks:
+        res["detail"] = "no lemmatizer to test"; return res
+    lemmatizer = "\n\n".join(blocks)
+    user = (f"Target language ISO 639-3: {iso or 'unknown'}.\n\nLemmatizer (Clingo):\n```\n{lemmatizer}\n```")
+    try:
+        data = _llm_json(TEST_SYS, user, timeout=timeout)
+    except Exception as e:  # noqa: BLE001
+        res["detail"] = f"llm_test_error:{str(e)[:120]}"; return res
+    cases = [c for c in (data.get("cases") or []) if isinstance(c, dict) and c.get("form") and c.get("lemma")]
+    if not cases:
+        res["detail"] = "no test cases returned"; return res
+    passed, total, misses = 0, 0, []
+    for c in cases[:10]:
+        prog = c.get("program") or (lemmatizer + f'\nform("{c["form"]}").\n#show lemma/1.')
+        out = run_clingo_lemma(prog)
+        if out is None:
+            continue  # clingo unavailable or program error -> skip (not counted)
+        total += 1
+        exp = _norm(c["lemma"])
+        if any(_norm(x) == exp for x in out):
+            passed += 1
+        else:
+            misses.append({"form": c["form"], "expected": c["lemma"], "got": sorted(out)[:3]})
+    res["total"], res["passed"] = total, passed
+    if total:
+        res["ran"] = True
+        res["accuracy"] = round(passed / total, 2)
+        res["detail"] = "" if not misses else f"{len(misses)} miss(es); e.g. " + \
+            ", ".join(f"{m['form']}->{m['got'] or '∅'} (want {m['expected']})" for m in misses[:3])
+    else:
+        res["detail"] = "clingo could not run the drivers"
+    return res
+
+
 def rubric_signals(prompt_text: str) -> dict:
     t = prompt_text.lower()
     return {
@@ -88,29 +180,47 @@ def score_prompt(path: str) -> dict:
     rep["signals"] = rubric_signals(prompt_text)
     # use-case grounding: does lingua-rules already have this language's golden tests?
     rep["use_cases_available"] = bool(iso) and os.path.isdir(os.path.join(LINGUA_RULES, "rules", iso))
-    # score: produced a lemmatizer (40) + all blocks valid (30) + rubric signals (30)
+    # LLM-assisted testing: the LLM writes form->lemma cases + Clingo drivers, we run them.
+    rep["test"] = test_lemmatizer(blocks, iso) if (blocks and rep["clingo_failed"] == 0) else \
+        {"ran": False, "accuracy": None, "detail": "skipped (no valid lemmatizer)"}
+    acc = rep["test"].get("accuracy")
+    # score: produced (30) + all blocks valid (25) + rubric signals (20) + test accuracy (25)
     s = 0
-    if blocks: s += 40
-    if blocks and rep["clingo_failed"] == 0: s += 30
-    s += 30 * sum(rep["signals"].values()) // 4
+    if blocks: s += 30
+    if blocks and rep["clingo_failed"] == 0: s += 25
+    s += 20 * sum(rep["signals"].values()) // 4
+    if acc is not None: s += int(25 * acc)
     rep["score"] = s
-    rep["status"] = "ok" if (blocks and rep["clingo_failed"] == 0) else "needs_work"
+    # gate: must produce a valid lemmatizer; when tests ran, accuracy must clear the (configurable) floor.
+    min_acc = float(os.environ.get("PROMPT_EVAL_MIN_ACCURACY", "0") or 0)
+    ok = bool(blocks) and rep["clingo_failed"] == 0
+    if ok and rep["test"].get("ran") and acc is not None and acc < min_acc:
+        ok = False
+    rep["status"] = "ok" if ok else "needs_work"
     return rep
 
 
 def to_markdown(reports):
     lines = ["## Prompt evaluation", "",
-             "| Prompt | ISO | LP blocks | Clingo ok/fail | Rubric | Use-cases | Score | Status |",
-             "|---|---|---|---|---|---|---|---|"]
+             "| Prompt | ISO | LP blocks | Clingo ok/fail | Rubric | Tests pass/total | Accuracy | Score | Status |",
+             "|---|---|---|---|---|---|---|---|---|"]
     for r in reports:
         sig = sum(r.get("signals", {}).values()) if "signals" in r else 0
+        t = r.get("test", {}) or {}
+        tcell = f"{t.get('passed','-')}/{t.get('total','-')}" if t.get("ran") else "—"
+        acc = t.get("accuracy")
+        acell = f"{int(acc*100)}%" if acc is not None else "—"
         lines.append(f"| {r['prompt']} | {r.get('iso') or '?'} | {r.get('lp_blocks','-')} | "
                      f"{r.get('clingo_parsed','-')}/{r.get('clingo_failed','-')} | {sig}/4 | "
-                     f"{'yes' if r.get('use_cases_available') else 'no'} | {r.get('score','-')} | "
-                     f"**{r.get('status','?')}** |")
-    lines += ["", "_Lemmatizer extracted from the prompt via the local LLM, Clingo-validated, "
-              "scored against EVALUATION.md. 'Use-cases' = language already has golden paradigm "
-              "tests in lingua-rules._"]
+                     f"{tcell} | {acell} | {r.get('score','-')} | **{r.get('status','?')}** |")
+    # per-prompt test detail (misses) for anything that ran tests
+    detail = [f"- **{r['prompt']}**: {r['test']['detail']}" for r in reports
+              if (r.get("test") or {}).get("detail")]
+    lines += ["", "_Lemmatizer extracted via the local LLM, Clingo-validated, then **tested**: the "
+              "LLM generates `form→lemma` cases and a Clingo driver per case, which are executed and "
+              "scored (accuracy). 'Tests' empty = Clingo/driver could not run._"]
+    if detail:
+        lines += ["", "### Test details", *detail]
     return "\n".join(lines)
 
 
