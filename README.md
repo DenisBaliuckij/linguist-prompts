@@ -16,6 +16,19 @@ languages/
 
 Пример: [`languages/russian/grammar/`](languages/russian/grammar/). Новый язык или новая тема — это просто новая папка, нигде ничего регистрировать не нужно.
 
+## Лемматизация: готовые конвейеры
+
+Каждый конвейер — четыре промпта по порядку: онтология → gold use-cases из UD → rule-based лемматизатор → независимая оценка на отложенной выборке. Точность — доля точных совпадений лемм на holdout (около 300 слов): в первом прогоне при написании промптов и в повторе на Claude Opus вслепую (одна попытка на этап, без запуска кода).
+
+| Язык | Папка | Первый прогон | Повтор на Claude Opus |
+|---|---|---:|---:|
+| Армянский (восточный) | [`languages/armenian/lemmatization/`](languages/armenian/lemmatization/) | 90,4 % | 89,7 % |
+| Латынь | [`languages/latin/lemmatization/`](languages/latin/lemmatization/) | 90,7 % | 85,0 % |
+| Персидский | [`languages/persian/lemmatization/`](languages/persian/lemmatization/) | 84,1 % | 84,7 % |
+| Испанский | [`languages/spanish/lemmatization/`](languages/spanish/lemmatization/) | — | 94,7 % |
+
+Общий промпт этапа 3 для любого языка (лемматизатор + правила `lingua-rules`): [`languages/general/lemmatization/`](languages/general/lemmatization/). На 15 языках — в среднем 89,1 %.
+
 ## Как вносить изменения
 
 Прямые коммиты в `main` запрещены. Любое изменение вносится через pull request и должно получить одно одобрение от другого участника. Подробности — в [CONTRIBUTING.md](CONTRIBUTING.md).
