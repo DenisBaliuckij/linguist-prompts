@@ -65,14 +65,23 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ inputs.pr }}" ]; then
             # Keep this ref's pipeline code; overlay only the MR's changed prompt files.
             BASE="${{ steps.pr.outputs.base }}"
-            git fetch -q origin "$BASE" "pull/${{ inputs.pr }}/head"
-            MERGE_BASE=$(git merge-base "origin/$BASE" FETCH_HEAD || echo "origin/$BASE")
-            git diff --name-only "$MERGE_BASE" FETCH_HEAD -- 'Prompts/**' 'languages/**' \
-              | grep -iE 'prompt' > /tmp/changed.txt || true
+            git fetch -q origin "$BASE"
+            git fetch -q origin "pull/${{ inputs.pr }}/head:pr_head"
+            MERGE_BASE=$(git merge-base "origin/$BASE" pr_head 2>/dev/null || echo "origin/$BASE")
+            # A prompt file = anything under Prompts/, or a *prompt* file under languages/.
+            : > /tmp/changed.txt
+            git diff --name-only "$MERGE_BASE" pr_head -- 'Prompts/**' 'languages/**' > /tmp/d.txt || true
             while IFS= read -r f; do
               [ -z "$f" ] && continue
-              if git cat-file -e "FETCH_HEAD:$f" 2>/dev/null; then
-                git checkout FETCH_HEAD -- "$f" && printf '%s\n' "$f" >> /tmp/sel.txt
+              case "$f" in
+                Prompts/*) printf '%s\n' "$f" >> /tmp/changed.txt ;;
+                languages/*) case "$(basename "$f" | tr 'A-Z' 'a-z')" in *prompt*) printf '%s\n' "$f" >> /tmp/changed.txt ;; esac ;;
+              esac
+            done < /tmp/d.txt
+            while IFS= read -r f; do
+              [ -z "$f" ] && continue
+              if git cat-file -e "pr_head:$f" 2>/dev/null; then
+                git checkout pr_head -- "$f" && printf '%s\n' "$f" >> /tmp/sel.txt
               fi
             done < /tmp/changed.txt
           elif [ -n "$PR" ] && [ "$SCOPE" != "all" ]; then
