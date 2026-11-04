@@ -103,74 +103,541 @@ Return only valid UTF-8 JSON, with no Markdown and no comments.
 
 ## 2. Preparing gold use-cases
 
-**Purpose:** obtain two independent sets of gold "word form -> lemma" pairs for building and testing the lemmatizer.
+### 0. Metadata
 
-```text
-You are a linguistic data curator. Prepare two disjoint sets of gold
-use-cases for lemmatization of Tongan: `development` and `holdout`.
+- **Version:** 1.0 (Tongan)
+- **Purpose:** produce a reproducible, verifiable gold set of
+  "form → lemma" pairs and/or annotated sentences for Tongan, suitable
+  for (a) building a rule-based lemmatizer and (b) its independent
+  evaluation.
+- **Scope:** Tongan, using only the pre-annotated sources attached in
+  `{{SOURCES}}` (UD/CoNLL-U data if any, dictionary entries that state
+  related forms, paradigm tables and explicit form-to-base statements in
+  grammars).
+- **Mode:** autonomous. You do not ask clarifying questions. You output
+  exactly the files required by the "Deliverable" section.
 
-Use only sources that are already annotated, where the lemma is given by the
-source and is not predicted by you. Use one UD Tongan treebank (for example UD Tongan-TTB)
-whose README states how lemmas were produced (manual, converted or automatic). Do not mix
-treebanks in one experiment: UD Tongan treebanks may follow different lemma
-conventions. State the period and genres of the texts. If you use another
-source, state explicitly where its lemmas come from and its licence.
+#### Placeholders (already filled for Tongan; `{{SOURCES}}` is filled by the user)
 
-Algorithm:
-1. Record the source: name, URL, version or commit, licence and the
-   statement about the annotation type.
-2. Read only syntactic words (lines whose ID is an integer). Skip
-   multiword-token range lines (`3-4`) and empty nodes (`3.1`), and skip
-   PUNCT, SYM, NUM and X.
-3. Keep only non-trivial cases, where FORM differs from LEMMA after
-   lower-casing with str.lower(). Keep the original capitalization of both
-   FORM and LEMMA. Store sent_id and token_id so that every pair can be
-   checked in the original corpus.
-4. Take `development` only from the treebank's train split and `holdout`
-   only from its test split, so that no sentence is in both sets. If the
-   treebank has no train split, split its sentences between development and
-   holdout with a fixed random seed, record the proportion and the seed, and
-   state this in `selection`. Select sentences with a fixed random seed, take
-   at most three cases per sentence, and record the seed.
-5. Aim for at least 1000 development and 300 holdout cases. If fewer
-   non-trivial cases exist, take all of them, report the real counts and do
-   not relax the non-triviality rule. Also report the share of trivial cases
-   (FORM = LEMMA) in the source. The holdout set must never be shown while
-   the ontology, the lexicon or the code is written.
-6. In each set count the cases by UPOS and by the main morphological
-   features (Person, Number, Clusivity, Tense, Aspect, Voice, PronType,
-   Poss, whichever features the treebank uses). If the
+| Placeholder | Value |
+|---|---|
+| `{{LANG}}` | Tongan |
+| `{{ISO3}}` | ton |
+| `{{ISO1}}` | to |
+| `{{STANDARD}}` | standard Tongan orthography (glottal stop written `ʻ`, macrons on long vowels, digraph `ng`) |
+| `{{SOURCES}}` | (1) Churchward, *Tongan Grammar* (grammar, paradigm tables and explicit form-to-base statements); (2) kaikki.org Tongan extract (Wiktionary dump processed by wiktextract, JSONL; dictionary); (3) Tongan lex (lexicon / exception table, file as attached) |
+| `{{SPECIAL_CHARS}}` | `ʻ` (U+02BB), `ā ē ī ō ū Ā Ē Ī Ō Ū`, digraph `ng` |
+
+---
+
+### 1. Role
+
+You are a **linguistic data curator** and a use-case engineer for
+lemmatizer evaluation. You work on **Tongan** (ton / to, standard
+Tongan orthography). You do not predict lemmas, do not correct sources,
+and do not invent examples.
+
+---
+
+### 2. Goal
+
+Prepare **two disjoint** gold sets for lemmatization of Tongan:
+
+1. `development` — may be shown to the agent that builds the lemmatizer
+   (Prompt 3).
+2. `holdout` — **not shown** to anyone until the final independent
+   evaluation (Prompt 4). It must never be shown while the ontology, the
+   lexicon or the code is written.
+
+Each set must be:
+
+- **verifiable** — every pair traces back to a specific location in the
+  source (sent_id/token_id, grammar page/section/table, dictionary
+  headword);
+- **reproducible** — fixed seed, fixed selection rule, fixed source
+  versions;
+- **non-trivial** — `form ≠ lemma` after `str.lower()`;
+- **POS-balanced** and, where possible, source-type-balanced;
+- **leak-free** — no lemma appears in both development and holdout.
+
+Additionally (where applicable) provide **annotated sentences** (CoNLL-U
+or Leipzig-style interlinear glossing) as the preferred use-case type;
+standalone form → lemma pairs are a fallback only.
+
+---
+
+### 3. Inputs
+
+Use **only** the sources listed below. Anything not attached is
+unavailable; do not guess its contents.
+
+- **Input A — extraction procedure** (this document). Read it in full
+  before starting.
+- **Input B — sources about Tongan.** This is the **only** source of
+  facts about Tongan. Exactly three sources:
+  1. **Churchward Tongan Grammar** — the only source of paradigm tables
+     and explicit form-to-base statements (§6.2 C).
+  2. **kaikki Tongan dictionary** (wiktextract JSONL) — the only source
+     of dictionary-derived pairs (§6.2 B).
+  3. **Tongan lex** — a lexicon/exception table (§6.2 D).
+  Source names in `sources`, `by_source` and `source` must be exactly:
+  `Churchward_Grammar`, `kaikki_Tongan`, `Tongan_lex`.
+- **Input C — annotation guidelines / grammar conventions** (optional).
+  Used **only** for lemmatization conventions (which form is the lemma
+  of a passive, a suffixed transitive, a nominalization with `-nga`, a
+  singular/plural verb pair, a possessive pronoun, etc.). **Never** used
+  as a source of test items.
+- **Input D — OntoTongan.json** (optional, language-specific ontology).
+  Used **only** for: language name, ISO codes, and the set of UPOS tags
+  and morphological features in scope. **Do not** take lemmas or
+  morphological rules from the ontology while building the gold sets.
+- **Input E — GOLD OntoLing** (optional, general ontology). For
+  terminology reconciliation (UPOS, FEATS) only, not as a source of
+  facts about Tongan.
+- **Raw Tongan texts** (if attached) are **not** gold. They have no
+  lemmas given by a source and must not be lemmatized by you to produce
+  test items.
+
+#### Source requirements
+
+1. Only **pre-annotated** sources are allowed, where the lemma is
+   **given by the source**, not predicted by you or by a model.
+2. Prefer CoNLL-U with `FORM`, `LEMMA`, `UPOS`, `FEATS` if one is
+   attached (e.g. a UD Tongan treebank). If none is attached, this is
+   not a failure: use dictionary and grammar sources (§6.2 B–C) and say
+   so in `notes`.
+3. **Do not use as the only gold source** any corpus whose README states
+   that lemmas are automatic.
+4. For each source, record: `name`, `url`, `version`/`commit`,
+   `license`, `annotation_type` (an explicit statement from the source
+   that lemmas are manually annotated / converted / derived from
+   paradigms / dictionary-based). For a UD treebank state the period and
+   genres of the texts.
+5. For each non-standard source (dictionary, grammar) **explicitly**
+   state the origin of the lemmas and the license.
+6. **Do not mix UD treebanks with different lemma conventions** in one
+   set. Each source has its own lemmatization convention — record it in
+   `annotation_type` and do not normalize one source's convention to
+   another's.
+7. **Multiple, varied sources** are strongly desired (dictionary +
+   several grammars + treebank if any). Do not rely on a single source.
+8. If a source is unavailable or unreadable — **say so explicitly**. Do
+   not silently drop it and do not invent its content.
+
+#### If a source yields less material than needed
+
+The thresholds (see §7) may not be met. Tongan has very little
+inflectional morphology, and annotated material is scarce, so a
+shortfall is expected. In that case:
+
+1. Record the **actual** number.
+2. Explain the shortfall in a top-level `notes` field: how much each
+   source contributed, why more could not be obtained, which threshold
+   was not met (`development`, `holdout`, or both), and the consequences
+   for Prompt 3/4 (smaller training set, smaller evaluation set, wider
+   confidence interval for the holdout metric).
+3. **Do not redistribute** cases between splits to hit a threshold. The
+   80/20 lemma-based split must remain intact.
+4. **Do not borrow** cases from any source not listed in the inputs. The
+   correct output when the threshold is not met is a **smaller** dataset
+   with an explicit `notes`, not a padded one.
+5. Also report in `notes` the share of trivial cases (form = lemma) in
+   each source that gives running text.
+6. **Independence caveat.** If the same grammar or dictionary will also
+   be read by the lemmatizer-building agent, state in `notes` which
+   `holdout` cases come from such sources: the holdout is then
+   independent only at the level of lemmas, not of sources.
+
+---
+
+### 4. Use-case types
+
+1. **Preferred type — whole annotated sentences.**
+   "Annotated sentence" = (a) a complete sentence in UD format with all
+   tokens and `FORM/LEMMA/UPOS/FEATS` fields, **or** (b) a Leipzig-style
+   interlinear glossed sentence (e.g. an example in a grammar glossed
+   with its base form).
+2. **Bare wordforms are a fallback only.** Used **exclusively** when no
+   annotated sentences exist for Tongan in the attached sources. If
+   annotated sentences exist, the fallback condition is **not** met, and
+   bare wordforms must not be used.
+3. **Do not mix** types in one set without need; if you do, record
+   `use_case_type: sentence | wordform` on every case.
+
+---
+
+### 5. Annotation rules
+
+1. Leipzig-style interlinear glossing counts as annotation.
+2. **Translation-only is not annotation.** A "translation → form" pair
+   without a lemma or gloss does not qualify.
+3. **Non-triviality.**
+   - For bare wordforms: strictly `str.lower(form) != str.lower(lemma)`.
+   - For sentences: accept if the sentence contains **at least one**
+     non-trivial token; flag sentences made only of lemma-equal tokens
+     with `flag: only_lemma_equal_tokens`.
+   - Use `str.lower()`, **not** `casefold()`.
+4. **Inflection vs derivation.**
+   - Pairs that the source presents as forms of the same lexeme
+     qualify: e.g. a suppletive singular/plural verb pair, pronoun and
+     possessive paradigms (person, number incl. dual, clusivity),
+     passive and other suffixed forms **if the source treats them as
+     forms of the base verb**.
+   - Derived forms (e.g. `faka-` causatives, agentive or other
+     derivations) are **separate lexemes** and are **not** inflectional
+     use-cases.
+   - If the source itself annotates a derived form as a separate lemma,
+     keep the source annotation as is and record this in
+     `annotation_note`.
+   - Do not decide yourself whether a suffix is inflection or
+     derivation: follow the source and record its statement.
+5. **Do not correct, normalize, or rewrite gold lemmas or forms.** Keep
+   placeholders, alternative spellings and orthographic quirks **exactly
+   as in the source**, including the variants of the glottal stop
+   (`ʻ`, `'`, `’`, `` ` ``) and the presence or absence of macrons. If
+   an annotation looks suspicious (for example a lemma still in
+   `past#present` form), keep it and add an `annotation_note`.
+6. **Do not merge or split tokens** to "clean up" a case. Tongan
+   function words and particles are separate words: do not glue them to
+   the verb.
+
+---
+
+### 6. Extraction
+
+#### 6.1 General algorithm
+
+1. Record the source (name, URL, version/commit, license,
+   annotation_type).
+2. For CoNLL-U sources, read **only syntactic words**: lines whose `ID`
+   is an integer. Skip multiword-token ranges (`3-4`), empty nodes
+   (`3.1`), and `PUNCT`, `SYM`, `NUM` (unless you are building a
+   separate numeral sub-list), and `X`.
+3. Keep **only non-trivial** cases (`str.lower(form) !=
+   str.lower(lemma)`). Keep the **original** capitalization of both
+   form and lemma. Store `sentence_id` and `token_id` so every pair can
+   be checked against the original source.
+4. Split by **lemma** (see §7.3). For a treebank with train/test
+   splits, `development` ← train and `holdout` ← test, if this does not
+   conflict with the lemma-disjointness rule; if it does, the
+   lemma-disjointness rule wins and the conflict is recorded in `notes`.
+   No sentence may appear in both sets.
+5. Select with a fixed `seed`. At most N cases per sentence (default:
+   3). Record the seed in `selection.seed`.
+6. Every case must have a `source` (one of the inputs) and, for
+   grammar- and dictionary-derived cases, a `sentence_id` pointing to a
+   real page/section/table/headword.
+
+#### 6.2 Source specifics
+
+##### A. CoNLL-U treebank (optional; preferred if attached)
+
+- Read only integer `ID`s. Skip `3-4`, `3.1`, `PUNCT`, `SYM`, `NUM`,
+  `X`.
+- Check the README: state whether lemmas are manual, converted or
+  automatic. Automatic lemmas cannot be the only gold source.
+- For each case record `sent_id`, `token_id`, `form`, `lemma`, `upos`,
+  `feats`.
+
+##### B. kaikki Tongan dictionary (wiktextract JSONL)
+
+1. Read the file line by line as UTF-8 JSON. Keep only records with
+   `lang_code == "to"` (Tongan). Do **not** include records of other
+   languages even if the name is similar (e.g. Tonga/Nyasa, `tog`).
+   Report in `notes`: number of lines read, number kept, number of
+   lines that failed to parse (a parse failure is never silently
+   skipped).
+2. Two kinds of explicit form → lemma statements are allowed:
+   - **Non-lemma entries:** a record whose `senses[].form_of` (or
+     `alt_of`) names a base word. `form` = `word`, `lemma` = the
+     `word` inside `form_of`/`alt_of`, `tags` = `senses[].tags`.
+   - **Headword forms:** items in `forms[]` of a lemma record. `form` =
+     `forms[].form`, `lemma` = `word` of that record, `tags` =
+     `forms[].tags`.
+   Skip `forms[]` items that are only romanization/transliteration
+   (`romanization`, `transliteration`, `canonical`, and similar service
+   tags), and items with empty or placeholder form (`-`, `?`).
+3. `upos` — fixed mapping from `pos`: `noun` → `NOUN`, `name` →
+   `PROPN`, `verb` → `VERB`, `adj` → `ADJ`, `adv` → `ADV`,
+   `pron` → `PRON`, `num` → `NUM`, `prep`/`postp` → `ADP`,
+   `conj` → `CCONJ`, `particle` → `PART`, `intj` → `INTJ`,
+   `det` → `DET`. A `pos` not listed → `upos: "_"` and record in
+   `notes`. `num` cases are kept here (numeral sub-list); do not apply
+   the §6.1.2 skip to this source.
+4. `features` — only from `tags` that have a direct UD equivalent
+   (`passive` → `Voice=Pass`, `singular`/`dual`/`plural` →
+   `Number=Sing/Dual/Plur`, `first-person`/`second-person`/
+   `third-person` → `Person=1/2/3`, `inclusive`/`exclusive` →
+   `Clusivity=In/Ex`). A tag with no equivalent → not added; if no tag
+   maps, `features: "_"`.
+5. `sentence_id` — `kaikki_<word>` for the record that contains the
+   statement; `token_id` — sequential integer within the record.
+6. Lemma convention: **Wiktionary**. It may differ from Churchward
+   (for example, which form is the base for suffixed or suppletive
+   verbs). Record this in `annotation_type`; do not harmonize.
+7. **Forbidden:** generating forms from rules; using `senses[].glosses`
+   or `examples` text to guess a lemma; using records without an
+   explicit `form_of`/`alt_of` or `forms[]` entry.
+8. **Count sanity** in `notes`: records kept; pairs from `form_of`/
+   `alt_of`; pairs from `forms[]`; dropped as trivial; dropped for
+   service tags/empty forms; dropped for other reasons. The sum must
+   equal the number of candidate pairs, otherwise it is a parsing bug —
+   fix it before continuing.
+9. Provenance: kaikki data is a processed Wiktionary dump. Record the
+   dump date/version from the file name or metadata, and the license
+   as stated in the attached file; if the file does not state it, write
+   `"not stated in the attached file; Wiktionary content is normally
+   CC BY-SA"` and do not claim more.
+
+##### C. Grammars and paradigm tables
+
+Source: `Churchward_Grammar`. `sentence_id` = chapter/section/table in
+the form `Churchward_<section>_<table>` using the numbering printed in the
+attached file (never a numbering you made up).
+
+For each grammar, look for:
+
+- **Paradigm tables** (pronouns by person/number/clusivity, possessive
+  forms, verb forms where the table gives a base form). Each row is a
+  form; the column header or caption gives the lemma and features.
+  Every row is a separate case.
+- **Annotated (glossed) example sentences** where a form is glossed with
+  its base, or the text explicitly says "X is a form of Y".
+- **Explicit form-to-base statements in the text**, e.g. "the passive of
+  `X` is `Y`", "`Y` is the plural of `X`" (suppletive singular/plural
+  verbs).
+- **Suppletive and irregular forms** stated explicitly as such.
+
+For each grammar-derived case record:
+
+- `source` — the grammar name;
+- `sentence_id` — section/page/table identifier
+  (e.g. `<Grammar>_Ch4_Pronouns_Table4.1`);
+- `token_id` — sequential integer within the section;
+- `form` — exactly as printed;
+- `lemma` — exactly as given by the grammar;
+- `upos`, `features` — from the paradigm labels, using only UD feature
+  names present in the ontology (Person, Number incl. `Dual`,
+  Clusivity, Voice, Aspect, Poss, PronType, whichever are in scope). If
+  the grammar gives no explicit tags — infer them from the headers; if
+  inference is impossible — `features: "_"` and record this in `notes`.
+
+**Forbidden:** extracting a bare word from a grammar and guessing its
+lemma. Every pair must come from an **explicit** form-to-lemma
+statement in the source.
+
+##### D. Tongan lex (lexicon / exception table)
+
+1. First determine the file format (Python dicts, TSV/CSV, JSON, text)
+   and read it as UTF-8 with its real structure; state the format in
+   `notes`. Do not guess the structure.
+2. Allowed pairs: only those where the file explicitly maps a surface
+   form (key/left column) to a lemma (value/right column). Entries that
+   give only a gloss or only a headword are not pairs.
+3. `upos` — from the dict/column name if it unambiguously gives a
+   category (pronouns → `PRON`, verbs → `VERB`, etc.); otherwise
+   `upos: "_"`. `features` — only from explicit columns/labels,
+   otherwise `"_"`.
+4. `sentence_id` — dict/table name (or file section) plus the key,
+   e.g. `Tongan_lex_<dictname>_<key>`; `token_id` — sequential within
+   the dict/table.
+5. Skip pairs where form == lemma after `str.lower()`. Keep a lemma that
+   occurs in no other source.
+6. Record in `notes` where the lemmas come from (author, origin,
+   license as stated in the file). If the file does not say, write
+   "origin not stated" and do not invent one.
+7. Count sanity as in B.8.
+
+#### 6.3 Working with existing extractions
+
+If partial extractions already exist in the working directory — keep
+what is good, fix what is fixable, delete what is bad. Do not start from
+scratch unless necessary.
+
+---
+
+### 7. Filtering, deduplication, split
+
+1. **Trivial cases.** After `str.lower(form)` and `str.lower(lemma)`,
+   keep the pair only if `form_lower != lemma_lower`. Preserve the
+   **original** capitalization in the output.
+2. **Deduplication** by `(form_lower, lemma_lower, upos)`. If a pair
+   came from two sources — keep one record and list both in
+   `sources: [...]`.
+3. **Split by lemma, not by form.** Assign each **unique lemma** to
+   `development` or `holdout` with a fixed `seed` in an **80/20**
+   ratio. All forms of one lemma go to the same split.
+4. **Thresholds:**
+   - `development` ≥ **1000** cases;
+   - `holdout` ≥ **300** cases.
+   If the sources cannot provide that — see §3 "If a source yields less
+   material than needed". **Do not** pad artificially and **do not**
+   redistribute to hit a threshold.
+5. **Reproducibility.** Record the `seed` in `selection.seed`. Shuffle
+   the unique lemmas with this seed before splitting.
+6. **POS diversity.** Do not skew toward one POS. Cover verbs, nouns,
+   adjectives, pronouns, numerals and other classes; **deliberately**
+   sample irregular / suppletive / homonymous forms. If the
    distribution is uneven, do not hide it.
+7. **Source diversity.** Do not rely on one source if several are
+   available. Record `by_source` in `counts`.
 
-Return two valid UTF-8 YAML files, `tongan-development.yaml` and
-`tongan-holdout.yaml`, each with this structure:
+---
 
+### 8. Checks before saving
+
+Run these and fix problems **before** returning the files:
+
+1. Both YAML files parse.
+2. Both contain `language`, `sources`, `split`, `selection`, `counts`,
+   `cases`.
+3. For every case, `form_lower != lemma_lower`.
+4. All `(form_lower, lemma_lower, upos)` triples are unique within a
+   file.
+5. No lemma appears in both `development` and `holdout`; no sentence
+   appears in both.
+6. `development` ≥ 1000 cases; `holdout` ≥ 300 cases. If not, `notes`
+   contains the actual numbers and the reason.
+7. Every case has a `source` naming one of the inputs.
+8. For grammar- and dictionary-derived cases, `sentence_id` points to a
+   real section/page/table/headword.
+9. The recorded seed reproduces the same split when the procedure is
+   re-run.
+10. `counts.by_source`, `counts.by_upos`, `counts.by_feature` reflect
+    what is actually in `cases` (spot-check at least three values by
+    hand).
+11. National characters (`ʻ`, macron vowels) survive reading and writing
+    without replacement characters or silent change of the glottal-stop
+    variant.
+12. **Hallucination check** done: every pair/sentence is verified
+    against the source; nothing is reconstructed or paraphrased.
+13. **POS diversity check** done.
+14. **Source diversity check** done.
+15. **Use-case count check** done (actual number, not padded).
+
+If any check fails — fix it before returning the files.
+
+---
+
+### 9. Anti-patterns (what you must NOT do)
+
+- Using a summary or statistics page instead of the raw source.
+- Including trivial cases (form == lemma).
+- Inventing lemmas. If the source does not give a lemma — drop the case
+  and record the reason in `notes`.
+- Generating forms by rules and presenting them as gold.
+- Lemmatizing raw texts yourself.
+- Splitting by form instead of by lemma (this leaks).
+- Mixing sources without recording the convention.
+- Silently dropping cases. Every drop is accounted for in
+  `selection.rule` or `notes`.
+- Skipping the seed.
+- Padding the dataset to reach a threshold.
+- Normalizing `ʻ` variants or adding/removing macrons.
+- Annotating use-cases yourself (translation is not annotation).
+- Treating derived forms (`faka-` etc.) as inflectional on your own
+  authority.
+- Reconstructing, paraphrasing, or guessing forms.
+- Outputting bare wordforms when annotated sentences exist.
+- Relying on a single source when multiple are available.
+- Inventing `sent_id`s or source locations.
+- Taking lemmas or rules from OntoTongan.json.
+- Asking questions instead of producing the files.
+- Repeating a mistake that has already been corrected once.
+
+---
+
+### 10. Deliverable
+
+Return **two YAML files** (UTF-8, valid YAML, no surrounding Markdown,
+no prose between them):
+
+- `tongan-development.yaml`
+- `tongan-holdout.yaml`
+
+If a file does not fit in one message — return it in parts, but each
+part must itself be valid YAML or an explicit continuation of a single
+YAML document.
+
+### Required structure of each file
+
+```yaml
 language:
   name: Tongan
   iso639_3: ton
-source:
-  name: ...
-  url: ...
-  version: ...
-  license: ...
-  annotation_type: ...
-split: development | holdout
-selection: ...
-counts: ...
+  iso639_1: to
+sources:
+  - name: "<source name: Churchward_Grammar | kaikki_Tongan | Tongan_lex>"
+    url: "<URL or local file>"
+    version: "<commit / release tag / edition / local file hash>"
+    license: "<license>"
+    annotation_type: "<one sentence, where the lemmas come from>"
+  # repeat the block for every source actually used
+split: "<development or holdout>"
+selection:
+  seed: 0
+  rule: "<one sentence, how pairs were sampled, how many cases per lemma or sentence, which filters>"
+counts:
+  total_cases: 0
+  by_source:
+    "<source name>": 0
+  by_upos:
+    VERB: 0
+    NOUN: 0
+    PRON: 0
+  by_feature:  # only features actually present in the sources
+    Person:
+      "1": 0
+      "2": 0
+      "3": 0
+    Number:
+      Sing: 0
+      Dual: 0
+      Plur: 0
+    Clusivity:
+      In: 0
+      Ex: 0
+    Voice:
+      Pass: 0
+    Aspect: {}
+    PronType: {}
+    Poss:
+      "Yes": 0
 cases:
-  - sentence_id: ...
-    token_id: ...
-    form: ...
-    lemma: ...
-    upos: ...
-    features: ...
-
-Do not correct, normalize or rewrite gold lemmas. If an annotation looks
-suspicious (for example a lemma still in "past#present" form), keep it as
-is and add the field `annotation_note`. After writing the files, check that
-the YAML parses, all cases are non-trivial, IDs are unique and no sentence
-appears in both sets.
+  - sentence_id: "<page, section or headword ID>"
+    token_id: 0
+    form: "<surface, original capitalization and orthography kept>"
+    lemma: "<lemma exactly as in the source>"
+    upos: "<UPOS or _>"
+    features: "<FEATS from the source or _>"
+    source: "<source name>"
+    use_case_type: "<sentence or wordform>"
+    annotation_note: "<optional, if the annotation is suspicious>"
+notes: |
+  <optional; mandatory if thresholds are not met, see section 3>
 ```
+
+### Header of the `holdout` file
+
+Add to the `holdout` file's `notes`, as its first line:
+`RESERVED FOR FINAL EVALUATION. MUST NOT BE SHOWN TO THE LEMMATIZER-BUILDING AGENT.`
+
+---
+
+### 11. Notes on special cases
+
+- If a grammar gives a paradigm table with several rows (e.g. person ×
+  number × clusivity) — **each row is a separate case**.
+- If a dictionary or grammar gives a lemma that appears in no other
+  source — **keep it**. It is a legitimate pre-annotated pair.
+- Use only UD feature names that appear in OntoTongan.json or the UD
+  guidelines; do not invent new names.
+- Use `str.lower()`, **not** `casefold()`.
+- If, after processing all sources, the totals are below the thresholds
+  — **do not** try to close the shortfall with anything other than
+  accurately recording it in `notes`. The next prompts will read those
+  numbers and adjust their expectations.
+
 
 ## 3. Building a rule-based lemmatizer
 
