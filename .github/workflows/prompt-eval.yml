@@ -1,16 +1,27 @@
 name: Prompt evaluation
 # Runs each new/changed prompt through the lab's local LLM (corpus-host qwen router),
-# extracts the lemmatizer, Clingo-validates it, scores it against EVALUATION.md, and
-# posts the results as a PR comment. Runs on a self-hosted runner on corpus-host so it
-# can reach the local LLM at 127.0.0.1:11434 (no external API key).
+# extracts the lemmatizer, Clingo-validates it, LLM-tests it, runs lingua-rules golden
+# tests when the language is covered, scores it, and posts the report as a PR comment.
+# Runs on a self-hosted runner on corpus-host so it can reach the local LLM at
+# 127.0.0.1:11434 (no external API key).
+#
+# Triggers:
+#   * pull_request (Prompts/** or languages/**)  -- auto on MR create/update; evaluates the
+#     MR's changed prompt files and comments on the MR.
+#   * workflow_dispatch with `pr`                 -- manual re-run for an open MR: checks it
+#     out, evaluates its changed prompts, comments on it.
+#   * workflow_dispatch without `pr` (scope=all)  -- evaluates every prompt in the ref.
 on:
   pull_request:
     paths: ["Prompts/**", "languages/**"]
   workflow_dispatch:
     inputs:
+      pr:
+        description: "Open MR/PR number to evaluate and comment on (empty = evaluate the ref itself)"
+        default: ""
       scope:
-        description: "all | changed (manual runs: 'all' evaluates every prompt in the branch)"
-        default: "all"
+        description: "changed | all"
+        default: "changed"
 
 jobs:
   evaluate:
@@ -24,19 +35,37 @@ jobs:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
 
+      - name: Resolve target MR and check it out
+        id: pr
+        shell: bash
+        run: |
+          PR="${{ github.event.pull_request.number }}"
+          [ -z "$PR" ] && PR="${{ inputs.pr }}"
+          echo "num=$PR" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ inputs.pr }}" ]; then
+            gh pr checkout "${{ inputs.pr }}"
+          fi
+          if [ -n "$PR" ]; then
+            BASE=$(gh pr view "$PR" --json baseRefName --jq .baseRefName)
+            echo "base=$BASE" >> "$GITHUB_OUTPUT"
+            git fetch -q origin "$BASE" || true
+          fi
+
       - name: Select prompts to evaluate
         id: sel
         shell: bash
         run: |
-          if [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ inputs.scope }}" != "all" ]; then
-            FILES=$(git diff --name-only "origin/${{ github.base_ref }}"...HEAD -- 'Prompts/**' 'languages/**' | grep -iE 'prompt' || true)
+          PR="${{ steps.pr.outputs.num }}"
+          SCOPE="${{ inputs.scope }}"; [ -z "$SCOPE" ] && SCOPE=changed
+          if [ -n "$PR" ] && [ "$SCOPE" != "all" ]; then
+            FILES=$(git diff --name-only "origin/${{ steps.pr.outputs.base }}"...HEAD -- 'Prompts/**' 'languages/**' | grep -iE 'prompt' || true)
           else
             FILES=$( { find Prompts -type f 2>/dev/null; find languages -type f -iname '*prompt*' 2>/dev/null; } | sort -u )
           fi
           echo "count=$(printf '%s\n' "$FILES" | grep -c . || true)" >> "$GITHUB_OUTPUT"
           { echo 'files<<__EOF__'; printf '%s\n' "$FILES"; echo '__EOF__'; } >> "$GITHUB_OUTPUT"
 
-      - name: Prepare deps + lingua-rules checkout (use-case grounding)
+      - name: Prepare deps + lingua-rules checkout
         if: steps.sel.outputs.count != '0'
         shell: bash
         run: |
@@ -53,12 +82,12 @@ jobs:
           mapfile -t F < <(printf '%s\n' "${{ steps.sel.outputs.files }}" | grep .)
           python3 scripts/eval_prompt.py "${F[@]}" --out prompt_eval.md
 
-      - name: Post results as PR comment
-        if: always() && github.event_name == 'pull_request' && steps.sel.outputs.count != '0'
+      - name: Post results as MR comment
+        if: always() && steps.sel.outputs.count != '0' && steps.pr.outputs.num != ''
         shell: bash
-        run: gh pr comment "${{ github.event.pull_request.number }}" --repo "${{ github.repository }}" --body-file prompt_eval.md
+        run: gh pr comment "${{ steps.pr.outputs.num }}" --repo "${{ github.repository }}" --body-file prompt_eval.md
 
       - name: Job summary
         if: always()
         shell: bash
-        run: '[ -f prompt_eval.md ] && cat prompt_eval.md >> "$GITHUB_STEP_SUMMARY" || echo "no prompts evaluated" >> "$GITHUB_STEP_SUMMARY"'
+        run: '[ -f prompt_eval.md ] && cat prompt_eval.md >> "$GITHUB_STEP_SUMMARY" || echo "no prompts evaluated (count=${{ steps.sel.outputs.count }})" >> "$GITHUB_STEP_SUMMARY"'
