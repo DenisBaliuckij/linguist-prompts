@@ -14,7 +14,8 @@ name: Prompt evaluation
 #   * workflow_dispatch without `pr` (scope=all)  -- evaluate every prompt in the ref.
 on:
   pull_request:
-    paths: ["Prompts/**", "languages/**"]
+    # Exclude generated lemmatizers so the pipeline's own commit-back does not retrigger it.
+    paths: ["Prompts/**", "languages/**", "!**/*.generated.lp"]
   workflow_dispatch:
     inputs:
       pr:
@@ -24,9 +25,9 @@ on:
         description: "changed | all"
         default: "changed"
 
-# GITHUB_TOKEN needs write on pull requests to post the report as a comment.
+# GITHUB_TOKEN needs write on pull requests (comment) and contents (commit the generated lemmatizer).
 permissions:
-  contents: read
+  contents: write
   pull-requests: write
 
 jobs:
@@ -114,6 +115,30 @@ jobs:
         run: |
           mapfile -t F < <(grep . /tmp/sel.txt)
           python3 scripts/eval_prompt.py "${F[@]}" --out prompt_eval.md
+
+      - name: Commit generated lemmatizer(s) to the MR branch
+        if: always() && steps.sel.outputs.count != '0' && steps.pr.outputs.num != ''
+        shell: bash
+        run: |
+          find Prompts languages -name '*.generated.lp' -print0 2>/dev/null > /tmp/genlist || true
+          if [ ! -s /tmp/genlist ]; then echo "no generated lemmatizers to commit"; exit 0; fi
+          HEAD_REF=$(gh pr view "${{ steps.pr.outputs.num }}" --json headRefName --jq .headRefName)
+          git fetch -q origin "$HEAD_REF"
+          tmp=$(mktemp -d); tar czf "$tmp/gen.tgz" --null -T /tmp/genlist
+          rm -rf /tmp/prwt
+          git worktree add -f --detach /tmp/prwt "origin/$HEAD_REF"
+          tar xzf "$tmp/gen.tgz" -C /tmp/prwt
+          ( cd /tmp/prwt
+            find Prompts languages -name '*.generated.lp' -print0 2>/dev/null | xargs -0 git add --
+            if git diff --cached --quiet; then
+              echo "generated lemmatizer(s) unchanged — nothing to commit"
+            else
+              git -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+                  -c user.name="github-actions[bot]" \
+                  commit -q -m "pipeline: attach generated lemmatizer(s) [skip ci]"
+              git push origin "HEAD:$HEAD_REF" && echo "pushed generated lemmatizer(s) to $HEAD_REF"
+            fi )
+          git worktree remove -f /tmp/prwt || true
 
       - name: Post results as MR comment
         if: always() && steps.sel.outputs.count != '0' && steps.pr.outputs.num != ''
