@@ -145,7 +145,7 @@ jobs:
               git -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
                   -c user.name="github-actions[bot]" \
                   commit -q -m "pipeline: attach generated lemmatizer(s) [skip ci]"
-              git push origin "HEAD:$TARGET" && echo "pushed generated lemmatizer(s) to $TARGET"
+              git push origin "HEAD:refs/heads/$TARGET" && echo "pushed generated lemmatizer(s) to $TARGET"
             fi )
           git worktree remove -f /tmp/prwt || true
 
