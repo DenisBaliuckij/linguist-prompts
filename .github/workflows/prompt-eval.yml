@@ -122,11 +122,20 @@ jobs:
         run: |
           find Prompts languages -name '*.generated.lp' -print0 2>/dev/null > /tmp/genlist || true
           if [ ! -s /tmp/genlist ]; then echo "no generated lemmatizers to commit"; exit 0; fi
-          HEAD_REF=$(gh pr view "${{ steps.pr.outputs.num }}" --json headRefName --jq .headRefName)
-          git fetch -q origin "$HEAD_REF"
+          PR="${{ steps.pr.outputs.num }}"
+          CROSS=$(gh pr view "$PR" --json isCrossRepository --jq .isCrossRepository)
+          HEAD_REF=$(gh pr view "$PR" --json headRefName --jq .headRefName)
+          if [ "$CROSS" = "true" ]; then
+            # Fork MR: CI cannot push to the fork's branch; use an origin branch based on the MR head.
+            git fetch -q origin "pull/$PR/head:pr_gen_base"
+            BASE="pr_gen_base"; TARGET="generated/pr-$PR"
+          else
+            git fetch -q origin "$HEAD_REF"
+            BASE="origin/$HEAD_REF"; TARGET="$HEAD_REF"
+          fi
           tmp=$(mktemp -d); tar czf "$tmp/gen.tgz" --null -T /tmp/genlist
           rm -rf /tmp/prwt
-          git worktree add -f --detach /tmp/prwt "origin/$HEAD_REF"
+          git worktree add -f --detach /tmp/prwt "$BASE"
           tar xzf "$tmp/gen.tgz" -C /tmp/prwt
           ( cd /tmp/prwt
             find Prompts languages -name '*.generated.lp' -print0 2>/dev/null | xargs -0 git add --
@@ -136,7 +145,7 @@ jobs:
               git -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
                   -c user.name="github-actions[bot]" \
                   commit -q -m "pipeline: attach generated lemmatizer(s) [skip ci]"
-              git push origin "HEAD:$HEAD_REF" && echo "pushed generated lemmatizer(s) to $HEAD_REF"
+              git push origin "HEAD:$TARGET" && echo "pushed generated lemmatizer(s) to $TARGET"
             fi )
           git worktree remove -f /tmp/prwt || true
 

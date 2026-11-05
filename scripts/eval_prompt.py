@@ -335,7 +335,7 @@ def to_markdown(reports):
             continue
         vb = r.get("clingo_parsed", 0)
         L.append(f"- **Lemmatizer:** {r.get('lp_blocks',0)} block(s) from the LLM, **{vb} valid** under Clingo"
-                 + (f"; written to `{r['lemmatizer_file']}` and committed to the branch." if r.get("lemmatizer_file")
+                 + (f"; written to `{r['lemmatizer_file']}`." if r.get("lemmatizer_file")
                     else "; nothing valid to attach."))
         for i, err in enumerate(r.get("clingo_errors") or [], 1):
             L.append(f"  - Clingo error (block {i}): `{err}`")
@@ -365,8 +365,9 @@ def to_markdown(reports):
 
     L += ["", "_The local LLM produces the lemmatizer from the prompt; valid Clingo blocks are run against "
           "LLM-generated `form→lemma` cases (interface auto-detected) and, when the language is covered, against "
-          "lingua-rules golden paradigm tests. The valid lemmatizer is committed next to the prompt as "
-          "`<stem>.generated.lp`._"]
+          "lingua-rules golden paradigm tests. The valid lemmatizer is written next to the prompt as "
+          "`<stem>.generated.lp` and committed by CI — to this MR's branch for same-repo MRs, or to a "
+          "`generated/pr-<n>` branch for fork MRs (CI cannot push to a fork's branch)._"]
     return "\n".join(L)
 
 
