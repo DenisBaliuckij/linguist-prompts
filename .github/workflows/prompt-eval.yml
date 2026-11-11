@@ -6,14 +6,16 @@ name: Prompt evaluation
 # 127.0.0.1:11434 (no external API key).
 #
 # Triggers:
-#   * pull_request (Prompts/** or languages/**)  -- auto on MR create/update; evaluates the
-#     MR's changed prompt files and comments on the MR.
-#   * workflow_dispatch with `pr`                 -- manual re-run for an open MR: checks it
-#     out, evaluates its changed prompts, comments on it.
-#   * workflow_dispatch without `pr` (scope=all)  -- evaluates every prompt in the ref.
+#   * pull_request (Prompts/** or languages/**)  -- auto on MR create/update.
+#   * workflow_dispatch with `pr`                 -- evaluate an open MR and comment on it.
+#     Dispatchable with --ref <branch>: the pipeline code comes from <branch>, and only the
+#     MR's changed prompt files are overlaid on top (so old MRs that predate the pipeline
+#     are still evaluated with the current script).
+#   * workflow_dispatch without `pr` (scope=all)  -- evaluate every prompt in the ref.
 on:
   pull_request:
-    paths: ["Prompts/**", "languages/**"]
+    # Exclude generated lemmatizers so the pipeline's own commit-back does not retrigger it.
+    paths: ["Prompts/**", "languages/**", "!**/*.generated.lp"]
   workflow_dispatch:
     inputs:
       pr:
@@ -22,6 +24,11 @@ on:
       scope:
         description: "changed | all"
         default: "changed"
+
+# GITHUB_TOKEN needs write on pull requests (comment) and contents (commit the generated lemmatizer).
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
   evaluate:
@@ -35,52 +42,112 @@ jobs:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
 
-      - name: Resolve target MR and check it out
+      # The runner image ships Python 3.8, which has no clingo wheel and is below
+      # lingua-rules' >=3.11 floor. Provision a modern Python for the job.
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Resolve target MR
         id: pr
         shell: bash
         run: |
           PR="${{ github.event.pull_request.number }}"
           [ -z "$PR" ] && PR="${{ inputs.pr }}"
           echo "num=$PR" >> "$GITHUB_OUTPUT"
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ inputs.pr }}" ]; then
-            gh pr checkout "${{ inputs.pr }}"
-          fi
           if [ -n "$PR" ]; then
-            BASE=$(gh pr view "$PR" --json baseRefName --jq .baseRefName)
-            echo "base=$BASE" >> "$GITHUB_OUTPUT"
-            git fetch -q origin "$BASE" || true
+            echo "base=$(gh pr view "$PR" --json baseRefName --jq .baseRefName)" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Select prompts to evaluate
         id: sel
         shell: bash
         run: |
+          set -o pipefail
           PR="${{ steps.pr.outputs.num }}"
           SCOPE="${{ inputs.scope }}"; [ -z "$SCOPE" ] && SCOPE=changed
-          if [ -n "$PR" ] && [ "$SCOPE" != "all" ]; then
-            FILES=$(git diff --name-only "origin/${{ steps.pr.outputs.base }}"...HEAD -- 'Prompts/**' 'languages/**' | grep -iE 'prompt' || true)
+          : > /tmp/sel.txt
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ inputs.pr }}" ]; then
+            # Keep this ref's pipeline code; overlay only the MR's changed prompt files.
+            BASE="${{ steps.pr.outputs.base }}"
+            git fetch -q origin "$BASE"
+            git fetch -q origin "pull/${{ inputs.pr }}/head:pr_head"
+            MERGE_BASE=$(git merge-base "origin/$BASE" pr_head 2>/dev/null || echo "origin/$BASE")
+            # A prompt file = anything under Prompts/, or a *prompt* file under languages/.
+            : > /tmp/changed.txt
+            git diff --name-only "$MERGE_BASE" pr_head -- 'Prompts/**' 'languages/**' > /tmp/d.txt || true
+            while IFS= read -r f; do
+              [ -z "$f" ] && continue
+              case "$f" in
+                Prompts/*) printf '%s\n' "$f" >> /tmp/changed.txt ;;
+                languages/*) case "$(basename "$f" | tr 'A-Z' 'a-z')" in *prompt*) printf '%s\n' "$f" >> /tmp/changed.txt ;; esac ;;
+              esac
+            done < /tmp/d.txt
+            while IFS= read -r f; do
+              [ -z "$f" ] && continue
+              if git cat-file -e "pr_head:$f" 2>/dev/null; then
+                git checkout pr_head -- "$f" && printf '%s\n' "$f" >> /tmp/sel.txt
+              fi
+            done < /tmp/changed.txt
+          elif [ -n "$PR" ] && [ "$SCOPE" != "all" ]; then
+            git diff --name-only "origin/${{ steps.pr.outputs.base }}...HEAD" -- 'Prompts/**' 'languages/**' \
+              | grep -iE 'prompt' > /tmp/sel.txt || true
           else
-            FILES=$( { find Prompts -type f 2>/dev/null; find languages -type f -iname '*prompt*' 2>/dev/null; } | sort -u )
+            { find Prompts -type f 2>/dev/null; find languages -type f -iname '*prompt*' 2>/dev/null; } | sort -u > /tmp/sel.txt
           fi
-          echo "count=$(printf '%s\n' "$FILES" | grep -c . || true)" >> "$GITHUB_OUTPUT"
-          { echo 'files<<__EOF__'; printf '%s\n' "$FILES"; echo '__EOF__'; } >> "$GITHUB_OUTPUT"
+          echo "count=$(grep -c . /tmp/sel.txt || true)" >> "$GITHUB_OUTPUT"
+          { echo 'files<<__EOF__'; cat /tmp/sel.txt; echo '__EOF__'; } >> "$GITHUB_OUTPUT"
 
       - name: Prepare deps + lingua-rules checkout
         if: steps.sel.outputs.count != '0'
         shell: bash
         run: |
-          python3 -m pip install --quiet --upgrade "clingo>=5.6"
+          python3 -m pip install --quiet --upgrade pip
+          python3 -m pip install --quiet "clingo>=5.7"
           rm -rf .lingua-rules
           git clone --depth=1 https://github.com/DenisBaliuckij/lingua-rules .lingua-rules || true
-          # Install the lingua-rules CLI so its golden paradigm tests can run as a step.
           python3 -m pip install --quiet ./.lingua-rules || true
 
       - name: Evaluate prompts
         if: steps.sel.outputs.count != '0'
         shell: bash
         run: |
-          mapfile -t F < <(printf '%s\n' "${{ steps.sel.outputs.files }}" | grep .)
+          mapfile -t F < <(grep . /tmp/sel.txt)
           python3 scripts/eval_prompt.py "${F[@]}" --out prompt_eval.md
+
+      - name: Commit generated lemmatizer(s) to the MR branch
+        if: always() && steps.sel.outputs.count != '0' && steps.pr.outputs.num != ''
+        shell: bash
+        run: |
+          find Prompts languages -name '*.generated.lp' -print0 2>/dev/null > /tmp/genlist || true
+          if [ ! -s /tmp/genlist ]; then echo "no generated lemmatizers to commit"; exit 0; fi
+          PR="${{ steps.pr.outputs.num }}"
+          CROSS=$(gh pr view "$PR" --json isCrossRepository --jq .isCrossRepository)
+          HEAD_REF=$(gh pr view "$PR" --json headRefName --jq .headRefName)
+          if [ "$CROSS" = "true" ]; then
+            # Fork MR: CI cannot push to the fork's branch; use an origin branch based on the MR head.
+            git fetch -q origin "pull/$PR/head:pr_gen_base"
+            BASE="pr_gen_base"; TARGET="generated/pr-$PR"
+          else
+            git fetch -q origin "$HEAD_REF"
+            BASE="origin/$HEAD_REF"; TARGET="$HEAD_REF"
+          fi
+          tmp=$(mktemp -d); tar czf "$tmp/gen.tgz" --null -T /tmp/genlist
+          rm -rf /tmp/prwt
+          git worktree add -f --detach /tmp/prwt "$BASE"
+          tar xzf "$tmp/gen.tgz" -C /tmp/prwt
+          ( cd /tmp/prwt
+            find Prompts languages -name '*.generated.lp' -print0 2>/dev/null | xargs -0 git add --
+            if git diff --cached --quiet; then
+              echo "generated lemmatizer(s) unchanged — nothing to commit"
+            else
+              git -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+                  -c user.name="github-actions[bot]" \
+                  commit -q -m "pipeline: attach generated lemmatizer(s) [skip ci]"
+              git push origin "HEAD:refs/heads/$TARGET" && echo "pushed generated lemmatizer(s) to $TARGET"
+            fi )
+          git worktree remove -f /tmp/prwt || true
 
       - name: Post results as MR comment
         if: always() && steps.sel.outputs.count != '0' && steps.pr.outputs.num != ''
