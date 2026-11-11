@@ -38,6 +38,7 @@ except Exception:
 
 LLM_URL = os.environ.get("LLM_URL", "http://127.0.0.1:8081/v1/chat/completions")
 LLM_MODEL = os.environ.get("LLM_MODEL", "qwen3.8:27b-mtp-128k")
+LLM_API_KEY = os.environ.get("LLM_API_KEY", "")  # Bearer token for a hosted model (OpenAI-compatible)
 STAGE_MAX_TOKENS = int(os.environ.get("STAGE_MAX_TOKENS", "12000"))
 STAGE_TIMEOUT = int(os.environ.get("STAGE_TIMEOUT", "1200"))
 
@@ -55,12 +56,18 @@ UNSAFE = re.compile(
 
 def llm(user: str, system: str = SYS, max_tokens: int = STAGE_MAX_TOKENS,
         temperature: float = 0.2, timeout: int = STAGE_TIMEOUT) -> str:
+    # qwen is a reasoning model; /no_think keeps the answer out of the chain-of-thought.
+    # Harmless/ignored by other models, but only append it for qwen.
+    suffix = "\n\n/no_think" if "qwen" in LLM_MODEL.lower() else ""
     body = json.dumps({"model": LLM_MODEL,
                        "messages": [{"role": "system", "content": system},
-                                    {"role": "user", "content": user + "\n\n/no_think"}],
+                                    {"role": "user", "content": user + suffix}],
                        "max_tokens": max_tokens, "temperature": temperature,
                        "stream": False}).encode()
-    req = urllib.request.Request(LLM_URL, data=body, headers={"Content-Type": "application/json"})
+    headers = {"Content-Type": "application/json"}
+    if LLM_API_KEY:
+        headers["Authorization"] = "Bearer " + LLM_API_KEY
+    req = urllib.request.Request(LLM_URL, data=body, headers=headers)
     with urllib.request.urlopen(req, timeout=timeout) as r:
         d = json.load(r)
     m = d["choices"][0]["message"]
@@ -295,7 +302,18 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("prompts", nargs="+")
     ap.add_argument("--out", default=None)
+    ap.add_argument("--llm-url", default=None,
+                    help="OpenAI-compatible /chat/completions URL — switch to a more powerful model")
+    ap.add_argument("--llm-model", default=None, help="model id at that endpoint")
+    ap.add_argument("--api-key", default=None, help="Bearer API key (or set env LLM_API_KEY)")
     a = ap.parse_args()
+    global LLM_URL, LLM_MODEL, LLM_API_KEY
+    if a.llm_url:
+        LLM_URL = a.llm_url
+    if a.llm_model:
+        LLM_MODEL = a.llm_model
+    if a.api_key:
+        LLM_API_KEY = a.api_key
     reports = []
     for p in a.prompts:
         sys.stderr.write(f"[multistage] evaluating {p} ...\n"); sys.stderr.flush()
