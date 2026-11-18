@@ -19,13 +19,24 @@ rule blocks), and assess it:
 The valid lemmatizer is written next to the prompt as `<stem>.generated.lp` so CI can
 commit it to the MR branch. A detailed Markdown report is written to --out.
 
-Env: LLM_URL, LLM_MODEL, LINGUA_RULES, PROMPT_EVAL_MIN_ACCURACY (0..1, default 0 = report only).
+Model selection: the lab's local model by default; hosted models through OpenRouter with
+`--provider openrouter --llm-model <vendor>/<model>` and the key in env OPENROUTER_API_KEY
+(see scripts/llm_client.py). `--judge-model` lets a different model write the test cases.
+
+Env: LLM_PROVIDER, LLM_URL, LLM_MODEL, LLM_API_KEY / OPENROUTER_API_KEY, LLM_ZDR, LLM_JUDGE_MODEL,
+     LINGUA_RULES, PROMPT_EVAL_MIN_ACCURACY (0..1, default 0 = report only).
 """
 from __future__ import annotations
-import argparse, datetime, json, os, re, subprocess, sys, urllib.request
+import argparse, datetime, json, os, re, subprocess, sys
 
-LLM_URL = os.environ.get("LLM_URL", "http://127.0.0.1:11434/v1/chat/completions")
-LLM_MODEL = os.environ.get("LLM_MODEL", "qwen3.8:27b-mtp-128k")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import llm_client  # noqa: E402
+
+# Filled in main() (CLI flags > environment > lab defaults); module-level so helpers can read them.
+LLM_CFG: "llm_client.LLMConfig | None" = None      # generator: turns the prompt into a lemmatizer
+JUDGE_CFG: "llm_client.LLMConfig | None" = None    # writes the form->lemma test cases (default: same model)
+LLM_MODEL = os.environ.get("LLM_MODEL", llm_client.LOCAL_MODEL)
+USAGE = None  # llm_client.UsageMeter for the current prompt
 LINGUA_RULES = os.environ.get("LINGUA_RULES", "/lingua-rules")
 
 CODE_BLOCK = re.compile(r"```(?:clingo|prolog|lp|asp|lparse)?\s*\n(.*?)```", re.DOTALL | re.IGNORECASE)
@@ -38,14 +49,21 @@ LEMMA_PREDS = (("lemma", 1), ("lemma", 2), ("lemmatize", 2), ("lemmatise", 2),
                ("out", 1), ("result", 1), ("lemma_of", 2), ("citation", 1))
 
 
-def _llm(messages, timeout=600, max_tokens=4096, temperature=0.2) -> str:
-    body = json.dumps({"model": LLM_MODEL, "messages": messages,
-                       "max_tokens": max_tokens, "temperature": temperature, "stream": False}).encode()
-    req = urllib.request.Request(LLM_URL, data=body, headers={"Content-Type": "application/json"})
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        d = json.load(r)
-    msg = d["choices"][0]["message"]
-    return msg.get("content") or msg.get("reasoning_content") or ""
+def _cfg(judge: bool = False) -> "llm_client.LLMConfig":
+    global LLM_CFG
+    if LLM_CFG is None:          # imported as a module without main(): read the environment
+        LLM_CFG = llm_client.make_config()
+    return (JUDGE_CFG or LLM_CFG) if judge else LLM_CFG
+
+
+def _llm(messages, timeout=600, max_tokens=4096, temperature=0.2, judge: bool = False) -> str:
+    res = llm_client.chat(messages, _cfg(judge), max_tokens=max_tokens, temperature=temperature,
+                          timeout=timeout)
+    if USAGE is not None:
+        USAGE.add(res)
+    if res.truncated:
+        sys.stderr.write(f"[eval] warning: answer cut at max_tokens ({_cfg(judge).model})\n")
+    return res.text
 
 
 def call_llm(prompt_text: str, timeout: int = 600) -> str:
@@ -58,7 +76,7 @@ def call_llm(prompt_text: str, timeout: int = 600) -> str:
 
 def _llm_json(system: str, user: str, timeout: int = 600) -> dict:
     text = _llm([{"role": "system", "content": system}, {"role": "user", "content": user}],
-                timeout=timeout, temperature=0.1)
+                timeout=timeout, temperature=0.1, judge=True)
     m = re.search(r"\{.*\}", text, re.DOTALL)
     return json.loads(m.group(0)) if m else {}
 
@@ -271,13 +289,16 @@ def write_lemmatizer(path: str, valid_blocks) -> str | None:
 
 
 def score_prompt(path: str) -> dict:
+    global USAGE
+    USAGE = llm_client.UsageMeter()
     prompt_text = open(path, encoding="utf-8", errors="replace").read()
     iso = detect_iso(prompt_text, path)
-    rep = {"prompt": os.path.basename(path), "path": path, "iso": iso}
+    rep = {"prompt": os.path.basename(path), "path": path, "iso": iso,
+           "model": _cfg().describe(), "usage": USAGE.as_dict()}
     try:
         out = call_llm(prompt_text)
     except Exception as e:  # noqa: BLE001
-        rep.update(status="llm_error", error=str(e)[:200]); return rep
+        rep.update(status="llm_error", error=str(e)[:300], usage=USAGE.as_dict()); return rep
     blocks = [b.strip() for b in CODE_BLOCK.findall(out) if b.strip()]
     rep["llm_chars"] = len(out)
     rep["lp_blocks"] = len(blocks)
@@ -304,11 +325,26 @@ def score_prompt(path: str) -> dict:
     if ok and rep["test"].get("ran") and acc is not None and acc < min_acc:
         ok = False
     rep["status"] = "ok" if ok else "needs_work"
+    rep["usage"] = USAGE.as_dict()
     return rep
 
 
+def _usage_line(u: dict) -> str:
+    if not u or not u.get("calls"):
+        return ""
+    s = f"{u['calls']} call(s), {u['prompt_tokens']}+{u['completion_tokens']} tokens"
+    if u.get("cost_usd"):
+        s += f", ${u['cost_usd']}"
+    if u.get("truncated_answers"):
+        s += f", **{u['truncated_answers']} answer(s) cut at max_tokens**"
+    return s
+
+
 def to_markdown(reports):
+    models = sorted({r.get("model") for r in reports if r.get("model")})
+    judge = f"; test cases by **{JUDGE_CFG.describe()}**" if JUDGE_CFG else ""
     L = ["## Prompt evaluation", "",
+         (f"Model: **{', '.join(models)}**{judge}" if models else ""), "",
          "| Prompt | ISO | LP blocks (valid) | Tests pass/total | Accuracy | lingua-rules | Lemmatizer | Score | Status |",
          "|---|---|---|---|---|---|---|---|---|"]
     for r in reports:
@@ -330,6 +366,8 @@ def to_markdown(reports):
     L += ["", "### Details"]
     for r in reports:
         L.append(f"\n#### {r['prompt']}  ·  `{r.get('path','')}`")
+        if _usage_line(r.get("usage") or {}):
+            L.append(f"- **LLM usage:** {_usage_line(r['usage'])}")
         if r.get("status") == "llm_error":
             L.append(f"- **LLM error:** {r.get('error','')}")
             continue
@@ -363,7 +401,7 @@ def to_markdown(reports):
         sig = r.get("signals", {})
         L.append(f"- **Rubric signals:** " + ", ".join(f"{k} {'✓' if v else '✗'}" for k, v in sig.items()))
 
-    L += ["", "_The local LLM produces the lemmatizer from the prompt; valid Clingo blocks are run against "
+    L += ["", "_The LLM produces the lemmatizer from the prompt; valid Clingo blocks are run against "
           "LLM-generated `form→lemma` cases (interface auto-detected) and, when the language is covered, against "
           "lingua-rules golden paradigm tests. The valid lemmatizer is written next to the prompt as "
           "`<stem>.generated.lp` and committed by CI — to this MR's branch for same-repo MRs, or to a "
@@ -375,7 +413,21 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("prompts", nargs="+")
     ap.add_argument("--out", default="prompt_eval.md")
+    llm_client.add_cli_args(ap)
+    ap.add_argument("--judge-model", default=os.environ.get("LLM_JUDGE_MODEL") or None,
+                    help="model (same endpoint) that writes the form->lemma test cases; default: the generator "
+                         "(env LLM_JUDGE_MODEL)")
     args = ap.parse_args()
+    global LLM_CFG, JUDGE_CFG, LLM_MODEL
+    try:
+        LLM_CFG = llm_client.config_from_args(args)
+    except ValueError as e:
+        ap.error(str(e))
+    LLM_MODEL = LLM_CFG.model
+    if args.judge_model and args.judge_model != LLM_CFG.model:
+        JUDGE_CFG = llm_client.LLMConfig(**{**LLM_CFG.__dict__, "model": args.judge_model})
+    print(f"[eval] model: {LLM_CFG.describe()}"
+          + (f"; test cases: {JUDGE_CFG.describe()}" if JUDGE_CFG else ""), flush=True)
     reports = []
     for p in args.prompts:
         print(f"[eval] {p}", flush=True)

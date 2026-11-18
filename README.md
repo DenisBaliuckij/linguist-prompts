@@ -20,6 +20,39 @@ languages/
 
 Прямые коммиты в `main` запрещены. Любое изменение вносится через pull request и должно получить одно одобрение от другого участника. Подробности — в [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## Оценка промптов на внешних моделях (OpenRouter)
+
+Оценщики промптов ([`scripts/eval_prompt.py`](scripts/eval_prompt.py) и [`scripts/multistage_eval.py`](scripts/multistage_eval.py)) по умолчанию работают с локальной моделью лаборатории. Через [OpenRouter](https://openrouter.ai) их можно запустить на внешней модели: у OpenRouter один ключ даёт доступ к моделям разных компаний. Работа с API вынесена в [`scripts/llm_client.py`](scripts/llm_client.py).
+
+> **Важно.** При работе через OpenRouter текст промптов и ответы модели уходят за пределы сети ВШЭ: на серверы OpenRouter и к компании, чья модель отвечает. Не прикладывайте к таким прогонам закрытые данные (неопубликованные грамматики, словари, корпуса).
+
+**Локальный запуск.** Ключ передаётся через переменную окружения, а не в командной строке: аргументы командной строки видны другим процессам и сохраняются в истории оболочки.
+
+```bash
+export OPENROUTER_API_KEY=...        # ключ из https://openrouter.ai/settings/keys
+python scripts/multistage_eval.py languages/latin/lemmatization/prompts.md \
+    --provider openrouter --llm-model <компания>/<модель> --out latin_eval.md
+python scripts/eval_prompt.py languages/latin/lemmatization/prompts.md \
+    --provider openrouter --llm-model <компания>/<модель> --out latin_eval.md
+```
+
+Идентификаторы моделей — в [каталоге OpenRouter](https://openrouter.ai/models), в виде `<компания>/<модель>`. Полезные флаги:
+
+- `--zdr` (или `LLM_ZDR=1`) — отправлять запросы только провайдерам с нулевым хранением данных (Zero Data Retention): они не сохраняют промпты и ответы и не обучаются на них. Часть моделей при этом может стать недоступна.
+- `--judge-model <модель>` (только `eval_prompt.py`) — тестовые пары «форма → лемма» пишет другая модель, а не та, что строила лемматизатор.
+- `--llm-url` — любой другой OpenAI-совместимый адрес `/chat/completions`, ключ для него берётся из `LLM_API_KEY`.
+
+В отчёте указаны модель, число вызовов, токены, стоимость (если её сообщает OpenRouter) и ответы, обрезанные по `max_tokens`. Обрезанный ответ часто даёт `SyntaxError` в сгенерированном коде, и это ошибка лимита, а не модели.
+
+**В GitHub Actions.** Мейнтейнер один раз добавляет ключ в секрет репозитория `OPENROUTER_API_KEY` (Settings → Secrets and variables → Actions → New repository secret). После этого оценку на внешней модели можно запустить вручную:
+
+```bash
+gh workflow run prompt-eval.yml -f provider=openrouter -f model=<компания>/<модель> -f pr=<номер PR>
+# -f zdr=true — только провайдеры с нулевым хранением данных
+```
+
+Автоматические прогоны на каждый PR по-прежнему идут на локальной модели, а ключ передаётся только шагу оценки в ручных запусках с OpenRouter. PR из форков секретов вообще не получают.
+
 ## Еженедельная сводка
 
 Каждое воскресенье в 18:00 UTC GitHub Actions собирает все pull request'ы, слитые за прошедшую неделю, и публикует сводку на русском языке — кто и что изменил — в виде Issue с меткой `digest` и заголовком «Сводка linguist-prompts: …». Если изменений не было, в Issue будет короткое сообщение «За неделю изменений нет». Все сводки собраны на вкладке Issues (фильтр по метке `digest`). Скрипт: [`scripts/weekly_digest.py`](scripts/weekly_digest.py).

@@ -22,12 +22,20 @@ scores Clingo, so staged/Python prompts always scored 0. This harness fixes that
                     timeout over any form->lemma cases the stages produced.
   5. Write the artifact(s) next to the prompt and a Markdown report.
 
-Env: LLM_URL (default qwen on :8081), LLM_MODEL, STAGE_MAX_TOKENS, STAGE_TIMEOUT.
+Model selection: the lab's local model by default (qwen on :8081); hosted models through
+OpenRouter with `--provider openrouter --llm-model <vendor>/<model>` and the key in env
+OPENROUTER_API_KEY (see scripts/llm_client.py).
+
+Env: LLM_PROVIDER, LLM_URL, LLM_MODEL, LLM_API_KEY / OPENROUTER_API_KEY, LLM_ZDR,
+     STAGE_MAX_TOKENS, STAGE_TIMEOUT.
 Stdlib only. UTF-8 safe on every platform.
 """
 from __future__ import annotations
-import argparse, io, json, os, re, subprocess, sys, tempfile, urllib.request
+import argparse, io, json, os, re, subprocess, sys, tempfile
 from pathlib import Path
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import llm_client  # noqa: E402
 
 # UTF-8 stdout everywhere (Windows cp1251 would crash on ✓/✗)
 try:
@@ -36,9 +44,11 @@ try:
 except Exception:
     pass
 
-LLM_URL = os.environ.get("LLM_URL", "http://127.0.0.1:8081/v1/chat/completions")
-LLM_MODEL = os.environ.get("LLM_MODEL", "qwen3.8:27b-mtp-128k")
-LLM_API_KEY = os.environ.get("LLM_API_KEY", "")  # Bearer token for a hosted model (OpenAI-compatible)
+DEFAULT_URL = "http://127.0.0.1:8081/v1/chat/completions"
+LLM_CFG: "llm_client.LLMConfig | None" = None   # set in main(): CLI flags > environment > defaults
+LLM_MODEL = os.environ.get("LLM_MODEL", llm_client.LOCAL_MODEL)
+USAGE = None          # llm_client.UsageMeter for the prompt being evaluated
+TRUNCATED: list = []  # stage headings whose answer was cut at max_tokens
 STAGE_MAX_TOKENS = int(os.environ.get("STAGE_MAX_TOKENS", "12000"))
 STAGE_TIMEOUT = int(os.environ.get("STAGE_TIMEOUT", "1200"))
 
@@ -55,23 +65,22 @@ UNSAFE = re.compile(
 
 
 def llm(user: str, system: str = SYS, max_tokens: int = STAGE_MAX_TOKENS,
-        temperature: float = 0.2, timeout: int = STAGE_TIMEOUT) -> str:
+        temperature: float = 0.2, timeout: int = STAGE_TIMEOUT, stage: str = "") -> str:
+    global LLM_CFG
+    if LLM_CFG is None:          # imported without main(): read the environment
+        LLM_CFG = llm_client.make_config(default_url=DEFAULT_URL)
     # qwen is a reasoning model; /no_think keeps the answer out of the chain-of-thought.
     # Harmless/ignored by other models, but only append it for qwen.
-    suffix = "\n\n/no_think" if "qwen" in LLM_MODEL.lower() else ""
-    body = json.dumps({"model": LLM_MODEL,
-                       "messages": [{"role": "system", "content": system},
-                                    {"role": "user", "content": user + suffix}],
-                       "max_tokens": max_tokens, "temperature": temperature,
-                       "stream": False}).encode()
-    headers = {"Content-Type": "application/json"}
-    if LLM_API_KEY:
-        headers["Authorization"] = "Bearer " + LLM_API_KEY
-    req = urllib.request.Request(LLM_URL, data=body, headers=headers)
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        d = json.load(r)
-    m = d["choices"][0]["message"]
-    return (m.get("content") or m.get("reasoning_content") or "").strip()
+    suffix = "\n\n/no_think" if "qwen" in LLM_CFG.model.lower() else ""
+    res = llm_client.chat([{"role": "system", "content": system},
+                           {"role": "user", "content": user + suffix}],
+                          LLM_CFG, max_tokens=max_tokens, temperature=temperature, timeout=timeout)
+    if USAGE is not None:
+        USAGE.add(res)
+    if res.truncated:
+        TRUNCATED.append(stage or "(single stage)")
+        sys.stderr.write(f"[multistage]   warning: answer cut at max_tokens={max_tokens}\n")
+    return res.text.strip()
 
 
 PLACEHOLDER = re.compile(r"\{\{.*?\}\}", re.DOTALL)
@@ -103,7 +112,7 @@ def run_stages(stages):
             prompt = ("Artifacts produced in the previous stage(s) — treat these as the attached "
                       "inputs this stage refers to:\n\n" + context +
                       "\n\n=== END OF PREVIOUS ARTIFACTS ===\n\nNow carry out this stage:\n\n" + prompt)
-        out = llm(prompt)
+        out = llm(prompt, stage=head)
         outputs.append((head, out))
         ran.append(head)
         context = out
@@ -208,9 +217,12 @@ def rubric(outputs):
 
 
 def evaluate(prompt_path: Path):
+    global USAGE
+    USAGE = llm_client.UsageMeter()
+    TRUNCATED.clear()
     md = prompt_path.read_text(encoding="utf-8")
     stages = parse_stages(md)
-    report = {"prompt": str(prompt_path), "n_stages": len(stages)}
+    report = {"prompt": str(prompt_path), "n_stages": len(stages), "model": LLM_CFG.describe() if LLM_CFG else LLM_MODEL}
     if not stages:
         # not a staged prompt — one-shot it
         out = llm(md)
@@ -235,12 +247,14 @@ def evaluate(prompt_path: Path):
         ext = None
         artifact = None
     report["rubric"] = rubric(outputs)
+    report["usage"] = USAGE.as_dict()
+    report["truncated_stages"] = list(TRUNCATED)
     # write artifact next to prompt
     if artifact:
         out_file = prompt_path.with_suffix("").parent / (prompt_path.stem + "." + ext)
         header = {"generated.lp": "% ", "generated.py": "# "}[ext]
         meta = (f"{header}Generated by multistage_eval from prompt {prompt_path.name}\n"
-                f"{header}model {LLM_MODEL}; multi-stage={report['mode']=='multi-stage'}; review before use.\n\n")
+                f"{header}model {LLM_CFG.model if LLM_CFG else LLM_MODEL}; multi-stage={report['mode']=='multi-stage'}; review before use.\n\n")
         out_file.write_text(meta + artifact, encoding="utf-8")
         report["artifact_file"] = str(out_file)
     report["raw_outputs"] = outputs
@@ -265,6 +279,9 @@ def status_of(r):
 def to_md(reports):
     out = io.StringIO()
     out.write("## Prompt → lemmatizer evaluation (multi-stage)\n\n")
+    models = sorted({r.get("model") for r in reports if r.get("model")})
+    if models:
+        out.write(f"Model: **{', '.join(models)}**\n\n")
     out.write("| Prompt | Mode | Artifact | Blocks | Validity | Status |\n|---|---|---|---|---|---|\n")
     for r in reports:
         k = r.get("artifact_kind", "none")
@@ -290,7 +307,17 @@ def to_md(reports):
             out.write(f"- clingo: {r['clingo']}\n")
         if r.get("python"):
             out.write(f"- python: {r['python']}\n")
-        out.write(f"- rubric: {r.get('rubric')}\n\n")
+        out.write(f"- rubric: {r.get('rubric')}\n")
+        u = r.get("usage") or {}
+        if u.get("calls"):
+            cost = f", ${u['cost_usd']}" if u.get("cost_usd") else ""
+            out.write(f"- LLM usage: {u['calls']} call(s), {u['prompt_tokens']}+{u['completion_tokens']} tokens{cost}\n")
+        if r.get("truncated_stages"):
+            out.write(f"- **answer cut at max_tokens in:** {', '.join(r['truncated_stages'])} "
+                      f"(raise STAGE_MAX_TOKENS; a SyntaxError here may be truncation, not the model)\n")
+        if r.get("error"):
+            out.write(f"- **error:** {r['error']}\n")
+        out.write("\n")
     out.write("\n_Multi-stage harness: stages are chained (ontology → use-cases → lemmatizer); the "
               "independent-evaluation stage is skipped. Python artifacts are syntax-checked, API-checked "
               "and safety-scanned; a best-effort import runs under `python -I`. Full accuracy scoring needs "
@@ -302,18 +329,15 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("prompts", nargs="+")
     ap.add_argument("--out", default=None)
-    ap.add_argument("--llm-url", default=None,
-                    help="OpenAI-compatible /chat/completions URL — switch to a more powerful model")
-    ap.add_argument("--llm-model", default=None, help="model id at that endpoint")
-    ap.add_argument("--api-key", default=None, help="Bearer API key (or set env LLM_API_KEY)")
+    llm_client.add_cli_args(ap)
     a = ap.parse_args()
-    global LLM_URL, LLM_MODEL, LLM_API_KEY
-    if a.llm_url:
-        LLM_URL = a.llm_url
-    if a.llm_model:
-        LLM_MODEL = a.llm_model
-    if a.api_key:
-        LLM_API_KEY = a.api_key
+    global LLM_CFG, LLM_MODEL
+    try:
+        LLM_CFG = llm_client.config_from_args(a, default_url=DEFAULT_URL)
+    except ValueError as e:
+        ap.error(str(e))
+    LLM_MODEL = LLM_CFG.model
+    sys.stderr.write(f"[multistage] model: {LLM_CFG.describe()}\n")
     reports = []
     for p in a.prompts:
         sys.stderr.write(f"[multistage] evaluating {p} ...\n"); sys.stderr.flush()
@@ -321,7 +345,8 @@ def main():
             reports.append(evaluate(Path(p)))
         except Exception as e:  # noqa: BLE001
             reports.append({"prompt": p, "mode": "error", "artifact_kind": "none",
-                            "artifact_blocks": 0, "error": str(e)})
+                            "artifact_blocks": 0, "error": str(e)[:300], "model": LLM_CFG.describe(),
+                            "usage": USAGE.as_dict() if USAGE else {}})
             sys.stderr.write(f"[multistage]   error: {e}\n")
     md = to_md(reports)
     if a.out:
